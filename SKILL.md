@@ -23,6 +23,21 @@ The taxonomy in `references/topics.yml` includes a `cross-functional consumption
 
 Existing community projects extract static skills/SOPs from the corpus (RefoundAI/lenny-skills, qingxuantang/Lennys-to-sop-and-skills, arjunlall/lenny-for-claude). None track knowledge decay. Advice from 2021 about virality, freemium, hiring, or PMF often disagrees with 2025-26 takes, especially where AI has reshaped workflow. This skill makes that decay legible.
 
+## Tone and depth (applies to every invocation)
+
+This skill answers whatever the user asks. There are no mandatory gates, no scope-confirmation announcements, no quick/full mode toggle, and no refuse-on-thin-input behavior. Internal cost decisions (when to run a web search vs. trust the existing topic file) stay opaque to the user — they get a useful answer, not a meta-conversation.
+
+For **specific** asks (a topic slug, a book, a guest, a clear-scoped question), produce a full synthesis: anchor in the relevant `knowledge/topics/<slug>.md` (or generate one), cite the same way the topic files do, surface obsolete/cautions where they apply.
+
+For **vague or thin** asks ("what about hiring?", "is OKRs still good?", "I'm thinking about pricing"):
+
+1. Pick the most likely interpretation, name it in one sentence ("Reading this as a question about hiring early-team in scale-early B2B SaaS"), and produce a **compact** answer — typically 4-8 sentences, citing 1-3 sources.
+2. List 2-4 suggested extensions or alternative interpretations as one-liners ("- you might also want: hiring-pms-as-non-pm", "- alternatively, are you thinking about *contractor* hiring?", etc.).
+
+Multi-facet output: if the active profile has ≥2 facets with weight ≥0.5 that are plausibly relevant to the question, answer through both lenses concisely (typically one short paragraph each) rather than picking one and dropping the others. Example: a user with active facets `founder/medtech` and `gtm-advisor` asking about hiring sees both a founder-stage view and a GTM-advisor view in the same response.
+
+Never refuse to answer on the grounds that input is thin. If the input is genuinely ambiguous between very different topics, ask a single short clarifying question alongside the compact-answer-on-most-likely interpretation — never instead of it.
+
 ## Inputs
 
 - **Corpus path** (default: `/Users/sergev/Downloads/lennys-newsletterpodcastdata-all/`). The corpus is structured as:
@@ -55,6 +70,28 @@ Existing community projects extract static skills/SOPs from the corpus (RefoundA
 ### Step 0: Read scaffolding (always)
 
 Read `references/topics.yml` and `references/books.yml`. If empty or stale (older than 30 days vs. corpus generated_at), run init.
+
+### Step 0.5: Auto-context (every invocation, silent)
+
+Before answering, run these in order. None of these steps are announced to the user unless they produce an actionable signal (drop processed, 2-week reminder, etc.).
+
+1. **Process any new manual drops.** Run `python3 scripts/process_drop.py --corpus <path>`. If new files were processed, mention it in one line ("Processed N new lennysdata.com transcripts before answering."). Otherwise silent. The processor exits in <100ms when the drop folder is empty, so this is cheap to run unconditionally.
+
+2. **Read `<corpus>/_state.json`.** Two checks:
+
+   - If `last_lennysdata_pull` is `null` or older than 14 days, AND `last_reminder_shown` is `null` or older than 7 days, surface a one-line passive notice in the response:
+
+     > _(Heads up: it's been N days since your last `lennysdata.com` pull. If you have a subscription, fresh clean transcripts there yield higher fidelity than YouTube auto-captions. Drop new transcripts in `<corpus>/_manual_drop/` and they'll be processed on next call.)_
+
+     Then update `last_reminder_shown` in `_state.json` to today's date. Suppress otherwise.
+
+   - `_state.json` may not exist on the very first run; treat absence as "needs reminder."
+
+3. **Load profile.** Run `python3 scripts/profile_load.py`. Output is `{}` if no profile exists yet — that's fine, treat the user as someone whose profile will accumulate over the next few invocations.
+
+4. **Read memory + decisions.** If memory file exists, read the most recent ~20 entries from `<home>/.lenny-actualize/memory/default.md`. If decisions file exists, read the most recent ~10 entries from `<home>/.lenny-actualize/decisions/default.md`. Use these to spot recurring themes, prior priorities, and any pending outcomes the user might be reporting back on.
+
+5. **Choose facets to answer through.** From the loaded profile, pick the facets with weight ≥0.5 that are plausibly relevant to the user's question. If ≥2 are relevant, the response will be multi-lens per the Tone-and-depth section. If 0 facets exist (cold profile), answer generically and use observations from this interaction to seed inference.
 
 ### Step 1: init (first run only, or on demand)
 
@@ -99,9 +136,14 @@ Then the agent does the LLM work, in this order:
 
 **Repeat-guest cross-check**: before finalizing, check `references/guests.yml`. If any source for this topic is from a guest with multiple episodes, run `python3 scripts/guest_tracker.py --diff <guest-slug>` and inspect whether the same guest's later episode contradicts their earlier claim. Same-guest stance changes are first-class inflection-point evidence and should be called out by name in the topic file.
 
-### Two-corpus signal weighting (How I AI as secondary signal)
+### Two-corpus signal weighting (auto-caption sources as secondary signal)
 
-When the corpus contains `04-how-i-ai/` rows (Claire Vo's How I AI podcast, YouTube auto-captions), they appear in the `topic_chunks.py` output alongside main-corpus excerpts. They have `kind: "how-i-ai"` and `transcript_quality: "auto"`.
+The corpus may contain rows from auto-caption sources alongside the primary human-edited corpus. Two are currently supported:
+
+- `04-how-i-ai/` — Claire Vo's How I AI podcast (YouTube auto-captions). `kind: "how-i-ai"`, `transcript_quality: "auto"`.
+- `06-lennys-podcast-yt/` — Lenny's main podcast YouTube channel (auto-captions). `kind: "lennys-podcast-yt"`, `transcript_quality: "auto"`. Used to fill the ~3-month gap where the licensed corpus archive lags behind YouTube publishing, plus any episodes the licensed archive has not yet indexed.
+
+The weighting policy below keys on `transcript_quality: "auto"`, so any new auto-caption corpus segment falls under the same treatment automatically.
 
 **Treat them differently** from primary-corpus claims:
 
@@ -194,15 +236,35 @@ Process:
 
 8. **CHANGELOG entry**: log `Cautions written: N`, `Cautions skipped to pending-review: M`. Track this separately from `Contradictions found` so caution-versus-decay drift can be inspected.
 
-### Step 6: How I AI fetch (refresh secondary corpus)
+### Step 6: YouTube auto-caption fetch (refresh secondary corpus)
 
 ```bash
-python3 scripts/fetch_how_i_ai.py --corpus <path> --skip-existing            # incremental
-python3 scripts/fetch_how_i_ai.py --corpus <path> --limit 10                  # bulk newest
+python3 scripts/fetch_how_i_ai.py --corpus <path> --skip-existing            # How I AI incremental
+python3 scripts/fetch_lenny_yt.py  --corpus <path> --skip-existing            # Lenny main pod (newer-than-corpus-max)
+python3 scripts/fetch_lenny_yt.py  --corpus <path> --since 2026-04-01         # Lenny main pod since date
 python3 scripts/fetch_how_i_ai.py --corpus <path> --newest-only --dry-run     # preview
 ```
 
-Pulls YouTube auto-captions from Claire Vo's How I AI channel into `<corpus>/04-how-i-ai/`. Re-run `parse_corpus.py` afterward so new rows appear in `_corpus_normalized.json`. Recommended cadence: weekly (How I AI publishes new episodes Mondays). Auto-captions are tagged `transcript_quality: auto` so the two-corpus weighting policy above applies.
+`fetch_how_i_ai.py` pulls Claire Vo's How I AI channel into `<corpus>/04-how-i-ai/`.
+
+`fetch_lenny_yt.py` pulls Lenny's main podcast YouTube channel into `<corpus>/06-lennys-podcast-yt/`. By default it operates in `--newer-than-corpus-max` mode: reads max date among `kind: podcast` rows in `01-start-here/index.json` and only fetches strictly-newer YouTube videos so it doesn't duplicate already-human-transcribed material. Override with `--since YYYY-MM-DD` or `--all` (the latter applies title-fuzzy + same-date dedup against the corpus).
+
+Re-run `parse_corpus.py` afterward so new rows appear in `_corpus_normalized.json`. Recommended cadence: weekly (Lenny publishes Thursdays, How I AI publishes Mondays). All output rows are tagged `transcript_quality: auto` so the two-corpus weighting policy above applies.
+
+### Step 6b: Manual drop processing (lennysdata.com clean transcripts)
+
+```bash
+python3 scripts/process_drop.py --corpus <path>            # process new drops
+python3 scripts/process_drop.py --corpus <path> --dry-run  # preview
+```
+
+Subscribers to `https://www.lennysdata.com/` get clean human-edited transcripts. There is no public API; the workflow is manual:
+
+1. User downloads transcripts and drops them in `<corpus>/_manual_drop/` as markdown files with the YAML frontmatter shown in `_manual_drop/_TEMPLATE.md` (auto-created on first run).
+2. `process_drop.py` validates frontmatter, routes files to `02-newsletters/` or `03-podcasts/` with `transcript_quality: human` and `source: lennysdata`, moves source files to `_manual_drop/processed/`, malformed files to `_manual_drop/_unparseable/` with `.error` notes, updates `<corpus>/_state.json.last_lennysdata_pull`.
+3. The next `parse_corpus.py` picks them up via the directory-scan fallback (no need to mutate the official `index.json`).
+
+The skill auto-runs `process_drop.py` at Step 0.5 of every invocation, so users do not need to remember to invoke it.
 
 ### Step 7: YouTube comment fetch (caution input)
 
@@ -214,6 +276,33 @@ python3 scripts/fetch_yt_comments.py --corpus <path> --from-corpus --include-len
 ```
 
 Fetches top 50 comments by likes via `youtube-comment-downloader` (no auth needed). Comments are written to `<corpus>/05-comments/<youtube-id>.json` with vote counts, author, text, and a `_index.json`. Used by Step 5b to generate cautions. Recommended cadence: fetch comments lazily per-topic (only when a topic processing run will read them) rather than bulk-fetching upfront, since comment counts change over time.
+
+### Step 8: Auto-update profile + memory + decisions (every invocation, end)
+
+After answering the user, the skill silently updates the auto-context layer. None of these steps are announced to the user (with the rare exception noted below).
+
+1. **Compute a profile inference patch.** From the user's input + the active facets used for the response + any new role/stage/domain signals observed:
+
+   - For each candidate facet (existing match, or new), build an observation entry: `{match: {role, domain}, label, current_focus, stage, tenure, observation: "<short evidence quote>"}`.
+   - Aggregate into a single JSON patch with `facet_observations`, optional `interest_tags_add`, `ongoing_initiatives_add`, `biases_add`. Keep observation strings short (1 sentence, quoting or close-paraphrasing the user).
+   - Apply: `echo '<json>' | python3 scripts/profile_update.py --json -`.
+   - The patch handler reinforces matching facets (weight + 0.1, capped at 1.0) or adds new facets at weight 0.2.
+
+2. **Append memory entry.** Always: `python3 scripts/memory_append.py --skill lenny-actualize --input "<one-line summary>" --facets "<active-facet-labels>" --surfaced "<comma-list of paths>" --themes "<themes>"`.
+
+3. **Append decisions entry only when divergence is detected.** Triggers: user pushes back ("no, I'd actually do X"), states a different course of action ("we're going to go with Y instead"), or otherwise indicates the recommendation isn't going to be followed.
+
+   - `python3 scripts/decisions_append.py --skill lenny-actualize --recommendation "<text>" --user-action "<text>" --reasoning "<text>"`.
+   - On a later invocation, if a recent unmuted decision lacks an outcome AND the user mentions related context (e.g., "the junior PM hire is going great"), write an outcome update: `python3 scripts/decisions_append.py --outcome-update --references <prior-timestamp> --outcome "<text>"`.
+
+4. **Decay sweep on a low cadence.** Every ~50 invocations (check `meta.inference_runs`), include `"decay": true` in the profile patch so stale facets shrink toward dormancy without ceremony.
+
+5. **Light user-facing aside, occasionally.** Every ~10 invocations, OR whenever a *new* facet is added, OR whenever a strong observation moves a facet's weight by ≥0.3, surface a single one-line aside at the end of the response. Examples:
+
+   > _(Noted that you also work on GTM advisory — refining your profile.)_
+   > _(Adding "non-fiction reader" to your interest tags.)_
+
+   Most invocations stay silent on profile updates. The aside should never lead the response.
 
 ## Context management rules (critical)
 
@@ -244,7 +333,11 @@ To use on another expert-interview corpus:
 - **Repeat-guest stance changes**: handled via `references/guests.yml` and `scripts/guest_tracker.py`. Currently 3 confirmed repeat guests (Elena Verna, Nikhyl Singhal, Claire Vo); rerun `--rebuild` after each parse_corpus to refresh.
 - **Community SOP/skill staleness**: handled via `references/external_skills.yml` and `scripts/find_external_overlap.py`. When an obsolete claim is written, the obsolete/<topic>.md file gets a footer linking community packs that cover the same topic so their maintainers can be notified.
 - **Reader-mode export**: handled via `scripts/export_digest.py`.
-- **Last-3-months newsletter gap**: `parse_corpus.py` warns when the corpus max date is more than 90 days behind today. Currently within window; revisit if the user runs the skill against an older snapshot.
+- **Last-3-months newsletter gap**: `parse_corpus.py` warns when the corpus max date is more than 90 days behind today. Two ways to close the gap: (1) `fetch_lenny_yt.py` pulls Lenny's main podcast YouTube channel for newer-than-corpus episodes (auto-caption fidelity); (2) lennysdata.com manual-drop path (`_manual_drop/` + `process_drop.py`) brings in clean human-edited transcripts for subscribers. Step 0.5 surfaces a 14-day reminder if the manual path has been idle.
 - **Newsletter `post_url` reuse**: when citing a newsletter, prefer the `post_url` field from `_corpus_normalized.json` over a hand-built URL, since post slugs sometimes diverge from filenames.
 - **How I AI as AI-era early-signal corpus**: handled via `scripts/fetch_how_i_ai.py` and the "Two-corpus signal weighting" policy. Auto-captions are lower fidelity than human-edited Lenny transcripts, so they reinforce existing decay signals or flag warnings, but never trigger obsolete entries on their own.
+- **Lenny YouTube auto-caption corpus**: handled via `scripts/fetch_lenny_yt.py` and the same "Two-corpus signal weighting" policy. Default mode `--newer-than-corpus-max` avoids duplicating already-human-transcribed material in `03-podcasts/`. Each fetched markdown carries a `dedup_basis` frontmatter line for audit.
+- **lennysdata.com clean transcripts (manual)**: subscribers can drop fresh transcripts into `<corpus>/_manual_drop/`; `scripts/process_drop.py` (auto-run at every Step 0.5) routes them into `02-newsletters/`/`03-podcasts/` with `transcript_quality: human` and `source: lennysdata`. `parse_corpus.py` picks them up via a directory-scan fallback. After 14 days idle, the skill surfaces a one-line reminder once per ~7 days.
+- **Auto-inferred multi-faceted profile**: handled via `scripts/profile_load.py` + `scripts/profile_update.py` + `references/profile_schema.yml`. The skill never asks the user to set up a profile; it accumulates one from observed signals over time. Multi-facet outputs surface when ≥2 facets carry weight ≥0.5 and are plausibly relevant.
+- **Auto memory + decisions logs**: handled via `scripts/memory_append.py` and `scripts/decisions_append.py`. Memory writes after every invocation; decisions write when the skill detects a divergence between its recommendation and the user's stated course. Outcome updates are written as new entries that reference the prior decision (append-only).
 - **Audience-pushback as caution signal**: handled via `scripts/fetch_yt_comments.py` and Step 5b. High-vote pushback comments produce `cautions/<topic>.md` flags for advice that is privilege-blind, factually wrong, or unsafe to generalize. Distinct from `obsolete/` (decay over time) since cautions surface even when there's no temporal contradiction.
