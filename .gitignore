@@ -1,0 +1,20 @@
+# Derived data — regenerate via `python3 scripts/parse_corpus.py --corpus <path>`
+references/_corpus_normalized.json
+
+# Generated digest exports
+knowledge/DIGEST_*.md
+
+# OS / editor cruft
+.DS_Store
+**/.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/

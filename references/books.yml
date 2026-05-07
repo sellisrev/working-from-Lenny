@@ -1,0 +1,342 @@
+# books.yml: non-fiction books referenced in the Lenny corpus.
+#
+# Seeded from podcast guest authorship + verified corpus mentions (grep counts
+# included). Books not authored by guests but heavily cited by Lenny himself
+# (Cagan's Inspired, Kahneman's Thinking Fast and Slow, etc.) are also seeded.
+#
+# Mentions are best-effort: run `python3 scripts/book_mentions.py --book <slug>`
+# to get the canonical, dated mention list before generating a book digest.
+#
+# Schema:
+#
+# books:
+#   <slug>:
+#     title: "Full Title"
+#     author: "Author Name"
+#     aliases:               # alternate titles or distinctive phrases
+#     mentioned_in: []       # populated lazily
+#     domain: product | growth | leadership | strategy | writing | psychology | business | other
+#     guest_authored: true | false   # whether the author appears as a podcast guest
+#     verified_corpus_mentions: int  # rough grep count at seed time
+#     notes: optional
+#
+# Book digests live in knowledge/books/<slug>.md and are generated on demand.
+
+books:
+  inspired:
+    title: "Inspired: How to Create Tech Products Customers Love"
+    author: "Marty Cagan"
+    aliases:
+      - "Cagan"
+    domain: product
+    guest_authored: true
+    verified_corpus_mentions: 0
+    notes: "Marty Cagan appears as podcast guest (marty-cagan.md). Foundational PM text; strong AI-era decay candidate around discovery vs vibe-coding."
+
+  the-mom-test:
+    title: "The Mom Test"
+    author: "Rob Fitzpatrick"
+    aliases:
+      - "Mom Test"
+    domain: product
+    guest_authored: false
+    verified_corpus_mentions: 3
+    notes: "Customer-interview classic; commonly recommended by guests."
+
+  hooked:
+    title: "Hooked: How to Build Habit-Forming Products"
+    author: "Nir Eyal"
+    aliases:
+      - "Hooked"
+    domain: product
+    guest_authored: true
+    verified_corpus_mentions: 7
+    notes: "Author Nir Eyal is podcast guest (nir-eyal.md). Habit-forming framework."
+
+  indistractable:
+    title: "Indistractable: How to Control Your Attention and Choose Your Life"
+    author: "Nir Eyal"
+    aliases:
+      - "Indistractable"
+    domain: psychology
+    guest_authored: true
+    verified_corpus_mentions: 2
+    notes: "Same author as Hooked; focus and attention."
+
+  thinking-in-bets:
+    title: "Thinking in Bets: Making Smarter Decisions When You Don't Have All the Facts"
+    author: "Annie Duke"
+    aliases:
+      - "Thinking in Bets"
+      - "Thinking In Bets"
+    domain: psychology
+    guest_authored: true
+    verified_corpus_mentions: 6
+    notes: "Author Annie Duke is podcast guest. Decision-making under uncertainty."
+
+  quit:
+    title: "Quit: The Power of Knowing When to Walk Away"
+    author: "Annie Duke"
+    aliases:
+      - '"Quit," by Annie Duke'
+      - "Knowing When to Walk Away"
+    domain: psychology
+    guest_authored: true
+    verified_corpus_mentions: 17
+    notes: "Same author as Thinking in Bets. Heavy mentions due to recency. Watch for shallow Quit-substring false positives."
+
+  thinking-fast-and-slow:
+    title: "Thinking, Fast and Slow"
+    author: "Daniel Kahneman"
+    aliases:
+      - "Thinking Fast and Slow"
+      - "Kahneman"
+    domain: psychology
+    guest_authored: false
+    verified_corpus_mentions: 0
+    notes: "Foundational behavioral economics text; cited across PM literature."
+
+  working-backwards:
+    title: "Working Backwards: Insights, Stories, and Secrets from Inside Amazon"
+    author: "Bill Carr (and Colin Bryar)"
+    aliases:
+      - "Working Backwards"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 6
+    notes: "Author Bill Carr is podcast guest. Amazon's working-backwards process."
+
+  managers-path:
+    title: "The Manager's Path: A Guide for Tech Leaders Navigating Growth and Change"
+    author: "Camille Fournier"
+    aliases:
+      - "The Manager's Path"
+      - "Managers Path"
+    domain: leadership
+    guest_authored: true
+    verified_corpus_mentions: 0
+    notes: "Author Camille Fournier is podcast guest (camille-fournier.md)."
+
+  sprint:
+    title: "Sprint: How to Solve Big Problems and Test New Ideas in Just Five Days"
+    author: "Jake Knapp"
+    aliases:
+      - "Design Sprint"
+    domain: product
+    guest_authored: true
+    verified_corpus_mentions: 0
+    notes: "Jake Knapp is podcast guest (jake-knapp--john-zeratsky.md). Design sprint methodology. Inflection: Foundation Sprint released later (newsletter 2025)."
+
+  make-time:
+    title: "Make Time: How to Focus on What Matters Every Day"
+    author: "Jake Knapp & John Zeratsky"
+    aliases:
+      - "Make Time"
+    domain: psychology
+    guest_authored: true
+    verified_corpus_mentions: 6
+
+  radical-candor:
+    title: "Radical Candor: Be a Kick-Ass Boss Without Losing Your Humanity"
+    author: "Kim Scott"
+    aliases:
+      - "Radical Candor"
+    domain: leadership
+    guest_authored: true
+    verified_corpus_mentions: 18
+    notes: "Author Kim Scott is podcast guest (kim-scott.md). Highest verified mentions of any seeded book."
+
+  seven-powers:
+    title: "7 Powers: The Foundations of Business Strategy"
+    author: "Hamilton Helmer"
+    aliases:
+      - "7 Powers"
+      - "Seven Powers"
+    domain: strategy
+    guest_authored: true
+    verified_corpus_mentions: 8
+    notes: "Author Hamilton Helmer is podcast guest (hamilton-helmer.md)."
+
+  good-strategy-bad-strategy:
+    title: "Good Strategy / Bad Strategy: The Difference and Why It Matters"
+    author: "Richard Rumelt"
+    aliases:
+      - "Good Strategy"
+      - "Good Strategy/Bad Strategy"
+      - "Rumelt"
+    domain: strategy
+    guest_authored: true
+    verified_corpus_mentions: 14
+    notes: "Author Richard Rumelt is podcast guest (richard-rumelt.md)."
+
+  crossing-the-chasm:
+    title: "Crossing the Chasm"
+    author: "Geoffrey Moore"
+    aliases:
+      - "Crossing the Chasm"
+      - "Geoffrey Moore"
+    domain: strategy
+    guest_authored: true
+    verified_corpus_mentions: 8
+
+  storyworthy:
+    title: "Storyworthy: Engage, Teach, Persuade, and Change Your Life through the Power of Storytelling"
+    author: "Matthew Dicks"
+    aliases:
+      - "Storyworthy"
+    domain: writing
+    guest_authored: true
+    verified_corpus_mentions: 6
+
+  lean-startup:
+    title: "The Lean Startup"
+    author: "Eric Ries"
+    aliases:
+      - "The Lean Startup"
+      - "Lean Startup methodology"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 8
+    notes: "Author Eric Ries is podcast guest (eric-ries.md). Strong AI-era decay candidate: MVP/build-measure-learn pre-AI vs AI-prototyping era."
+
+  hacking-growth:
+    title: "Hacking Growth: How Today's Fastest-Growing Companies Drive Breakout Success"
+    author: "Sean Ellis & Morgan Brown"
+    aliases:
+      - "Hacking Growth"
+    domain: growth
+    guest_authored: true
+    verified_corpus_mentions: 2
+
+  challenger-sale:
+    title: "The Challenger Sale: Taking Control of the Customer Conversation"
+    author: "Matt Dixon"
+    aliases:
+      - "The Challenger Sale"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 3
+
+  jolt-effect:
+    title: "The JOLT Effect: How High Performers Overcome Customer Indecision"
+    author: "Matt Dixon"
+    aliases:
+      - "The JOLT Effect"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 0
+
+  founding-sales:
+    title: "Founding Sales"
+    author: "Pete Kazanjy"
+    aliases:
+      - "Founding Sales"
+      - "founding-sales"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 8
+
+  pattern-breakers:
+    title: "Pattern Breakers"
+    author: "Mike Maples Jr."
+    aliases:
+      - "Pattern Breakers"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 1
+
+  never-search-alone:
+    title: "Never Search Alone: The Job Seeker's Playbook"
+    author: "Phyl Terry"
+    aliases:
+      - "Never Search Alone"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 2
+
+  dynamic-reteaming:
+    title: "Dynamic Reteaming: The Art and Wisdom of Changing Teams"
+    author: "Heidi Helfand"
+    aliases:
+      - "Dynamic Reteaming"
+    domain: leadership
+    guest_authored: true
+    verified_corpus_mentions: 1
+
+  pathless-path:
+    title: "The Pathless Path: Imagining a New Story for Work and Life"
+    author: "Paul Millerd"
+    aliases:
+      - "Pathless Path"
+    domain: psychology
+    guest_authored: true
+    verified_corpus_mentions: 3
+
+  seven-rules-of-power:
+    title: "7 Rules of Power"
+    author: "Jeffrey Pfeffer"
+    aliases:
+      - "7 Rules of Power"
+    domain: leadership
+    guest_authored: true
+    verified_corpus_mentions: 0
+
+  category-pirates:
+    title: "Play Bigger / Niche Down / Category Pirates"
+    author: "Christopher Lochhead"
+    aliases:
+      - "Play Bigger"
+      - "Niche Down"
+      - "Category Pirates"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 3
+    notes: "Multi-book author; treat collectively."
+
+  leaders-journey:
+    title: "The Leader's Journey"
+    author: "Donna Lichaw"
+    aliases:
+      - "The Leader's Journey"
+    domain: leadership
+    guest_authored: true
+    verified_corpus_mentions: 0
+
+  hard-thing-about-hard-things:
+    title: "The Hard Thing About Hard Things"
+    author: "Ben Horowitz"
+    aliases:
+      - "The Hard Thing About Hard Things"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 0
+    notes: "Author Ben Horowitz is podcast guest (ben-horowitz.md)."
+
+  what-you-do-is-who-you-are:
+    title: "What You Do Is Who You Are"
+    author: "Ben Horowitz"
+    aliases:
+      - "What You Do Is Who You Are"
+    domain: leadership
+    guest_authored: true
+    verified_corpus_mentions: 0
+
+  the-cold-start-problem:
+    title: "The Cold Start Problem"
+    author: "Andrew Chen"
+    aliases:
+      - "Cold Start Problem"
+    domain: growth
+    guest_authored: false
+    verified_corpus_mentions: 0
+    notes: "Andrew Chen does not appear as direct podcast guest in this corpus snapshot but is heavily cited."
+
+  shape-up:
+    title: "Shape Up"
+    author: "Ryan Singer"
+    aliases:
+      - "Shape Up"
+    domain: product
+    guest_authored: true
+    verified_corpus_mentions: 0
+    notes: "Author Ryan Singer is podcast guest (ryan-singer.md)."

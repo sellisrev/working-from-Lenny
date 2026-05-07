@@ -1,0 +1,1362 @@
+# topics.yml: fine-grained topic taxonomy for the Lenny corpus.
+#
+# Auto-derived from _corpus_normalized.json titles + descriptions on first run.
+# Schema:
+#
+# topics:
+#   <slug>:
+#     display_name: Human-readable name
+#     seed_keywords:           # used for body-paragraph matching in topic_chunks.py
+#       - keyword 1
+#     related_tags:            # broad index.json tags this topic falls under
+#       - growth
+#     notes: optional free-form notes on scope
+#
+# After editing, run `python3 scripts/list_topics.py` to validate match counts.
+# Topics with 0 matches are kept (matcher falls back to body scan automatically).
+# Topics with very high match counts (>50) are likely too broad and should be split.
+
+topics:
+  # ------------------------------------------------------------------
+  # AI ERA (highest decay risk; weight web search toward last 18 months)
+  # ------------------------------------------------------------------
+
+  ai-pm-skills:
+    display_name: "PM skills in the AI era"
+    seed_keywords:
+      - "AI product sense"
+      - "PMs are best positioned"
+      - "AI changes must-have skills"
+      - "AI-powered full stack builders"
+      - "AI changes"
+      - "PM in AI"
+    related_tags: [ai, product-management, career]
+
+  ai-replacing-pms:
+    display_name: "How AI is changing or replacing the PM role"
+    seed_keywords:
+      - "AI replacing product managers"
+      - "AI replace"
+      - "PMs are in trouble"
+      - "AI will impact product management"
+      - "half of product managers"
+    related_tags: [ai, career, product-management]
+
+  vibe-coding:
+    display_name: "Vibe coding and PM prototyping with AI"
+    seed_keywords:
+      - "vibe coding"
+      - "vibe coder"
+      - "Claude Code"
+      - "Cursor"
+      - "prototyping with AI"
+      - "non-technical PM"
+    related_tags: [ai, engineering]
+
+  ai-prototyping:
+    display_name: "AI prototyping for product managers"
+    seed_keywords:
+      - "AI prototyping"
+      - "prototype with AI"
+      - "AI prototypes"
+    related_tags: [ai, product-management]
+
+  evals-for-ai-products:
+    display_name: "Building evaluation systems for AI products"
+    seed_keywords:
+      - "AI evals"
+      - "eval system"
+      - "vibe check"
+      - "guide to evals"
+      - "writing AI evals"
+    related_tags: [ai, engineering]
+
+  prompt-engineering:
+    display_name: "Prompt engineering techniques"
+    seed_keywords:
+      - "prompt engineering"
+      - "prompt engineering techniques"
+    related_tags: [ai]
+
+  ai-pricing:
+    display_name: "Monetizing and pricing AI features"
+    seed_keywords:
+      - "monetize your AI"
+      - "AI feature pricing"
+      - "pricing your AI product"
+      - "AI features"
+    related_tags: [pricing, ai]
+
+  ai-adoption-at-company:
+    display_name: "Accelerating AI adoption at your company"
+    seed_keywords:
+      - "AI adoption"
+      - "accelerate AI"
+      - "everyone using Claude Code"
+      - "team prototyping with AI"
+    related_tags: [ai, organization]
+
+  ai-coding-agents:
+    display_name: "Autonomous AI coding agents (Devin, Codex, Cursor, Windsurf)"
+    seed_keywords:
+      - "Devin"
+      - "Codex"
+      - "Windsurf"
+      - "AI software engineer"
+      - "AI code editor"
+      - "junior engineers"
+    related_tags: [ai, engineering]
+
+  ai-search-aeo:
+    display_name: "AI search and answer-engine optimization"
+    seed_keywords:
+      - "AEO"
+      - "ChatGPT to recommend"
+      - "AI Mode"
+      - "AI Overviews"
+      - "AI-powered search"
+      - "rethinking SEO"
+    related_tags: [ai, growth]
+
+  ai-product-lifecycle:
+    display_name: "AI product development lifecycle"
+    seed_keywords:
+      - "different development lifecycle"
+      - "AI product development"
+      - "AI development lifecycle"
+    related_tags: [ai, engineering]
+
+  ai-data-as-moat:
+    display_name: "Data as the moat for AI products"
+    seed_keywords:
+      - "AI products are all about the data"
+      - "AI moats"
+      - "data moat"
+    related_tags: [ai, strategy]
+
+  chatgpt-apps-platform:
+    display_name: "ChatGPT apps as distribution channel"
+    seed_keywords:
+      - "ChatGPT apps"
+      - "ChatGPT distribution"
+      - "Inside ChatGPT"
+    related_tags: [ai, growth]
+
+  ai-org-restructuring:
+    display_name: "Restructuring orgs for the AI era"
+    seed_keywords:
+      - "restructured Airtable"
+      - "death of org charts"
+      - "agents will outnumber"
+      - "AI-native enterprise"
+      - "AI-native"
+    related_tags: [ai, organization, leadership]
+
+  ai-supermanager:
+    display_name: "Becoming an AI-augmented supermanager"
+    seed_keywords:
+      - "supermanager with AI"
+      - "AI agents"
+      - "make product management fun again with AI"
+    related_tags: [ai, leadership]
+
+  ai-developer-productivity:
+    display_name: "Measuring AI developer productivity"
+    seed_keywords:
+      - "AI developer productivity"
+      - "AI productivity survey"
+      - "AI tools are overdelivering"
+    related_tags: [ai, engineering, analytics]
+
+  ai-second-brain:
+    display_name: "Personal AI copilots and second brains"
+    seed_keywords:
+      - "AI copilot"
+      - "PM second brain"
+      - "personal AI"
+      - "ChatGPT in your PM work"
+      - "Perplexity in your PM work"
+    related_tags: [ai, product-management]
+
+  ai-state-of-the-union:
+    display_name: "AI state of the union and inflection points"
+    seed_keywords:
+      - "AI state of the union"
+      - "inflection point"
+      - "real AI boom"
+      - "AI era"
+    related_tags: [ai, strategy]
+
+  # ------------------------------------------------------------------
+  # GROWTH
+  # ------------------------------------------------------------------
+
+  product-market-fit:
+    display_name: "Finding and recognizing product-market fit"
+    seed_keywords:
+      - "product-market fit"
+      - "product/market fit"
+      - "PMF"
+      - "product market fit"
+    related_tags: [startups, product-management]
+
+  growth-loops:
+    display_name: "Growth loops and flywheels"
+    seed_keywords:
+      - "growth loop"
+      - "flywheel"
+      - "magic loop"
+      - "magical growth loops"
+      - "racecar growth"
+    related_tags: [growth]
+
+  virality:
+    display_name: "Increasing virality and consumer-app virality"
+    seed_keywords:
+      - "virality"
+      - "viral"
+      - "go viral"
+      - "consistently go viral"
+      - "viral consumer app"
+    related_tags: [growth, b2c]
+
+  north-star-metric:
+    display_name: "Choosing a north star metric"
+    seed_keywords:
+      - "north star"
+      - "north-star metric"
+    related_tags: [analytics, growth]
+
+  activation-metric:
+    display_name: "Activation metrics and onboarding conversion"
+    seed_keywords:
+      - "activation metric"
+      - "activation rate"
+      - "mastering onboarding"
+    related_tags: [analytics, growth]
+
+  retention:
+    display_name: "Improving product retention"
+    seed_keywords:
+      - "retention"
+      - "increase retention"
+      - "increase your retention"
+      - "good retention"
+      - "Duolingo streaks"
+    related_tags: [analytics, growth]
+
+  cohort-retention:
+    display_name: "Cohort retention measurement"
+    seed_keywords:
+      - "cohort retention"
+      - "measure cohort"
+    related_tags: [analytics]
+
+  conversion-rate:
+    display_name: "Conversion rate optimization"
+    seed_keywords:
+      - "increasing conversion"
+      - "conversion rates"
+      - "behavioral science"
+      - "free-to-paid conversion"
+      - "waitlist conversion"
+    related_tags: [analytics, growth]
+
+  churn-and-payback:
+    display_name: "Churn rate and payback period"
+    seed_keywords:
+      - "monthly churn"
+      - "good churn"
+      - "payback period"
+    related_tags: [analytics]
+
+  paid-acquisition:
+    display_name: "Paid acquisition and performance marketing"
+    seed_keywords:
+      - "performance marketing"
+      - "paid growth"
+      - "billboard campaign"
+      - "paid acquisition"
+    related_tags: [growth, b2c]
+
+  seo-strategy:
+    display_name: "SEO strategy in the post-AI era"
+    seed_keywords:
+      - "SEO"
+      - "internal linking"
+      - "winning at SEO"
+      - "SEO experiments"
+    related_tags: [growth]
+
+  content-driven-growth:
+    display_name: "Content-driven growth"
+    seed_keywords:
+      - "content-driven growth"
+      - "content marketing"
+    related_tags: [growth]
+
+  referrals-program:
+    display_name: "Building a referrals program"
+    seed_keywords:
+      - "referrals program"
+      - "word of mouth"
+      - "drive word of mouth"
+    related_tags: [growth]
+
+  product-led-growth:
+    display_name: "Product-led growth motion"
+    seed_keywords:
+      - "product-led growth"
+      - "PLG"
+      - "PLG motion"
+      - "self-serve product"
+    related_tags: [growth, go-to-market]
+
+  product-led-marketing:
+    display_name: "Product-led marketing"
+    seed_keywords:
+      - "product-led marketing"
+    related_tags: [growth]
+
+  demand-driving-supply:
+    display_name: "Demand-driving-supply growth loop"
+    seed_keywords:
+      - "demand driving supply"
+      - "demand-driving-supply"
+    related_tags: [growth]
+
+  distribution-as-moat:
+    display_name: "Distribution as the most important moat"
+    seed_keywords:
+      - "distribution advantage"
+      - "distribution has become"
+      - "distribution moat"
+    related_tags: [strategy, growth]
+
+  ecosystem-channel:
+    display_name: "Ecosystem as a growth channel"
+    seed_keywords:
+      - "ecosystem"
+      - "ecosystem growth channel"
+    related_tags: [growth]
+
+  atomic-network:
+    display_name: "Atomic networks and network effects"
+    seed_keywords:
+      - "atomic network"
+      - "network effects"
+    related_tags: [growth]
+
+  hierarchy-of-engagement:
+    display_name: "Hierarchy of engagement (Sarah Tavel)"
+    seed_keywords:
+      - "hierarchy of engagement"
+    related_tags: [growth]
+
+  hidden-growth-opportunities:
+    display_name: "Finding hidden growth opportunities in your product"
+    seed_keywords:
+      - "hidden growth opportunities"
+      - "accelerate growth by focusing"
+      - "features you already have"
+    related_tags: [growth]
+
+  # ------------------------------------------------------------------
+  # MARKETPLACES
+  # ------------------------------------------------------------------
+
+  marketplace-cold-start:
+    display_name: "Marketplace cold start (chicken-and-egg)"
+    seed_keywords:
+      - "marketplace"
+      - "chicken and egg"
+      - "chicken-and-egg"
+      - "two-sided"
+      - "kickstart and scale a marketplace"
+    related_tags: [growth, b2c]
+
+  marketplace-quality:
+    display_name: "Marketplace quality and trust"
+    seed_keywords:
+      - "marketplace trust"
+      - "build trust in a marketplace"
+      - "maintaining quality"
+    related_tags: [b2c]
+
+  marketplace-failure:
+    display_name: "Why marketplaces fail"
+    seed_keywords:
+      - "why marketplaces fail"
+      - "marketplaces fail"
+    related_tags: [b2c]
+
+  marketplace-metrics:
+    display_name: "Marketplace metrics"
+    seed_keywords:
+      - "marketplace metrics"
+    related_tags: [analytics]
+
+  marketplace-city-expansion:
+    display_name: "Marketplace city-by-city expansion"
+    seed_keywords:
+      - "city expansion"
+      - "marketplace city"
+    related_tags: [growth]
+
+  # ------------------------------------------------------------------
+  # PRICING / MONETIZATION
+  # ------------------------------------------------------------------
+
+  freemium-vs-trial:
+    display_name: "Freemium vs free trial"
+    seed_keywords:
+      - "freemium"
+      - "free trial"
+      - "freemium vs trial"
+    related_tags: [pricing, go-to-market]
+
+  saas-pricing:
+    display_name: "SaaS pricing"
+    seed_keywords:
+      - "SaaS pricing"
+      - "Pricing your SaaS"
+      - "willingness-to-pay"
+      - "willingness to pay"
+    related_tags: [pricing]
+
+  consumer-subscription:
+    display_name: "Consumer subscription growth and metrics"
+    seed_keywords:
+      - "consumer subscription"
+      - "subscription business"
+      - "subscription metrics"
+      - "subscription value loop"
+    related_tags: [pricing, b2c]
+
+  take-rate:
+    display_name: "Choosing a marketplace take rate"
+    seed_keywords:
+      - "take rate"
+      - "choosing a take rate"
+    related_tags: [pricing]
+
+  # ------------------------------------------------------------------
+  # B2B / SALES / GTM
+  # ------------------------------------------------------------------
+
+  b2b-pmf:
+    display_name: "Finding product-market fit in B2B"
+    seed_keywords:
+      - "product-market fit in B2B"
+      - "PMF in B2B"
+      - "B2B startup idea"
+      - "B2B PMF"
+    related_tags: [b2b, startups]
+    notes: "Dropped bare 'B2B' seed - far too broad; required PMF context."
+
+  b2b-first-customers:
+    display_name: "Finding the first 10 B2B customers"
+    seed_keywords:
+      - "first 10 B2B"
+      - "first ten customers"
+      - "first ten B2B"
+      - "fastest growing B2B"
+    related_tags: [b2b, go-to-market]
+
+  enterprise-sales-playbook:
+    display_name: "Enterprise sales playbook ($1M to $10M ARR)"
+    seed_keywords:
+      - "enterprise sales playbook"
+      - "Sell the alpha"
+      - "killer sales pitch"
+    related_tags: [b2b, go-to-market]
+
+  founder-led-sales:
+    display_name: "Founder-led sales"
+    seed_keywords:
+      - "founder-led sales"
+      - "founder led sales"
+    related_tags: [b2b, startups]
+
+  bottom-up-saas:
+    display_name: "Bottom-up SaaS metrics and motion"
+    seed_keywords:
+      - "bottom-up SaaS"
+      - "bottom-up self-serve"
+      - "Layering sales onto a bottom-up"
+    related_tags: [b2b, analytics]
+
+  gtm-motions:
+    display_name: "GTM motions across B2B SaaS"
+    seed_keywords:
+      - "GTM motion"
+      - "GTM motions"
+      - "go-to-market motion"
+      - "world-class GTM"
+    related_tags: [go-to-market]
+
+  positioning:
+    display_name: "Product positioning and segmentation"
+    seed_keywords:
+      - "positioning"
+      - "product positioning"
+      - "category creation"
+    related_tags: [strategy, go-to-market]
+
+  jobs-to-be-done:
+    display_name: "Jobs-to-be-done framework"
+    seed_keywords:
+      - "JTBD"
+      - "jobs to be done"
+      - "jobs-to-be-done"
+    related_tags: [strategy, product-management]
+
+  icp-identification:
+    display_name: "Identifying ideal customer profile (ICP)"
+    seed_keywords:
+      - "ideal customer profile"
+      - "ICP"
+    related_tags: [b2b, go-to-market]
+
+  scaling-b2b-growth:
+    display_name: "Scaling B2B growth engine"
+    seed_keywords:
+      - "B2B growth engine"
+      - "scaling your B2B"
+    related_tags: [b2b, growth]
+
+  category-creation:
+    display_name: "Category creation and category pirates"
+    seed_keywords:
+      - "category creation"
+      - "category pirate"
+      - "Play Bigger"
+    related_tags: [strategy, go-to-market]
+
+  pr-and-press:
+    display_name: "Getting press and PR for your product"
+    seed_keywords:
+      - "press for your product"
+      - "guide to PR"
+      - "navigating comms"
+    related_tags: [go-to-market]
+
+  product-hunt-launch:
+    display_name: "Launching on Product Hunt"
+    seed_keywords:
+      - "Product Hunt"
+      - "launch on Product Hunt"
+    related_tags: [go-to-market]
+
+  # ------------------------------------------------------------------
+  # PRODUCT STRATEGY
+  # ------------------------------------------------------------------
+
+  product-strategy:
+    display_name: "Product strategy frameworks"
+    seed_keywords:
+      - "product strategy"
+      - "winning product strategy"
+      - "operator's guide to product strategy"
+      - "strategy blocks"
+    related_tags: [strategy]
+
+  good-strategy-rumelt:
+    display_name: "Good Strategy / Bad Strategy"
+    seed_keywords:
+      - "Good Strategy"
+      - "Rumelt"
+      - "5 essential questions"
+    related_tags: [strategy]
+
+  seven-powers:
+    display_name: "7 Powers and business strategy"
+    seed_keywords:
+      - "7 Powers"
+      - "Hamilton Helmer"
+      - "business strategy"
+    related_tags: [strategy]
+
+  crossing-the-chasm:
+    display_name: "Crossing the chasm and beachhead"
+    seed_keywords:
+      - "crossing the chasm"
+      - "Geoffrey Moore"
+      - "beachhead"
+    related_tags: [strategy, go-to-market]
+
+  pivots-art:
+    display_name: "The art of the pivot"
+    seed_keywords:
+      - "pivot"
+      - "art of the pivot"
+    related_tags: [strategy, startups]
+
+  pattern-breakers:
+    display_name: "Pattern Breakers / breakthrough startup ideas"
+    seed_keywords:
+      - "Pattern Breakers"
+      - "breakthrough startup"
+    related_tags: [startups]
+
+  strategic-narrative:
+    display_name: "Strategic narrative for product"
+    seed_keywords:
+      - "strategic narrative"
+      - "winning narrative"
+    related_tags: [strategy]
+
+  mission-vision-strategy:
+    display_name: "Mission Vision Strategy Goals Roadmap chain"
+    seed_keywords:
+      - "Mission → Vision → Strategy"
+      - "Mission, Vision, Strategy"
+      - "vision into goals"
+      - "compelling product vision"
+    related_tags: [strategy]
+    notes: "Narrow to the explicit phrase-chain so it doesn't match every doc that says 'mission' or 'vision'."
+
+  saying-no:
+    display_name: "Saying no and prioritization restraint"
+    seed_keywords:
+      - "Saying no"
+      - "On saying no"
+    related_tags: [product-management]
+
+  defending-big-bets:
+    display_name: "Defending your big bets"
+    seed_keywords:
+      - "Defending your big bets"
+      - "big bets"
+    related_tags: [strategy, leadership]
+
+  # ------------------------------------------------------------------
+  # PRODUCT DEVELOPMENT
+  # ------------------------------------------------------------------
+
+  prioritization-frameworks:
+    display_name: "Prioritization frameworks (RICE, DRICE, etc.)"
+    seed_keywords:
+      - "DRICE"
+      - "RICE"
+      - "prioritization framework"
+      - "prioritizing"
+    related_tags: [product-management]
+
+  velocity-core4:
+    display_name: "Product velocity and Core 4 metrics"
+    seed_keywords:
+      - "Core 4"
+      - "team velocity"
+      - "product velocity"
+      - "increasing team velocity"
+      - "high-intensity culture"
+    related_tags: [analytics, engineering]
+
+  ship-like-startup:
+    display_name: "Shipping fast like a startup"
+    seed_keywords:
+      - "ship like a startup"
+      - "ship a feature every week"
+      - "Velocity over everything"
+    related_tags: [engineering, leadership]
+
+  experimentation:
+    display_name: "Experimentation and A/B testing culture"
+    seed_keywords:
+      - "experimentation"
+      - "A/B testing"
+      - "AB testing"
+      - "ultimate guide to A/B"
+    related_tags: [analytics]
+
+  minimum-lovable-product:
+    display_name: "Minimum lovable products"
+    seed_keywords:
+      - "minimum lovable product"
+      - "MLP"
+      - "lovable product"
+    related_tags: [product-management]
+
+  continuous-discovery:
+    display_name: "Continuous discovery and customer interviews"
+    seed_keywords:
+      - "continuous discovery"
+      - "interview customers"
+      - "user research"
+      - "UX research"
+    related_tags: [product-management, design]
+
+  opportunity-solution-tree:
+    display_name: "Opportunity solution tree"
+    seed_keywords:
+      - "opportunity solution tree"
+      - "Teresa Torres"
+    related_tags: [product-management]
+    notes: "Dropped bare 'OST' seed - too noisy."
+
+  prds-and-1-pagers:
+    display_name: "PRDs and 1-pagers"
+    seed_keywords:
+      - "PRD"
+      - "1-pager"
+      - "1-Pagers and PRDs"
+    related_tags: [product-management]
+
+  roadmaps:
+    display_name: "Building product roadmaps"
+    seed_keywords:
+      - "product roadmap"
+      - "better product roadmaps"
+      - "one team, one roadmap"
+    related_tags: [product-management]
+
+  decision-making-frameworks:
+    display_name: "Decision-making frameworks"
+    seed_keywords:
+      - "decision-making framework"
+      - "decision making framework"
+      - "Thinking in Bets"
+      - "Annie Duke"
+      - "make better decisions"
+      - "second-order"
+    related_tags: [leadership, product-management]
+    notes: "Dropped bare 'decision-making' seed - too noisy; required 'framework' suffix or specific source."
+
+  shape-up-method:
+    display_name: "Shape Up planning method"
+    seed_keywords:
+      - "Shape Up"
+      - "Ryan Singer"
+    related_tags: [engineering, product-management]
+
+  foundation-sprint:
+    display_name: "Foundation Sprint and Design Sprint"
+    seed_keywords:
+      - "Foundation Sprint"
+      - "Design Sprint"
+    related_tags: [product-management, design]
+
+  okrs:
+    display_name: "OKRs and goal-setting"
+    seed_keywords:
+      - "OKR"
+      - "OKRs"
+      - "setting goals"
+    related_tags: [leadership, organization]
+
+  # ------------------------------------------------------------------
+  # PM CAREER
+  # ------------------------------------------------------------------
+
+  breaking-into-pm:
+    display_name: "Breaking into product management"
+    seed_keywords:
+      - "get into product management"
+      - "should I become a product manager"
+      - "transition"
+    related_tags: [career, product-management]
+
+  becoming-senior-pm:
+    display_name: "Becoming a senior PM"
+    seed_keywords:
+      - "senior product manager"
+      - "senior PM"
+    related_tags: [career, product-management]
+
+  pm-promotion:
+    display_name: "Getting promoted as a PM"
+    seed_keywords:
+      - "get promoted"
+      - "career growth"
+    related_tags: [career]
+
+  pm-interviews:
+    display_name: "PM interviews and interview questions"
+    seed_keywords:
+      - "PM interview"
+      - "first-round interview"
+      - "PM interview questions"
+      - "single interview question"
+      - "product sense interview"
+    related_tags: [career]
+
+  pm-career-ladders:
+    display_name: "PM career ladders"
+    seed_keywords:
+      - "career ladder"
+      - "career ladders"
+    related_tags: [career]
+
+  first-90-days:
+    display_name: "First 90 days as a PM"
+    seed_keywords:
+      - "first 90 days"
+      - "joining a new team"
+    related_tags: [career]
+
+  ic-to-manager:
+    display_name: "IC PM to manager-of-managers transition"
+    seed_keywords:
+      - "IC product manager"
+      - "manager of product managers"
+      - "managing managers"
+    related_tags: [career, leadership]
+
+  pm-job-market:
+    display_name: "State of the PM job market"
+    seed_keywords:
+      - "product job market"
+      - "PM job market"
+      - "state of the product job"
+    related_tags: [career]
+
+  pm-which-companies:
+    display_name: "Which companies accelerate PM careers"
+    seed_keywords:
+      - "accelerate PM careers"
+      - "produce the best product managers"
+      - "best product managers"
+    related_tags: [career]
+
+  top-1-percent-pm:
+    display_name: "What it takes to be a top 1% PM"
+    seed_keywords:
+      - "top 1%"
+      - "top 1 percent"
+      - "habits of highly effective"
+    related_tags: [career, product-management]
+
+  pm-pitfalls:
+    display_name: "Common pitfalls of new PMs"
+    seed_keywords:
+      - "pitfalls of new product managers"
+      - "highly annoying"
+      - "PM pitfalls"
+    related_tags: [career, product-management]
+
+  feature-team-pm:
+    display_name: "Feature-team PMs (defense and discontent)"
+    seed_keywords:
+      - "feature team product"
+      - "feature team PM"
+    related_tags: [product-management]
+
+  pm-influence:
+    display_name: "PM influence without authority"
+    seed_keywords:
+      - "PM's guide to influence"
+      - "get better at influence"
+      - "influence"
+    related_tags: [product-management, leadership]
+
+  # ------------------------------------------------------------------
+  # HIRING
+  # ------------------------------------------------------------------
+
+  hiring-early-team:
+    display_name: "Hiring the early team"
+    seed_keywords:
+      - "hiring your early team"
+      - "winning at early-stage hiring"
+      - "early-stage hiring"
+    related_tags: [startups, leadership]
+
+  when-to-hire-first-pm:
+    display_name: "When to hire your first PM"
+    seed_keywords:
+      - "first product manager"
+      - "first PM"
+      - "hire your first PM"
+    related_tags: [startups]
+
+  hiring-for-growth:
+    display_name: "Hiring for growth roles"
+    seed_keywords:
+      - "hiring for growth"
+      - "hire your first growth team"
+      - "Six rules of hiring for growth"
+    related_tags: [growth, leadership]
+
+  great-job-postings:
+    display_name: "Writing great job postings"
+    seed_keywords:
+      - "great job postings"
+      - "examples of great job"
+    related_tags: [leadership]
+
+  work-trial-interviews:
+    display_name: "Work trials in interviews"
+    seed_keywords:
+      - "work trial"
+      - "work-trial"
+    related_tags: [leadership]
+
+  # ------------------------------------------------------------------
+  # LEADERSHIP / MANAGEMENT
+  # ------------------------------------------------------------------
+
+  managing-up:
+    display_name: "Managing up"
+    seed_keywords:
+      - "Managing up"
+    related_tags: [leadership, career]
+
+  getting-buy-in:
+    display_name: "Getting buy-in"
+    seed_keywords:
+      - "Getting buy-in"
+    related_tags: [leadership, product-management]
+
+  communicating-tradeoffs:
+    display_name: "Communicating tradeoffs to leaders"
+    seed_keywords:
+      - "communicate tradeoffs"
+      - "tradeoffs so leaders"
+    related_tags: [leadership, product-management]
+
+  communicating-bad-news:
+    display_name: "Communicating bad news"
+    seed_keywords:
+      - "Communicating bad news"
+      - "bad news"
+    related_tags: [leadership]
+
+  difficult-conversations:
+    display_name: "Difficult conversations and feedback"
+    seed_keywords:
+      - "difficult conversations"
+      - "GAIN framework"
+      - "Radical Candor"
+      - "hard feedback"
+    related_tags: [leadership]
+
+  coaching-product-people:
+    display_name: "Coaching and developing product people"
+    seed_keywords:
+      - "coach to product people"
+      - "Strong Product People"
+      - "product coach"
+    related_tags: [leadership]
+
+  founder-mode:
+    display_name: "Founder mode and operating modes"
+    seed_keywords:
+      - "founder mode"
+    related_tags: [leadership, startups]
+
+  conscious-leadership:
+    display_name: "Conscious leadership and emotional embrace"
+    seed_keywords:
+      - "conscious leader"
+      - "embracing emotions"
+      - "Touchy Feely"
+    related_tags: [leadership]
+
+  empathy-in-leadership:
+    display_name: "Leading with empathy and high-trust teams"
+    seed_keywords:
+      - "Leading with empathy"
+      - "high-trust teams"
+      - "trust to accelerate growth"
+    related_tags: [leadership]
+
+  storytelling:
+    display_name: "Storytelling and narrative for leaders"
+    seed_keywords:
+      - "Storytelling"
+      - "tell better stories"
+      - "story that sticks"
+    related_tags: [leadership]
+
+  public-speaking:
+    display_name: "Public speaking and persuasive communication"
+    seed_keywords:
+      - "public speaking"
+      - "speak more confidently"
+      - "communicator"
+    related_tags: [leadership]
+
+  performance-reviews:
+    display_name: "Performance reviews"
+    seed_keywords:
+      - "performance reviews"
+    related_tags: [leadership]
+
+  reorgs-and-org-design:
+    display_name: "Surviving reorgs and choosing org design"
+    seed_keywords:
+      - "Surviving reorgs"
+      - "general management"
+      - "functional and hybrid"
+      - "org design"
+    related_tags: [organization, leadership]
+
+  authentic-leadership:
+    display_name: "Authentic leadership and curiosity"
+    seed_keywords:
+      - "authenticity"
+      - "Making an impact through authenticity"
+    related_tags: [leadership]
+
+  # ------------------------------------------------------------------
+  # BUSINESS / FOUNDER
+  # ------------------------------------------------------------------
+
+  startup-validation:
+    display_name: "Validating a startup idea"
+    seed_keywords:
+      - "validate your startup"
+      - "startup idea"
+    related_tags: [startups]
+
+  venture-scale:
+    display_name: "Venture-scale ideas"
+    seed_keywords:
+      - "venture-scale"
+      - "venture scale"
+      - "tar pit ideas"
+      - "wrong idea"
+    related_tags: [startups]
+
+  consumer-business-stages:
+    display_name: "Kickstarting and scaling a consumer business"
+    seed_keywords:
+      - "consumer business"
+      - "kickstart and scale a consumer"
+    related_tags: [b2c, startups]
+
+  raising-seed:
+    display_name: "Raising a seed round"
+    seed_keywords:
+      - "Raising a seed"
+      - "seed round"
+    related_tags: [startups]
+
+  fundraising-playbook:
+    display_name: "Fundraising playbook"
+    seed_keywords:
+      - "fundraising"
+      - "raise money"
+      - "playbook for fundraising"
+    related_tags: [startups]
+
+  angel-investing:
+    display_name: "Lessons from angel investing"
+    seed_keywords:
+      - "angel investments"
+      - "angel investors"
+    related_tags: [startups]
+
+  bootstrapping:
+    display_name: "Bootstrapping a business"
+    seed_keywords:
+      - "bootstrapping"
+      - "bootstrapped"
+    related_tags: [startups]
+
+  spotting-top-startups:
+    display_name: "Spotting top 1% startups early"
+    seed_keywords:
+      - "spot a top 1%"
+      - "top 1% startup"
+    related_tags: [startups]
+
+  startup-not-growing:
+    display_name: "What to do when your product stops growing"
+    seed_keywords:
+      - "stops growing"
+      - "isn't taking off"
+      - "5 questions to ask"
+    related_tags: [startups, growth]
+
+  # ------------------------------------------------------------------
+  # PRODUCT SENSE / DESIGN / NAMING
+  # ------------------------------------------------------------------
+
+  product-sense:
+    display_name: "Developing product sense"
+    seed_keywords:
+      - "product sense"
+      - "develop product sense"
+    related_tags: [product-management, design]
+
+  product-design-craft:
+    display_name: "Product design craft (Apple, Pinterest, Stripe lineage)"
+    seed_keywords:
+      - "design wisdom"
+      - "beautiful products"
+      - "building with taste"
+      - "Linear: Building with taste"
+    related_tags: [design]
+
+  naming-products:
+    display_name: "Naming products and brands"
+    seed_keywords:
+      - "perfect name"
+      - "find the perfect name"
+      - "brand names"
+      - "Naming expert"
+    related_tags: [design, go-to-market]
+
+  brand-building:
+    display_name: "Brand building"
+    seed_keywords:
+      - "brand building"
+      - "legendary brands"
+      - "cult-like brand"
+    related_tags: [go-to-market]
+
+  copywriting:
+    display_name: "Copywriting and writing for product"
+    seed_keywords:
+      - "copywriting"
+      - "writing for product"
+    related_tags: [design]
+
+  # ------------------------------------------------------------------
+  # FRAMEWORKS / OTHER
+  # ------------------------------------------------------------------
+
+  three-step-framework:
+    display_name: "A three-step framework for solving problems"
+    seed_keywords:
+      - "three-step framework"
+      - "three step framework"
+    related_tags: [product-management]
+
+  minto-pyramid:
+    display_name: "Minto Pyramid Principle and SCR"
+    seed_keywords:
+      - "Minto Pyramid"
+      - "SCR Framework"
+    related_tags: [leadership]
+
+  first-principles:
+    display_name: "First-principles thinking"
+    seed_keywords:
+      - "first-principles"
+      - "first principles"
+    related_tags: [strategy]
+
+  # ------------------------------------------------------------------
+  # PERSONAL / WELLBEING
+  # ------------------------------------------------------------------
+
+  burnout-and-resilience:
+    display_name: "Burnout, resilience, and tech worker wellbeing"
+    seed_keywords:
+      - "burnout"
+      - "resilient"
+      - "anxiety"
+      - "Nervous System"
+      - "feel about work"
+    related_tags: [career, leadership]
+
+  taking-time-off:
+    display_name: "Taking time off and sabbaticals"
+    seed_keywords:
+      - "taking time off"
+      - "sabbatical"
+    related_tags: [career]
+
+  salary-negotiation:
+    display_name: "Salary and comp negotiation"
+    seed_keywords:
+      - "salary negotiation"
+      - "negotiating your comp"
+    related_tags: [career]
+
+  parental-leave:
+    display_name: "Parental leave coverage planning"
+    seed_keywords:
+      - "parental leave"
+    related_tags: [career]
+
+  layoffs-prep:
+    display_name: "Preparing for layoffs"
+    seed_keywords:
+      - "prepared for layoffs"
+      - "layoffs"
+    related_tags: [career]
+
+  career-redefining:
+    display_name: "Redefining success and the pathless path"
+    seed_keywords:
+      - "Redefining success"
+      - "Pathless Path"
+      - "autopilot"
+    related_tags: [career]
+
+  long-healthy-life:
+    display_name: "Living a long and healthy life as a builder"
+    seed_keywords:
+      - "long and healthy life"
+      - "builder's guide to living"
+    related_tags: [career]
+
+  time-management:
+    display_name: "Time management techniques"
+    seed_keywords:
+      - "time management"
+      - "Make Time"
+      - "no productivity hack"
+    related_tags: [career]
+
+  # ------------------------------------------------------------------
+  # CROSS-FUNCTIONAL CONSUMPTION (non-PMs working with PMs / product artifacts)
+  # ------------------------------------------------------------------
+
+  working-with-pms-as-engineer:
+    display_name: "Working with PMs as an engineer"
+    seed_keywords:
+      - "engineers are desperate"
+      - "PMs to understand"
+      - "engineer mindset"
+      - "PM and engineering"
+      - "engineering and product"
+      - "engineering-product partnership"
+    related_tags: [engineering, product-management, leadership]
+    notes: "Cross-functional. Audience: engineers, eng managers, CTOs."
+
+  working-with-pms-as-designer:
+    display_name: "Working with PMs as a designer"
+    seed_keywords:
+      - "PM and design"
+      - "PM 🤝 Design"
+      - "designer-PM"
+      - "design partnership"
+      - "designer vs. PM"
+    related_tags: [design, product-management]
+    notes: "Cross-functional. Audience: designers, design leads."
+
+  working-with-pms-as-sales:
+    display_name: "Working with PMs as a sales/GTM lead"
+    seed_keywords:
+      - "PM and sales"
+      - "empowering product in a sales-driven"
+      - "sales-driven org"
+      - "GTM and product"
+    related_tags: [go-to-market, b2b, product-management]
+    notes: "Cross-functional. Audience: AEs, sales leaders, GTM."
+
+  working-with-pms-as-data:
+    display_name: "Working with PMs as a data scientist or analyst"
+    seed_keywords:
+      - "data scientist"
+      - "DS to PM"
+      - "partner with your data"
+    related_tags: [analytics, product-management]
+    notes: "Cross-functional. Audience: data scientists, analytics leaders."
+
+  hiring-pms-as-non-pm:
+    display_name: "Hiring PMs as a non-PM hiring manager"
+    seed_keywords:
+      - "hiring product managers"
+      - "interview product managers"
+      - "PM interview questions"
+      - "favorite PM interview"
+      - "hire your first product manager"
+      - "hiring a Director of PM"
+    related_tags: [leadership, product-management, career]
+    notes: "Cross-functional. Audience: founders, eng leaders, hiring managers without PM background. Distinct from 'pm-interviews' which is for the candidate side."
+
+  evaluating-product-bets:
+    display_name: "Evaluating and giving feedback on product bets"
+    seed_keywords:
+      - "Defending your big bets"
+      - "big bets"
+      - "evaluating a (marketplace) business"
+      - "5 questions to ask"
+      - "defending your"
+      - "product bets"
+      - "spot a top 1%"
+    related_tags: [strategy, leadership]
+    notes: "Cross-functional. For execs / board / investors / cross-functional leads reviewing a product bet without owning the implementation."
+
+  reviewing-prds-and-1-pagers:
+    display_name: "Reviewing PRDs, 1-pagers, and product strategy docs"
+    seed_keywords:
+      - "PRD"
+      - "1-Pagers and PRDs"
+      - "1-pager"
+      - "ship-ready PRD"
+      - "review PRD"
+    related_tags: [product-management]
+    notes: "Cross-functional. Audience: anyone reviewing or signing off on PRDs/strategy docs."
+
+  giving-feedback-as-leader:
+    display_name: "Giving feedback to PMs / cross-functional partners"
+    seed_keywords:
+      - "GAIN framework"
+      - "giving feedback"
+      - "hard feedback"
+      - "feedback that people love"
+      - "Radical Candor"
+    related_tags: [leadership]
+    notes: "Cross-functional. Audience: any people manager giving feedback to PMs or product cross-functional leads."
+
+  reading-product-roadmaps-as-stakeholder:
+    display_name: "Reading and pressure-testing product roadmaps as a stakeholder"
+    seed_keywords:
+      - "favorite roadmap templates"
+      - "better product roadmaps"
+      - "one team, one roadmap"
+      - "roadmap"
+    related_tags: [product-management]
+    notes: "Cross-functional. Audience: stakeholders (sales, support, exec) consuming product roadmaps."
+
+  assessing-product-strategy-as-board:
+    display_name: "Assessing product strategy as an exec / board / investor"
+    seed_keywords:
+      - "Defending your big bets"
+      - "winning product strategy"
+      - "operator's guide to product strategy"
+      - "5 essential questions to craft a winning strategy"
+      - "Roger Martin"
+      - "Hamilton Helmer"
+    related_tags: [strategy, leadership]
+    notes: "Cross-functional. Audience: CEOs, board members, investors reviewing the product strategy of a portfolio/company."
+
+  understanding-pm-role-as-non-pm:
+    display_name: "Understanding what PMs actually do (non-PM primer)"
+    seed_keywords:
+      - "what is product management"
+      - "what is a product manager"
+      - "comprehensive survey of Product Management"
+      - "the essence of product management"
+      - "the nature of product"
+    related_tags: [product-management]
+    notes: "Cross-functional. Audience: anyone new to working with PMs."
+
+  spotting-bad-pm-behaviors:
+    display_name: "Spotting bad PM behaviors as a cross-functional partner"
+    seed_keywords:
+      - "highly annoying"
+      - "common pitfalls"
+      - "Bad Product Manager"
+      - "PM is an unfair role"
+      - "5 habits of highly annoying"
+    related_tags: [product-management, leadership]
+    notes: "Cross-functional. Audience: engineers/designers/sales/leaders who suspect they're working with a poor PM."
+
+  # ------------------------------------------------------------------
+  # COMPANY-CASE-STUDY META TOPIC (use sparingly; prefer specific topics)
+  # ------------------------------------------------------------------
+
+  how-x-builds-product:
+    display_name: "How <company> builds product (case study lessons)"
+    seed_keywords:
+      - "How Notion builds product"
+      - "How Figma builds product"
+      - "How Duolingo builds product"
+      - "How Coda builds product"
+      - "How Miro builds product"
+      - "How Ramp builds product"
+      - "How Shopify builds product"
+      - "How Snowflake builds product"
+      - "How Linear builds product"
+      - "How Perplexity builds product"
+      - "How Gong builds product"
+    related_tags: [product-management, leadership]
+    notes: "Meta topic. Useful for cross-referencing but specific lessons should land in their dedicated topics."

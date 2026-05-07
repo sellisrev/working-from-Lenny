@@ -1,0 +1,90 @@
+# external_skills.yml: community skill packs and SOP repos built on top of the
+# Lenny corpus. When a topic in this knowledge base produces an obsolete entry,
+# any community skill listed under that topic likely contains stale advice and
+# should be flagged for the consumer.
+#
+# Schema:
+#
+# repos:
+#   <slug>:
+#     name: Human name
+#     url: https://github.com/.../...
+#     kind: skills | sops | mcp | transcripts | digest
+#     description: short
+#     covers_topics: optional list of canonical topic_slug values
+#                    (matched best-effort by the agent during obsolete-entry generation)
+#     last_checked: YYYY-MM-DD
+
+repos:
+  refoundai-lenny-skills:
+    name: "RefoundAI lenny-skills"
+    url: "https://github.com/RefoundAI/lenny-skills"
+    kind: skills
+    description: "86 product management skills from Lenny's Podcast for Claude Code and AI agents."
+    covers_topics:
+      - hiring-early-team
+      - product-strategy
+      - growth-loops
+      - product-market-fit
+      - retention
+    last_checked: "2026-05-07"
+
+  qingxuantang-sops-and-skills:
+    name: "qingxuantang Lennys-to-sop-and-skills"
+    url: "https://github.com/qingxuantang/Lennys-to-sop-and-skills"
+    kind: sops
+    description: "225 SOPs / 9 Claude Skills across decision-maker, pm-coach, strategy-advisor, growth-advisor, leadership-coach, goal-setter, hiring-guide, gtm-advisor, sop-library."
+    covers_topics:
+      - product-strategy
+      - hiring-early-team
+      - pm-influence
+      - growth-loops
+    last_checked: "2026-05-07"
+
+  vanraco-awesome-lenny-skills:
+    name: "vanRaco awesome-lenny-skills"
+    url: "https://github.com/vanRaco/awesome-lenny-skills"
+    kind: skills
+    description: "Auto-generated skills from podcast transcripts via OpenRouter. No QA layer."
+    covers_topics: []
+    last_checked: "2026-05-07"
+
+  arjunlall-lenny-for-claude:
+    name: "Arjun Lall lenny-for-claude"
+    url: "https://github.com/arjunlall/lenny-for-claude"
+    kind: mcp
+    description: "MCP server with 6,400+ advice chunks from 298 episodes. Surfaces top 3-5 insights via /lenny slash command."
+    covers_topics: []
+    last_checked: "2026-05-07"
+
+  akshayvkt-lenny-mcp:
+    name: "akshayvkt lenny-mcp"
+    url: "https://github.com/akshayvkt/lenny-mcp"
+    kind: mcp
+    description: "MCP server for searching 284 episodes."
+    covers_topics: []
+    last_checked: "2026-05-07"
+
+  edisoncruz-lennys-wisdom-mcp:
+    name: "edisoncruz lennys-wisdom-mcp"
+    url: "https://github.com/edisoncruz/lennys-wisdom-mcp"
+    kind: mcp
+    description: "Structured wisdom MCP, 280+ insights from 20 product leaders."
+    covers_topics: []
+    last_checked: "2026-05-07"
+
+  chatprd-transcripts:
+    name: "ChatPRD lennys-podcast-transcripts"
+    url: "https://github.com/ChatPRD/lennys-podcast-transcripts"
+    kind: transcripts
+    description: "Raw transcripts repository (likely older snapshot)."
+    covers_topics: []
+    last_checked: "2026-05-07"
+
+  lennysnewsletter-data-pack:
+    name: "LennysNewsletter lennys-newsletterpodcastdata"
+    url: "https://github.com/LennysNewsletter/lennys-newsletterpodcastdata"
+    kind: transcripts
+    description: "Official public starter pack."
+    covers_topics: []
+    last_checked: "2026-05-07"
