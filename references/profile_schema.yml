@@ -1,0 +1,98 @@
+# profile_schema.yml: schema for the auto-inferred multi-faceted user profile.
+#
+# A user's profile lives at <home>/.lenny-actualize/profiles/default.yml
+# (resolved via scripts/paths.py). It is auto-populated by the lenny-actualize
+# skill from observed interactions — the user is never prompted to set it up.
+#
+# Multi-faceted: a user often has several professional facets simultaneously
+# (founder + GTM advisor + builder + non-fiction reader). Each facet carries
+# its own role/stage/domain/focus plus a `weight` reflecting how dominant it
+# has been in recent interactions. The skill answers through more than one
+# lens when ≥2 facets have weight ≥0.5 and are plausibly relevant.
+
+schema_version: "2.0"
+
+fields:
+
+  facets:
+    required: true
+    type: list
+    description: |
+      List of professional/interest facets. New facets are added when the
+      skill detects a clearly distinct pattern (different role, different
+      domain). Existing facets are reinforced as observations accumulate.
+    item_fields:
+      label:
+        type: string
+        description: "Short human label, e.g. 'Founder of medtech AI compliance startup'"
+      role:
+        type: enum
+        values: [pm, founder, eng-leader, sales-leader, designer, data-leader,
+                 gtm-advisor, builder, researcher, writer, investor, other]
+      company_stage:
+        type: enum
+        values: ["0-1", "0-1-pmf", scale-early, scale-late, public, "n/a"]
+      tenure_in_role:
+        type: enum
+        values: [week-1, first-90-days, 6-months, 1-year, 2-plus-years, "n/a"]
+      domain:
+        type: enum
+        values: [b2b-saas, consumer, marketplace, fintech, devtools, infra,
+                 ai-product, medtech, education, enterprise, other]
+      current_focus:
+        type: string
+        description: "Free-text 1-3 sentences. Updated as observations refresh."
+      weight:
+        type: float
+        range: [0.0, 1.0]
+        description: "How dominant this facet has been in recent interactions."
+      first_observed:
+        type: date  # YYYY-MM-DD
+      last_observed:
+        type: date  # YYYY-MM-DD
+      observations:
+        type: list
+        description: "Short evidence snippets that grounded the inferred fields. Cap at 10 per facet (drop oldest)."
+
+  interest_tags:
+    required: false
+    type: list
+    description: "Cross-facet topical interests, e.g. 'non-fiction reader', 'AI-validated tools', 'prospecting'."
+
+  ongoing_initiatives:
+    required: false
+    type: list
+    description: "Specific named projects/efforts the user has mentioned by name."
+
+  known_biases:
+    required: false
+    type: list
+    description: "Inferred tendencies, e.g. 'asks questions implying a builder-PM stance'."
+
+  notes_for_future_invocations:
+    required: false
+    type: string
+    description: "Free-form notes the skill keeps for itself."
+
+  dormant_facets:
+    required: false
+    type: list
+    description: |
+      Facets whose weight has decayed below 0.1 and are no longer surfaced in
+      outputs by default. Promoted back to `facets` on a fresh strong signal.
+
+  meta:
+    required: true
+    type: object
+    fields:
+      last_updated: date
+      inference_runs: integer
+      schema_version: string
+
+# Inference rules (encoded in SKILL.md, summarized here):
+# - On candidate match (same role + domain similar): reinforce; weight = min(1.0, weight + 0.1).
+# - On no match: append new facet with weight=0.2.
+# - Decay: facets with last_observed > 180 days have weight halved each subsequent month;
+#   weight < 0.1 → move to dormant_facets.
+# - Manual edits to the YAML are respected (skill does not overwrite hand-written fields
+#   unless an observation directly contradicts them).

@@ -24,9 +24,15 @@ The agent reads this output, derives the fine-grained topic taxonomy, and writes
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import date, datetime
 from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    yaml = None  # drop-folder rows skipped silently if PyYAML missing
 
 
 def normalize(corpus_root: Path) -> list[dict]:
@@ -91,8 +97,94 @@ def normalize(corpus_root: Path) -> list[dict]:
         except Exception as e:
             print(f"  [warn] failed to read {hia_index}: {e}", file=sys.stderr)
 
+    lpy_index = corpus_root / "06-lennys-podcast-yt" / "_index.json"
+    if lpy_index.exists():
+        try:
+            lpy = json.loads(lpy_index.read_text())
+            for h in lpy.get("rows", []):
+                rows.append({
+                    "id": h.get("id"),
+                    "kind": "lennys-podcast-yt",
+                    "filename": h.get("filename"),
+                    "abs_path": str(corpus_root / h.get("filename", "")),
+                    "title": h.get("title", ""),
+                    "date": h.get("date"),
+                    "guest_or_author": h.get("guest_or_author", "") or "",
+                    "host": h.get("host", "Lenny Rachitsky"),
+                    "tags": ["lennys-podcast", "podcast-yt"],
+                    "word_count": h.get("word_count", 0),
+                    "description": "",
+                    "post_url": h.get("youtube_url"),
+                    "transcript_quality": h.get("transcript_quality", "auto"),
+                    "dedup_basis": h.get("dedup_basis"),
+                })
+        except Exception as e:
+            print(f"  [warn] failed to read {lpy_index}: {e}", file=sys.stderr)
+
+    # Pick up files added by process_drop.py that aren't yet in index.json.
+    indexed_filenames = {r["filename"] for r in rows if r.get("filename")}
+    rows.extend(scan_drop_added(corpus_root, "02-newsletters", "newsletter", indexed_filenames))
+    rows.extend(scan_drop_added(corpus_root, "03-podcasts", "podcast", indexed_filenames))
+
     rows.sort(key=lambda r: (r["date"] or "0000-00-00", r["id"]))
     return rows
+
+
+def _parse_frontmatter(text: str) -> dict | None:
+    if yaml is None or not text.startswith("---"):
+        return None
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return None
+    try:
+        data = yaml.safe_load(parts[1])
+    except yaml.YAMLError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def scan_drop_added(corpus_root: Path, subdir: str, kind: str,
+                    indexed_filenames: set[str]) -> list[dict]:
+    """Return rows for markdown files in <subdir> not present in index.json.
+
+    Drop-processed files have a YAML frontmatter block with transcript_quality
+    and source. Files without parseable frontmatter are skipped silently
+    (they're typically the official Lenny corpus files indexed in index.json,
+    which this scan is designed to skip)."""
+    out: list[dict] = []
+    dir_path = corpus_root / subdir
+    if not dir_path.is_dir():
+        return out
+    for md in sorted(dir_path.glob("*.md")):
+        rel = f"{subdir}/{md.name}"
+        if rel in indexed_filenames:
+            continue
+        try:
+            text = md.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        data = _parse_frontmatter(text)
+        if not data or "transcript_quality" not in data:
+            # Either an official corpus file with no frontmatter (already in
+            # index, but the index path string didn't match), or junk; skip.
+            continue
+        word_count = len(re.findall(r"\S+", text))
+        out.append({
+            "id": md.stem,
+            "kind": kind,
+            "filename": rel,
+            "abs_path": str(md),
+            "title": data.get("title", "") or "",
+            "date": data.get("date") or None,
+            "guest_or_author": data.get("guest_or_author", "") or "",
+            "tags": data.get("tags", []) or [],
+            "word_count": word_count,
+            "description": data.get("description", "") or "",
+            "post_url": data.get("source_url") or None,
+            "transcript_quality": data.get("transcript_quality", "human"),
+            "source": data.get("source") or None,
+        })
+    return out
 
 
 def main() -> None:
@@ -116,9 +208,13 @@ def main() -> None:
     n_pod = sum(1 for r in rows if r["kind"] == "podcast")
     n_news = sum(1 for r in rows if r["kind"] == "newsletter")
     n_hia = sum(1 for r in rows if r["kind"] == "how-i-ai")
+    n_lpy = sum(1 for r in rows if r["kind"] == "lennys-podcast-yt")
+    n_lennysdata = sum(1 for r in rows if r.get("source") == "lennysdata")
     dated = [r["date"] for r in rows if r["date"]]
     print(f"wrote {out_path}")
-    print(f"  podcasts: {n_pod}, newsletters: {n_news}, how-i-ai: {n_hia}, total: {len(rows)}")
+    print(f"  podcasts: {n_pod}, newsletters: {n_news}, how-i-ai: {n_hia}, lennys-podcast-yt: {n_lpy}, total: {len(rows)}")
+    if n_lennysdata:
+        print(f"  (of which {n_lennysdata} from lennysdata.com manual drop)")
     if dated:
         max_date = max(dated)
         print(f"  date range: {min(dated)} .. {max_date}")
