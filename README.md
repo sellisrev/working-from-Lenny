@@ -1,6 +1,12 @@
-# lenny-actualize
+# lenny-actualize (skill bundle)
 
-A Claude Code skill that builds and maintains a current-consensus knowledge base over the Lenny's Newsletter + Podcast corpus, plus referenced books and Claire Vo's How I AI podcast. Tracks knowledge decay across the multi-year corpus, identifies inflection points (especially AI-driven ones), maintains an obsolete-advice index, and flags advice claims that audience pushback has called out as out of touch.
+This repo hosts a bundle of Claude Code skills built over the Lenny's Newsletter + Podcast corpus.
+
+- **lenny-actualize** (root `SKILL.md`) — builds and maintains a current-consensus knowledge base; tracks decay, inflection points, audience-pushback cautions. Portable to any expert-interview corpus.
+- **lenny-hire** (`lenny-hire/SKILL.md`) — produces a scenario-specific hiring playbook drawn from the knowledge base. Roles covered: PM, eng-manager, founder, sales-leader, designer, data-leader.
+- **lenny-pressure-test** (planned, follow-up) — pressure-tests a plan / PRD / strategy doc against the strongest corpus-grounded objections.
+
+All skills share the same auto-context layer (auto-inferred multi-faceted profile, memory, decisions logs at `~/.lenny-actualize/`) and the same corpus.
 
 Designed for the Lenny corpus but portable to any expert-interview corpus.
 
@@ -24,13 +30,18 @@ The knowledge base is written to be useful to **multiple audiences**: PMs, hirin
 ## Skill structure
 
 ```
-SKILL.md                              # entry point + workflow for the skill
+SKILL.md                              # skill 1: lenny-actualize (knowledge-base maintenance)
 RUNBOOK.md                            # operational guide for batch processing
+lenny-hire/
+  SKILL.md                            # skill 2: scenario-specific hiring playbook
 references/
   topics.yml                          # 154-topic taxonomy (slug, seed_keywords, related_tags)
   books.yml                           # 32 books referenced in the corpus
   guests.yml                          # repeat podcast guests (auto-rebuilt)
   external_skills.yml                 # 8 community skill packs catalogued
+  hiring_topic_map.yml                # role/level/concern -> topic slugs (used by lenny-hire)
+  profile_schema.yml                  # auto-inferred multi-faceted profile schema (v2.0)
+  profile_personas.yml                # facet templates used as inference seeds
 scripts/
   parse_corpus.py                     # normalize corpus index.json + drop-folder files into row table
   topic_chunks.py                     # emit excerpts for a topic, sorted by date
@@ -56,8 +67,31 @@ knowledge/
   cautions/<slug>.md                  # audience-pushback-flagged claims
   pending-review/<slug>.md            # high-uncertainty clusters (currently empty)
   books/<slug>.md                     # book-level digest
+  hire/<role>-<level>-...md           # saved playbooks from lenny-hire (opt-in)
   CHANGELOG.md                        # append-only run log
 ```
+
+## Installing the skills
+
+Each `SKILL.md` is a Claude Code skill manifest. The skills share the repo's `scripts/`, `references/`, and `knowledge/` directories — they're a bundle, not standalone.
+
+Recommended install: symlink the repo root and the `lenny-hire/` subdir into `~/.claude/skills/`, and run all commands from the repo root.
+
+```powershell
+# Windows (PowerShell, run as admin or with developer mode on)
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-actualize" -Target "C:\path\to\lenny-actualize"
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-hire"      -Target "C:\path\to\lenny-actualize\lenny-hire"
+```
+
+```bash
+# macOS / Linux
+ln -s /path/to/lenny-actualize             ~/.claude/skills/lenny-actualize
+ln -s /path/to/lenny-actualize/lenny-hire  ~/.claude/skills/lenny-hire
+```
+
+Both skills reference `scripts/...` and `references/...` paths assuming the working directory is the repo root. When you invoke a skill, `cd` to the repo root first (the user's terminal pwd is what the agent's Bash calls inherit).
+
+Skills trigger on the descriptions in their frontmatter — ask `/lenny-actualize topic <slug>` to refresh a topic, or describe a hiring scenario to invoke `lenny-hire`.
 
 ## Key design decisions
 
