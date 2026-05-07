@@ -1,0 +1,117 @@
+# hiring_topic_map.yml: routes a hiring scenario (role + level + concern)
+# to the topic files that lenny-hire reads to compose a playbook.
+#
+# The agent uses this as a starting point. It freely adds related topic
+# files based on the user's concern (e.g., a question about ramp speed
+# pulls in `first-90-days.md` regardless of role).
+#
+# All topic slugs reference files under `knowledge/topics/<slug>.md`.
+
+shared_baseline:
+  # Always considered for any role:
+  - hiring-early-team
+  - work-trial-interviews
+  - first-90-days
+
+shared_books:
+  # Books worth surfacing for any senior hire decision:
+  - inspired
+  - good-strategy-rumelt
+
+ai_era_overlay:
+  # Any role hired in 2025+ should be evaluated through AI-fluency lens.
+  # Pull these when the user mentions AI, builder-PM, vibe-coding, or stage
+  # is scale-early/scale-late where AI tools are mainstream.
+  topics: [ai-pm-skills, ai-replacing-pms, vibe-coding, ai-coding-agents]
+  cautions: [ai-replacing-pms]   # Keith Rabois caution applies broadly
+  obsolete: [ai-replacing-pms]    # legacy PM-roadmap-owner archetype
+
+role_to_topics:
+
+  pm:
+    primary: [hiring-pms-as-non-pm, when-to-hire-first-pm, pm-interviews,
+              becoming-senior-pm, pm-promotion]
+    by_level:
+      junior: [first-90-days, becoming-senior-pm]
+      mid:    [pm-promotion, becoming-senior-pm, pm-interviews]
+      senior: [pm-promotion, authentic-leadership, managing-up,
+               assessing-product-strategy-as-board]
+      director: [authentic-leadership, managing-up, getting-buy-in,
+                 coaching-product-people, pm-which-companies]
+      exec: [authentic-leadership, getting-buy-in, assessing-product-strategy-as-board,
+             pm-which-companies]
+    domain_specific:
+      ai-product: [ai-pm-skills, ai-replacing-pms, ai-prototyping]
+      b2b-saas:   [scaling-b2b-growth, icp-identification]
+      consumer:   [consumer-business-stages, hidden-growth-opportunities]
+      marketplace: [marketplace-cold-start, marketplace-quality]
+      fintech:    []
+      devtools:   [ai-developer-productivity]
+
+  eng-manager:
+    primary: [working-with-pms-as-engineer, ai-developer-productivity,
+              hiring-for-growth, performance-reviews]
+    by_level:
+      junior: [first-90-days]
+      mid:    [working-with-pms-as-engineer, performance-reviews]
+      senior: [authentic-leadership, getting-buy-in, performance-reviews]
+      director: [authentic-leadership, getting-buy-in, ai-org-restructuring]
+      exec: [authentic-leadership, ai-org-restructuring, ai-supermanager]
+    domain_specific:
+      ai-product: [ai-coding-agents, ai-developer-productivity]
+      infra:      [ai-developer-productivity]
+
+  founder:
+    primary: [hiring-early-team, spotting-top-startups, evaluating-product-bets,
+              startup-not-growing]
+    by_level:
+      first-time: [hiring-early-team, evaluating-product-bets, product-market-fit]
+      experienced: [spotting-top-startups, scaling-b2b-growth, ai-state-of-the-union]
+    domain_specific:
+      ai-product: [ai-state-of-the-union, ai-replacing-pms, ai-org-restructuring]
+      b2b-saas:   [scaling-b2b-growth, icp-identification]
+
+  sales-leader:
+    primary: [scaling-b2b-growth, working-with-pms-as-sales, hiring-for-growth]
+    by_level:
+      first-hire: [scaling-b2b-growth]   # founder-led sales until first AE
+      mid:        [working-with-pms-as-sales, performance-reviews]
+      senior:     [authentic-leadership, getting-buy-in, performance-reviews]
+      director:   [authentic-leadership, getting-buy-in, scaling-b2b-growth]
+    domain_specific:
+      b2b-saas: [scaling-b2b-growth, product-led-marketing]
+      enterprise: [scaling-b2b-growth]
+
+  designer:
+    primary: [working-with-pms-as-designer, ai-prototyping, hiring-for-growth]
+    by_level:
+      junior: [first-90-days]
+      mid:    [working-with-pms-as-designer, ai-prototyping]
+      senior: [authentic-leadership, working-with-pms-as-designer, copywriting]
+      director: [authentic-leadership, getting-buy-in]
+    domain_specific:
+      ai-product: [ai-prototyping, ai-pm-skills]
+      consumer:   [minimum-lovable-product, copywriting]
+
+  data-leader:
+    primary: [working-with-pms-as-data, north-star-metric, evals-for-ai-products]
+    by_level:
+      mid:      [working-with-pms-as-data, north-star-metric]
+      senior:   [working-with-pms-as-data, evals-for-ai-products, performance-reviews]
+      director: [authentic-leadership, getting-buy-in, evals-for-ai-products]
+    domain_specific:
+      ai-product: [evals-for-ai-products, ai-pm-skills]
+
+# Concern-to-topic overrides — applied on top of role lookup based on the
+# user's stated concern. The agent OR-merges these into the topic list.
+concern_to_topics:
+  ramp-speed: [first-90-days, work-trial-interviews]
+  cultural-fit: [authentic-leadership, performance-reviews]
+  technical-bar: [ai-coding-agents, ai-developer-productivity, vibe-coding]
+  comp: [pm-which-companies, scaling-b2b-growth]
+  values-alignment: [authentic-leadership]
+  founder-mode: [spotting-top-startups]
+  reference-checking: [hiring-early-team]
+  test-vs-trust: [work-trial-interviews]
+  remote: []           # corpus is light here; agent should note the gap
+  diversity: []        # corpus is light here; agent should note the gap
