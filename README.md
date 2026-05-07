@@ -32,15 +32,24 @@ references/
   guests.yml                          # repeat podcast guests (auto-rebuilt)
   external_skills.yml                 # 8 community skill packs catalogued
 scripts/
-  parse_corpus.py                     # normalize corpus index.json into row table
+  parse_corpus.py                     # normalize corpus index.json + drop-folder files into row table
   topic_chunks.py                     # emit excerpts for a topic, sorted by date
   book_mentions.py                    # find every paragraph mentioning a book
   guest_tracker.py                    # repeat-guest old-vs-new claim comparison
+  yt_fetch_lib.py                     # shared YouTube auto-caption engine
   fetch_how_i_ai.py                   # pull Claire Vo's How I AI captions
+  fetch_lenny_yt.py                   # pull Lenny's main podcast YouTube channel (newer-than-corpus by default)
+  process_drop.py                     # process manual lennysdata.com transcripts in <corpus>/_manual_drop/
   fetch_yt_comments.py                # top YouTube comments by likes
   find_external_overlap.py            # match topics to community skill packs
   list_topics.py                      # match counts + processed-status overview
   export_digest.py                    # consolidate topic files into single digest
+  weekly_refresh.py                   # one-shot weekly maintenance pipeline
+  paths.py                            # shared per-user state-dir resolver
+  profile_load.py                     # emit auto-inferred profile as JSON
+  profile_update.py                   # apply inference patch (auto-called by skill)
+  memory_append.py                    # append invocation to per-user memory log
+  decisions_append.py                 # append divergence (or outcome update) to decisions log
 knowledge/
   topics/<slug>.md                    # current consensus + inflection points
   obsolete/<slug>.md                  # decayed claims with where-they-may-still-apply
@@ -82,6 +91,21 @@ python3 scripts/fetch_how_i_ai.py --corpus /path/to/corpus --skip-existing
 python3 scripts/parse_corpus.py --corpus /path/to/corpus  # re-run after fetch
 ```
 
+Optional: Lenny's main podcast YouTube auto-captions (fills the ~3-month corpus lag):
+
+```bash
+python3 scripts/fetch_lenny_yt.py --corpus /path/to/corpus --skip-existing
+python3 scripts/parse_corpus.py --corpus /path/to/corpus
+```
+
+By default `fetch_lenny_yt.py` only pulls episodes newer than the corpus's max podcast date, so it doesn't duplicate already-human-transcribed material. Override with `--since YYYY-MM-DD` or `--all` (the latter dedups by date + title-prefix against the existing corpus).
+
+Optional: lennysdata.com clean human-edited transcripts (subscribers). Drop fresh transcripts into `<corpus>/_manual_drop/` (template auto-created on first run); the skill processes them automatically on next invocation, or run manually:
+
+```bash
+python3 scripts/process_drop.py --corpus /path/to/corpus
+```
+
 Episode YouTube comments for caution-eligibility scanning:
 
 ```bash
@@ -103,9 +127,24 @@ For batch processing the remaining topics or running maintenance refreshes, see 
 
 ## Maintenance cadence
 
-- **Weekly** (Monday after How I AI publishes): `fetch_how_i_ai.py --skip-existing`, then `parse_corpus.py`, then `guest_tracker.py --rebuild`.
+- **Weekly**: a single command does it all.
+  ```bash
+  python3 scripts/weekly_refresh.py --corpus /path/to/corpus
+  ```
+  This runs `process_drop` → `fetch_how_i_ai` → `fetch_lenny_yt` → `parse_corpus` → `guest_tracker --rebuild`, updates `<corpus>/_state.json.last_yt_refresh`, and appends a `weekly-refresh` block to `knowledge/CHANGELOG.md`. Each sub-step is idempotent.
+- **Bi-weekly nudge**: if it's been more than 14 days since your last `lennysdata.com` clean-transcript pull, the skill surfaces a one-line reminder at the top of its next response. Subscribers get higher-fidelity transcripts there than from YouTube auto-captions; drop new files in `<corpus>/_manual_drop/` and the skill picks them up automatically on next invocation.
 - **Monthly**: drift check on Tier-1 AI-era topics via `verify` mode.
-- **Quarterly**: bulk refresh — re-run `parse_corpus.py`, refetch How I AI, optionally fetch comments for new high-engagement episodes via `fetch_yt_comments.py --from-corpus --include-lenny --max-episodes 20`.
+- **Quarterly**: bulk refresh — re-run `weekly_refresh.py`, optionally fetch comments for new high-engagement episodes via `fetch_yt_comments.py --from-corpus --include-lenny --max-episodes 20`.
+
+## Auto-context layer (per user)
+
+The skill silently maintains a per-machine context layer at `~/.lenny-actualize/` (override via `LENNY_ACTUALIZE_HOME`):
+
+- `profiles/default.yml` — auto-inferred multi-faceted user profile (founder + GTM advisor + builder + non-fiction reader can all coexist as facets, each with its own role / stage / domain / focus and a weight reflecting recent dominance). The skill never asks the user to set this up; it accumulates from observed signals over invocations. Manual edits are respected.
+- `memory/default.md` — append-only log of every invocation: input summary, active facets, surfaced files, recurring themes.
+- `decisions/default.md` — append-only log of divergences between the skill's recommendation and what the user actually chose, plus outcome updates when the user reports back later.
+
+When ≥2 facets carry weight ≥0.5 and are plausibly relevant to the question, the skill answers through both lenses concisely (typically one short paragraph each) rather than picking one.
 
 ## License
 
