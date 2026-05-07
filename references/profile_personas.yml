@@ -1,0 +1,145 @@
+# profile_personas.yml: library of facet templates used by the inference
+# policy as nearest-neighbor seeds when classifying observations.
+#
+# Each persona is a partial facet: role + typical stage/domain + "signal
+# phrases" the inference policy may match against. Not user-facing. The
+# skill never names a persona in output — these only shape internal
+# classification.
+
+personas:
+
+  pm-builder-ai-era:
+    role: pm
+    company_stage: scale-early
+    domain: ai-product
+    signal_phrases:
+      - "vibe coded"
+      - "Cursor"
+      - "Claude Code"
+      - "PRD as a draft"
+      - "shipped a prototype"
+      - "building with"
+    typical_focus_themes: [ai-prototyping, ai-pm-skills, ai-coding-agents]
+
+  pm-information-mover-classic:
+    role: pm
+    company_stage: scale-late
+    domain: b2b-saas
+    signal_phrases:
+      - "alignment across"
+      - "stakeholders"
+      - "roadmap process"
+      - "PRD review"
+      - "weekly status"
+    typical_focus_themes: [pm-promotion, becoming-senior-pm, managing-up]
+
+  founder-pre-pmf:
+    role: founder
+    company_stage: "0-1-pmf"
+    domain: ai-product
+    signal_phrases:
+      - "haven't found PMF"
+      - "still searching for"
+      - "first 100 customers"
+      - "two-person team"
+      - "pre-product"
+    typical_focus_themes: [product-market-fit, startup-not-growing, hiring-early-team]
+
+  founder-medtech-regulated:
+    role: founder
+    company_stage: scale-early
+    domain: medtech
+    signal_phrases:
+      - "regulated"
+      - "compliance"
+      - "FDA"
+      - "audit"
+      - "validation"
+      - "SaMD"
+      - "Ketryx"
+    typical_focus_themes: [evaluating-product-bets, hiring-early-team, ai-pm-skills]
+
+  gtm-advisor:
+    role: gtm-advisor
+    company_stage: "n/a"
+    domain: b2b-saas
+    signal_phrases:
+      - "advising"
+      - "GTM motion"
+      - "outbound playbook"
+      - "ICP"
+      - "prospecting"
+      - "compete page"
+    typical_focus_themes: [scaling-b2b-growth, icp-identification, product-led-marketing]
+
+  eng-leader-platform:
+    role: eng-leader
+    company_stage: scale-late
+    domain: infra
+    signal_phrases:
+      - "platform team"
+      - "developer productivity"
+      - "engineering org"
+      - "tech debt"
+      - "RFC"
+    typical_focus_themes: [working-with-pms-as-engineer, ai-developer-productivity, hiring-early-team]
+
+  sales-leader-enterprise:
+    role: sales-leader
+    company_stage: scale-late
+    domain: enterprise
+    signal_phrases:
+      - "AE compensation"
+      - "quota"
+      - "sales team"
+      - "deal cycle"
+      - "MEDDICC"
+    typical_focus_themes: [scaling-b2b-growth, working-with-pms-as-sales]
+
+  designer-product-led:
+    role: designer
+    company_stage: scale-early
+    domain: consumer
+    signal_phrases:
+      - "design system"
+      - "user research"
+      - "product design"
+      - "prototyping in Figma"
+    typical_focus_themes: [working-with-pms-as-designer, ai-prototyping]
+
+  data-leader:
+    role: data-leader
+    company_stage: scale-late
+    domain: b2b-saas
+    signal_phrases:
+      - "data team"
+      - "metrics framework"
+      - "experimentation platform"
+      - "north star"
+    typical_focus_themes: [working-with-pms-as-data, north-star-metric, evals-for-ai-products]
+
+  builder-multi-hat:
+    role: builder
+    company_stage: "0-1"
+    domain: ai-product
+    signal_phrases:
+      - "I'm shipping"
+      - "I built"
+      - "I prototyped"
+      - "indie"
+      - "side project"
+    typical_focus_themes: [vibe-coding, ai-prototyping, ai-pm-skills]
+
+  reader-non-fiction:
+    role: other
+    company_stage: "n/a"
+    domain: other
+    signal_phrases:
+      - "I just read"
+      - "the book"
+      - "in <author>'s book"
+      - "non-fiction"
+    typical_focus_themes: [book-digests]
+
+# Default-facet hint when nothing matches: role=other, stage=n/a, domain=other.
+# Inference adds a low-weight (0.2) facet with that shape and waits for more signal.
