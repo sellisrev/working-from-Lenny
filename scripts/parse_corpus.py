@@ -91,6 +91,30 @@ def normalize(corpus_root: Path) -> list[dict]:
         except Exception as e:
             print(f"  [warn] failed to read {hia_index}: {e}", file=sys.stderr)
 
+    lpy_index = corpus_root / "06-lennys-podcast-yt" / "_index.json"
+    if lpy_index.exists():
+        try:
+            lpy = json.loads(lpy_index.read_text())
+            for h in lpy.get("rows", []):
+                rows.append({
+                    "id": h.get("id"),
+                    "kind": "lennys-podcast-yt",
+                    "filename": h.get("filename"),
+                    "abs_path": str(corpus_root / h.get("filename", "")),
+                    "title": h.get("title", ""),
+                    "date": h.get("date"),
+                    "guest_or_author": h.get("guest_or_author", "") or "",
+                    "host": h.get("host", "Lenny Rachitsky"),
+                    "tags": ["lennys-podcast", "podcast-yt"],
+                    "word_count": h.get("word_count", 0),
+                    "description": "",
+                    "post_url": h.get("youtube_url"),
+                    "transcript_quality": h.get("transcript_quality", "auto"),
+                    "dedup_basis": h.get("dedup_basis"),
+                })
+        except Exception as e:
+            print(f"  [warn] failed to read {lpy_index}: {e}", file=sys.stderr)
+
     rows.sort(key=lambda r: (r["date"] or "0000-00-00", r["id"]))
     return rows
 
@@ -116,9 +140,10 @@ def main() -> None:
     n_pod = sum(1 for r in rows if r["kind"] == "podcast")
     n_news = sum(1 for r in rows if r["kind"] == "newsletter")
     n_hia = sum(1 for r in rows if r["kind"] == "how-i-ai")
+    n_lpy = sum(1 for r in rows if r["kind"] == "lennys-podcast-yt")
     dated = [r["date"] for r in rows if r["date"]]
     print(f"wrote {out_path}")
-    print(f"  podcasts: {n_pod}, newsletters: {n_news}, how-i-ai: {n_hia}, total: {len(rows)}")
+    print(f"  podcasts: {n_pod}, newsletters: {n_news}, how-i-ai: {n_hia}, lennys-podcast-yt: {n_lpy}, total: {len(rows)}")
     if dated:
         max_date = max(dated)
         print(f"  date range: {min(dated)} .. {max_date}")
