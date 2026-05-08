@@ -1,0 +1,313 @@
+# pressure_test_topic_map.yml: routes a plan / PRD / strategy-doc / decision
+# to the topic files that lenny-pressure-test reads to compose objections.
+#
+# The agent uses this as a starting point. It freely adds related topic
+# files based on the plan's domain, stated metrics, and surfaced assumptions
+# (e.g., a marketplace plan with no liquidity floor pulls in
+# `atomic-network` regardless of plan-kind).
+#
+# All topic slugs reference files under `knowledge/topics/<slug>.md`.
+# Cautions live under `knowledge/cautions/<slug>.md`, obsolete under
+# `knowledge/obsolete/<slug>.md`, books under `knowledge/books/<slug>.md`.
+
+shared_baseline:
+  # Always considered. These are the durable strategic-frame lenses; they
+  # apply to nearly every plan and surface the objections the corpus is
+  # most consistent about (Rumelt's "kernel", Helmer's 7 Powers, the
+  # board-level "is this a real bet?" lens).
+  - evaluating-product-bets
+  - good-strategy-rumelt
+  - seven-powers
+  - product-strategy
+  - assessing-product-strategy-as-board
+
+shared_books:
+  # Read book-digests for any plan that proposes meaningful strategic
+  # commitment. Cite from these wherever a guest claim aligns with the
+  # book's framing.
+  - good-strategy-bad-strategy
+  - seven-powers
+  - inspired
+  - working-backwards
+  - thinking-in-bets
+
+ai_era_overlay:
+  # Pull these when the plan touches an AI product/feature, when the user's
+  # active facet domain is `ai-product`, or when the plan implicitly assumes
+  # legacy PM/eng workflows that AI has reshaped.
+  topics: [ai-pm-skills, ai-replacing-pms, vibe-coding, ai-prototyping,
+           evals-for-ai-products, ai-pricing, ai-data-as-moat,
+           ai-product-lifecycle]
+  cautions: [ai-replacing-pms, 100-percent-claude-code]
+  obsolete: [ai-replacing-pms, vibe-coding, prompt-engineering]
+
+# ----------------------------------------------------------------------
+# Plan-kind routing. Pick the best match (the agent classifies the input
+# in Step 1). Casual-idea is the fallback when the input is too thin to
+# classify confidently.
+# ----------------------------------------------------------------------
+plan_kind_to_topics:
+
+  prd:
+    primary: [prds-and-1-pagers, reviewing-prds-and-1-pagers,
+              minimum-lovable-product, prioritization-frameworks,
+              opportunity-solution-tree]
+    metrics_to_probe: [activation-metric, retention, cohort-retention,
+                       north-star-metric]
+    common_failure_modes: [pm-pitfalls, spotting-bad-pm-behaviors,
+                           saying-no, communicating-tradeoffs]
+
+  strategy-doc:
+    primary: [product-strategy, mission-vision-strategy, strategic-narrative,
+              good-strategy-rumelt, seven-powers, defending-big-bets]
+    metrics_to_probe: [north-star-metric, retention]
+    common_failure_modes: [pm-pitfalls, saying-no, getting-buy-in]
+
+  go-to-market-plan:
+    primary: [gtm-motions, scaling-b2b-growth, founder-led-sales,
+              icp-identification, positioning, category-creation,
+              product-led-marketing, content-driven-growth]
+    metrics_to_probe: [conversion-rate, churn-and-payback, activation-metric,
+                       retention, cohort-retention, take-rate]
+    common_failure_modes: [b2b-first-customers, b2b-pmf, startup-not-growing]
+
+  pricing-decision:
+    primary: [saas-pricing, ai-pricing, freemium-vs-trial,
+              consumer-subscription, take-rate]
+    metrics_to_probe: [churn-and-payback, conversion-rate, retention]
+    common_failure_modes: [freemium-vs-trial]   # obsolete file applies
+
+  architectural-decision:
+    primary: [evaluating-product-bets, defending-big-bets,
+              decision-making-frameworks, first-principles,
+              ai-coding-agents, ai-developer-productivity]
+    metrics_to_probe: [velocity-core4]
+    common_failure_modes: [pm-pitfalls, communicating-tradeoffs]
+
+  launch-plan:
+    primary: [minimum-lovable-product, product-hunt-launch, ship-like-startup,
+              pr-and-press, brand-building, naming-products, copywriting]
+    metrics_to_probe: [activation-metric, hierarchy-of-engagement, retention,
+                       conversion-rate]
+    common_failure_modes: [pm-pitfalls, startup-not-growing]
+
+  roadmap:
+    primary: [roadmaps, reading-product-roadmaps-as-stakeholder,
+              prioritization-frameworks, prds-and-1-pagers, okrs,
+              shape-up-method]
+    metrics_to_probe: [velocity-core4, north-star-metric]
+    common_failure_modes: [pm-pitfalls, saying-no, communicating-tradeoffs]
+
+  hiring-plan:
+    # Detect this kind and SUGGEST INVOKING lenny-hire instead. Still
+    # produce a 2-3-objection compact pressure-test on the strategic
+    # framing (e.g., "is now the right time to hire vs. defer?"), then
+    # hand off to lenny-hire for the playbook.
+    primary: [when-to-hire-first-pm, hiring-early-team, hiring-for-growth]
+    suggest_handoff: lenny-hire
+    common_failure_modes: [hiring-early-team]
+
+  casual-idea:
+    # The 1-2 line "we're thinking about X" input. Compact-mode pressure
+    # test (3-4 strongest objections) plus extension suggestions. Routing
+    # is best-effort based on keyword detection.
+    primary: [evaluating-product-bets, product-market-fit, startup-validation,
+              first-principles, decision-making-frameworks]
+    common_failure_modes: [pm-pitfalls, startup-not-growing]
+
+# ----------------------------------------------------------------------
+# Domain-specific overlays. Layered on top of plan-kind selection.
+# ----------------------------------------------------------------------
+domain_specific:
+
+  b2b-saas:
+    topics: [scaling-b2b-growth, icp-identification, b2b-first-customers,
+             b2b-pmf, enterprise-sales-playbook, founder-led-sales,
+             saas-pricing, bottom-up-saas]
+
+  consumer:
+    topics: [consumer-business-stages, hidden-growth-opportunities,
+             hierarchy-of-engagement, virality, growth-loops,
+             consumer-subscription, minimum-lovable-product]
+
+  marketplace:
+    topics: [marketplace-cold-start, marketplace-quality, marketplace-failure,
+             atomic-network, marketplace-metrics, marketplace-city-expansion,
+             demand-driving-supply, take-rate]
+
+  fintech:
+    topics: [evaluating-product-bets]   # corpus is light here
+
+  devtools:
+    topics: [ai-developer-productivity, bottom-up-saas, ecosystem-channel,
+             distribution-as-moat]
+
+  infra:
+    topics: [ai-developer-productivity, evaluating-product-bets,
+             defending-big-bets]
+
+  ai-product:
+    topics: [ai-pm-skills, ai-replacing-pms, ai-prototyping,
+             evals-for-ai-products, ai-pricing, ai-data-as-moat,
+             ai-product-lifecycle, ai-coding-agents, ai-state-of-the-union]
+
+  medtech:
+    topics: [evaluating-product-bets]   # corpus is light here
+
+  enterprise:
+    topics: [scaling-b2b-growth, enterprise-sales-playbook,
+             founder-led-sales, getting-buy-in]
+
+# ----------------------------------------------------------------------
+# Stage-specific overlays. Layered on top of plan-kind + domain.
+# ----------------------------------------------------------------------
+stage_specific:
+
+  "0-1":
+    topics: [startup-validation, product-market-fit, hiring-early-team,
+             founder-led-sales, b2b-first-customers, raising-seed]
+
+  "0-1-pmf":
+    topics: [product-market-fit, b2b-pmf, startup-not-growing, pivots-art,
+             continuous-discovery, b2b-first-customers]
+
+  scale-early:
+    topics: [scaling-b2b-growth, icp-identification, hidden-growth-opportunities,
+             retention, north-star-metric, when-to-hire-first-pm]
+
+  scale-late:
+    topics: [reorgs-and-org-design, ai-org-restructuring, performance-reviews,
+             roadmaps, getting-buy-in, defending-big-bets]
+
+  public:
+    topics: [defending-big-bets, getting-buy-in, ai-org-restructuring,
+             reorgs-and-org-design]
+
+# ----------------------------------------------------------------------
+# Implicit-assumption routing. The plan asserts X without justification or
+# operates on a premise the corpus pushes back on. The agent identifies the
+# assumption in Step 1 and adds the corresponding topics.
+#
+# Format: assumption_slug -> [topic_slugs]. Cautions/obsolete also surface
+# automatically when the topic has a matching file under those folders.
+# ----------------------------------------------------------------------
+implicit_assumption_to_topics:
+
+  claims-virality-without-loops:
+    [growth-loops, virality, hierarchy-of-engagement]
+
+  claims-pmf-without-evidence:
+    [product-market-fit, b2b-pmf, startup-validation, continuous-discovery]
+
+  claims-marketplace-without-cold-start:
+    [marketplace-cold-start, atomic-network, demand-driving-supply,
+     marketplace-failure]
+
+  launches-free-tier:
+    # freemium-vs-trial is BOTH a topic and an obsolete file; the obsolete
+    # nuance is load-bearing here.
+    [freemium-vs-trial, saas-pricing, ai-pricing, churn-and-payback]
+
+  raises-prices-without-research:
+    [saas-pricing, ai-pricing]
+
+  prices-ai-feature-by-cost-plus:
+    [ai-pricing, saas-pricing]
+
+  assumes-information-mover-pm:
+    # ai-replacing-pms has both an obsolete and a caution file.
+    [ai-replacing-pms, ai-pm-skills, vibe-coding]
+
+  proposes-100-percent-ai-code:
+    # caution file applies (Boris Cherny pushback).
+    [ai-coding-agents, ai-developer-productivity, vibe-coding]
+
+  assumes-okrs-effectiveness:
+    [okrs, north-star-metric, prioritization-frameworks]
+
+  assumes-feature-launch-equals-traction:
+    [minimum-lovable-product, hierarchy-of-engagement, retention,
+     activation-metric, cohort-retention]
+
+  assumes-roadmap-is-strategy:
+    [roadmaps, product-strategy, mission-vision-strategy, good-strategy-rumelt]
+
+  assumes-velocity-equals-progress:
+    [velocity-core4, evaluating-product-bets, good-strategy-rumelt]
+
+  no-clear-icp:
+    [icp-identification, b2b-pmf, b2b-first-customers]
+
+  no-positioning:
+    [positioning, category-creation, strategic-narrative]
+
+  no-moat:
+    [seven-powers, distribution-as-moat, ai-data-as-moat,
+     defending-big-bets]
+
+  proposes-acquisition-without-retention-floor:
+    [retention, cohort-retention, churn-and-payback, growth-loops,
+     activation-metric]
+
+  proposes-paid-without-payback:
+    [paid-acquisition, churn-and-payback, scaling-b2b-growth]
+
+# ----------------------------------------------------------------------
+# Missing-metric routing. Absence is itself the objection: the corpus
+# consensus is that you don't ship X without measuring Y.
+# ----------------------------------------------------------------------
+missing_metric_to_topics:
+
+  no-retention-metric:
+    [retention, cohort-retention, north-star-metric, hierarchy-of-engagement]
+
+  no-activation-metric:
+    [activation-metric, north-star-metric, hierarchy-of-engagement]
+
+  no-icp-defined:
+    [icp-identification, b2b-pmf, b2b-first-customers]
+
+  no-cohort-data:
+    [cohort-retention, retention, churn-and-payback]
+
+  no-payback-period:
+    [churn-and-payback, scaling-b2b-growth, paid-acquisition]
+
+  no-north-star:
+    [north-star-metric, okrs, mission-vision-strategy]
+
+  no-eval-system:
+    # AI plans without evals = corpus pushes back hard.
+    [evals-for-ai-products, ai-product-lifecycle]
+
+  no-conversion-funnel:
+    [conversion-rate, activation-metric]
+
+  no-take-rate:
+    # marketplace-only.
+    [take-rate, marketplace-metrics]
+
+# ----------------------------------------------------------------------
+# Concern overrides applied on top when the user states a specific worry
+# alongside the plan ("I'm worried we're shipping too late").
+# ----------------------------------------------------------------------
+concern_to_topics:
+
+  shipping-too-late: [ship-like-startup, minimum-lovable-product,
+                      pm-pitfalls]
+  shipping-too-early: [minimum-lovable-product, hierarchy-of-engagement,
+                       startup-validation]
+  competitive-threat: [seven-powers, defending-big-bets, positioning,
+                       category-creation]
+  scale-readiness: [scaling-b2b-growth, reorgs-and-org-design]
+  team-readiness: [hiring-early-team, when-to-hire-first-pm,
+                   hiring-for-growth]
+  fundraising-readiness: [fundraising-playbook, raising-seed, venture-scale,
+                          pattern-breakers]
+  exec-buy-in: [getting-buy-in, defending-big-bets, communicating-tradeoffs,
+                strategic-narrative]
+  board-pushback: [assessing-product-strategy-as-board, defending-big-bets,
+                   strategic-narrative]
+  burnout-risk: [burnout-and-resilience, taking-time-off, layoffs-prep]
+  ai-disruption-risk: [ai-replacing-pms, ai-state-of-the-union,
+                       ai-org-restructuring]

@@ -4,7 +4,7 @@ This repo hosts a bundle of Claude Code skills built over the Lenny's Newsletter
 
 - **lenny-actualize** (root `SKILL.md`) — builds and maintains a current-consensus knowledge base; tracks decay, inflection points, audience-pushback cautions. Portable to any expert-interview corpus.
 - **lenny-hire** (`lenny-hire/SKILL.md`) — produces a scenario-specific hiring playbook drawn from the knowledge base. Roles covered: PM, eng-manager, founder, sales-leader, designer, data-leader.
-- **lenny-pressure-test** (planned, follow-up) — pressure-tests a plan / PRD / strategy doc against the strongest corpus-grounded objections.
+- **lenny-pressure-test** (`lenny-pressure-test/SKILL.md`): pressure-tests a plan / PRD / strategy doc / GTM plan / pricing decision against the strongest corpus-grounded objections. Each objection cites a specific guest + date + post URL and ends with a concrete next step. Surfaces obsolete advice the plan operates on, missing metrics the corpus considers load-bearing, and prerequisite reading worth doing first.
 
 All skills share the same auto-context layer (auto-inferred multi-faceted profile, memory, decisions logs at `~/.lenny-actualize/`) and the same corpus.
 
@@ -34,12 +34,15 @@ SKILL.md                              # skill 1: lenny-actualize (knowledge-base
 RUNBOOK.md                            # operational guide for batch processing
 lenny-hire/
   SKILL.md                            # skill 2: scenario-specific hiring playbook
+lenny-pressure-test/
+  SKILL.md                            # skill 3: pressure-test a plan / PRD / strategy doc
 references/
   topics.yml                          # 154-topic taxonomy (slug, seed_keywords, related_tags)
   books.yml                           # 32 books referenced in the corpus
   guests.yml                          # repeat podcast guests (auto-rebuilt)
   external_skills.yml                 # 8 community skill packs catalogued
   hiring_topic_map.yml                # role/level/concern -> topic slugs (used by lenny-hire)
+  pressure_test_topic_map.yml         # plan-kind/domain/assumption -> topic slugs (used by lenny-pressure-test)
   profile_schema.yml                  # auto-inferred multi-faceted profile schema (v2.0)
   profile_personas.yml                # facet templates used as inference seeds
 scripts/
@@ -68,6 +71,7 @@ knowledge/
   pending-review/<slug>.md            # high-uncertainty clusters (currently empty)
   books/<slug>.md                     # book-level digest
   hire/<role>-<level>-...md           # saved playbooks from lenny-hire (opt-in)
+  pressure-test/<plan-slug>-...md     # saved pressure tests from lenny-pressure-test (opt-in)
   CHANGELOG.md                        # append-only run log
 ```
 
@@ -79,19 +83,21 @@ Recommended install: symlink the repo root and the `lenny-hire/` subdir into `~/
 
 ```powershell
 # Windows (PowerShell, run as admin or with developer mode on)
-New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-actualize" -Target "C:\path\to\lenny-actualize"
-New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-hire"      -Target "C:\path\to\lenny-actualize\lenny-hire"
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-actualize"      -Target "C:\path\to\lenny-actualize"
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-hire"           -Target "C:\path\to\lenny-actualize\lenny-hire"
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\lenny-pressure-test"  -Target "C:\path\to\lenny-actualize\lenny-pressure-test"
 ```
 
 ```bash
 # macOS / Linux
-ln -s /path/to/lenny-actualize             ~/.claude/skills/lenny-actualize
-ln -s /path/to/lenny-actualize/lenny-hire  ~/.claude/skills/lenny-hire
+ln -s /path/to/lenny-actualize                       ~/.claude/skills/lenny-actualize
+ln -s /path/to/lenny-actualize/lenny-hire            ~/.claude/skills/lenny-hire
+ln -s /path/to/lenny-actualize/lenny-pressure-test   ~/.claude/skills/lenny-pressure-test
 ```
 
-Both skills reference `scripts/...` and `references/...` paths assuming the working directory is the repo root. When you invoke a skill, `cd` to the repo root first (the user's terminal pwd is what the agent's Bash calls inherit).
+All three skills reference `scripts/...` and `references/...` paths assuming the working directory is the repo root. When you invoke a skill, `cd` to the repo root first (the user's terminal pwd is what the agent's Bash calls inherit).
 
-Skills trigger on the descriptions in their frontmatter — ask `/lenny-actualize topic <slug>` to refresh a topic, or describe a hiring scenario to invoke `lenny-hire`.
+Skills trigger on the descriptions in their frontmatter — ask `/lenny-actualize topic <slug>` to refresh a topic, describe a hiring scenario to invoke `lenny-hire`, or paste a plan / PRD / strategy doc and ask for a pressure test to invoke `lenny-pressure-test`.
 
 ## Key design decisions
 
