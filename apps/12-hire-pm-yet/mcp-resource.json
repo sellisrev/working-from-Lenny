@@ -1,0 +1,98 @@
+{
+  "_comment": "MCP resource spec for #12 Should I Hire a PM Yet? Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 12,
+    "name": "Should I Hire a PM Yet?",
+    "phase": 2,
+    "type": "wizard / diagnostic"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/hire-pm-yet",
+    "name": "Should I Hire a PM Yet?",
+    "description": "Five-input diagnostic for founders. Returns yes/no/not-yet, the type of PM to hire, the wrong-fit cost, and an interim playbook if it's not yet.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "hire_pm_yet_diagnose",
+      "description": "Deterministic. Returns the verdict + pm_type + interim_playbook_id from the five inputs. Does not call an LLM.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": ["pre-seed", "seed", "series-a", "series-b-plus"]
+          },
+          "engineer_count": { "type": "integer", "minimum": 0 },
+          "designer_count": { "type": "integer", "minimum": 0 },
+          "pm_work_today": {
+            "type": "string",
+            "enum": ["the-founder", "doubling-engineer", "doubling-designer", "ceo-and-head-eng", "nobody"]
+          },
+          "founder_pct_on_product": {
+            "type": "string",
+            "enum": ["lt-30", "30-50", "50-70", "gt-70"]
+          },
+          "biggest_bottleneck": {
+            "type": "string",
+            "enum": ["we-dont-know-what-to-build", "we-cant-keep-up-with-stakeholder-asks", "engineering-builds-wrong-thing", "no-time-for-customer-research", "no-time-for-strategy"]
+          }
+        },
+        "required": ["stage", "engineer_count", "designer_count", "pm_work_today", "founder_pct_on_product", "biggest_bottleneck"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "verdict": { "type": "string", "enum": ["yes", "no", "not_yet"] },
+          "pm_type": {
+            "type": ["string", "null"],
+            "enum": ["feature-team-executor", "empowered-pm", "head-of-product", null]
+          },
+          "interim_playbook_id": {
+            "type": ["string", "null"],
+            "enum": ["pre-seed-founder-owns-product", "seed-early-team", "seed-founder-distracted", "need-product-clarity-first", null]
+          }
+        }
+      }
+    },
+    {
+      "name": "hire_pm_yet_narrate",
+      "description": "LLM-narrated. Takes the diagnostic output and inputs, returns the four-section reading: verdict, PM type (or interim playbook), wrong-fit cost, signals that would flip the answer.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "verdict": { "type": "string" },
+          "pm_type": { "type": ["string", "null"] },
+          "interim_playbook_id": { "type": ["string", "null"] },
+          "user_inputs": {
+            "type": "object",
+            "description": "The five original inputs verbatim so the narration can reference specifics."
+          }
+        },
+        "required": ["verdict", "user_inputs"]
+      }
+    },
+    {
+      "name": "hire_pm_yet_drift",
+      "description": "MCP-only (stateful). Compares the current diagnostic to a previous run and reports what shifted. Default off — requires opt-in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 560,
+    "preferredHeight": 600
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Confirm enum-with-null is acceptable in MCP outputSchema (or refactor pm_type/interim_playbook_id to optional fields without nulls).",
+    "Decide whether the link to #38 from a 'yes' verdict is a separate tool call or embedded as a clickable artifact in the narration output."
+  ]
+}
