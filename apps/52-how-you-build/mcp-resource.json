@@ -1,0 +1,83 @@
+{
+  "_comment": "MCP resource spec for #52 How [You] Build Product. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 52,
+    "name": "How [You] Build Product",
+    "phase": 2,
+    "type": "paste-and-critique"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/how-you-build",
+    "name": "How [You] Build Product",
+    "description": "Parody generator for the breathless-reverence-profile genre. Paste a small team's setup, get back the full Series-B-unicorn treatment.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "how_you_build_generate",
+      "description": "Generates the parody profile for a team's pasted setup. Returns six sections: pull quote, profile narrative, architecture diagram, origin story, rituals, closing-line lesson.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "team_description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 2000,
+            "description": "Free-text description of the team: size, tools, meetings, decision flow."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["profile", "twitter-thread", "podcast-cold-open"],
+            "default": "profile",
+            "description": "Output format. Profile is the default reverence write-up; twitter-thread reformats as 47 numbered bullets; podcast-cold-open returns a 90-second intro."
+          }
+        },
+        "required": ["team_description"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "pull_quote": { "type": "string" },
+          "profile_narrative": { "type": "string" },
+          "architecture_diagram": { "type": "string", "description": "ASCII/Unicode diagram." },
+          "origin_story": { "type": "string" },
+          "rituals": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 4,
+            "maxItems": 6
+          },
+          "closing_lesson": { "type": "string" },
+          "_mode_alt_output": {
+            "type": "string",
+            "description": "Populated only when mode is twitter-thread or podcast-cold-open; replaces the structured fields with the alt format."
+          }
+        }
+      }
+    },
+    {
+      "name": "how_you_build_save",
+      "description": "MCP-only (stateful). Saves a team profile for later iteration. Default off — requires opt-in per the plan's privacy posture.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "label": { "type": "string" },
+          "team_description": { "type": "string" }
+        },
+        "required": ["user_id", "team_description"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 720,
+    "preferredHeight": 880
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better.",
+    "Decide whether the twitter-thread and podcast-cold-open modes ship in Phase 2 or get deferred."
+  ]
+}
