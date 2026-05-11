@@ -50,11 +50,9 @@ Two modes share one prompt structure: translate the pasted message in one direct
 
 ## Block 3: Short ironic-but-humble description
 
-> Below the output. Owner review point — voice matches V4 (#53) and #44's drafted Block 3.
+> Below the output. Owner-locked. Single-line shape — deliberately breaks the two-beat used on #53 and #44 to keep the Block 3 sequence from feeling formulaic.
 
-**Draft:**
-
-Your mother does not have capacity for this. Send anyway.
+There is no Q3 in human relationships.
 
 ---
 
@@ -62,4 +60,4 @@ Your mother does not have capacity for this. Send anyway.
 
 - Block 2a uses PM jargon ("deprioritize", "ask") as part of the self-mocking PM-meta posture — #51 is in the set where the jargon IS the joke. Kept understated.
 - Block 2b is explicit about the privacy posture because the input is more sensitive than a quiz score (it's literally a message from the user's life). Better to state it than to hide it.
-- Block 3 mirrors V4's two-beat shape: setup (corporate-PM phrasing applied to family), beat that undercuts (send anyway).
+- Block 3 is intentionally a single line, not a two-beat. The Block 3 sequence across apps should vary in shape; the voice stays constant (ironic-but-humble, owner's voice, no em dashes, no AI tells) but the structure should not.
