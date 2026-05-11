@@ -12,7 +12,7 @@ updated: 2026-05-11
 
 ## Twelve archetypes
 
-Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfall**. The first six are from the original APP_IDEAS.md description; the next six are proposed and need owner confirmation against the actual corpus topic files before locking.
+Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfall**. Locked for v1.
 
 | # | Archetype | Corpus anchor | Virtue | Pitfall |
 |---|---|---|---|---|
@@ -22,14 +22,14 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 4 | The Pivot-Hanged | `pivot-stories.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction |
 | 5 | The Customer-Adjacent | `customer-research.md`, `jtbd.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" |
 | 6 | The Founder-Mode Returnee | `founder-mode.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one |
-| 7 | The Stakeholder-Pleaser *(proposed)* | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter |
-| 8 | The Top-1-Percent *(proposed)* | `top-1-percent-pm.md` | Rare quality bar | Martyrdom / burnout, can't trust the team |
-| 9 | The Saying-No *(proposed)* | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes |
-| 10 | The Eval-Forward *(proposed)* | AI eval coverage topics, `pm-pitfalls.md` | Rigorous about AI feature evals | Blocks shipping with infinite eval requirements |
-| 11 | The Strategy-Skeptic *(proposed)* | Rumelt-related topics | Spots non-strategy | Diagnoses without proposing alternatives |
-| 12 | The Empathy-Tourist *(proposed)* | `customer-research.md`, `spotting-bad-pm-behaviors.md` | Does occasional user calls | Treats them as performance, doesn't change behavior |
+| 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter |
+| 8 | The Top-1-Percent | `top-1-percent-pm.md` | Rare quality bar | Martyrdom / burnout, can't trust the team |
+| 9 | The Saying-No | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes |
+| 10 | The Eval-Forward | AI eval coverage topics, `pm-pitfalls.md` | Rigorous about AI feature evals | Blocks shipping with infinite eval requirements |
+| 11 | The Strategy-Skeptic | Rumelt-related topics | Spots non-strategy | Diagnoses without proposing alternatives |
+| 12 | The Empathy-Tourist | `customer-research.md`, `spotting-bad-pm-behaviors.md` | Does occasional user calls | Treats them as performance, doesn't change behavior |
 
-**Owner action:** confirm or replace slots 7–12. Map each to the actual topic file present in `knowledge/topics/`. Then this table can be considered locked for v1.
+Build note: archetype corpus anchors above are best-effort topic-file guesses. Before the deterministic content (predictions, nudges, aspect-pair lines) is authored, cross-check each anchor against `knowledge/topics/` and substitute the closest real file where the named one doesn't exist.
 
 ## Reading template
 

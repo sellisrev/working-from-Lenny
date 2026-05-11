@@ -14,4 +14,4 @@ Built mostly from Lenny Rachitsky's corpus, including Claire Vo's *How I AI* sho
 
 The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.
 
-Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: [Lenny's Newsletter](TBD-LENNY-URL), [How I AI](TBD-HOWIAI-URL).
+Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: [Lenny's Newsletter by Lenny Rachitsky](https://www.lennysnewsletter.com/), [How I AI with Claire Vo](https://www.lennysnewsletter.com/s/how-i-ai).

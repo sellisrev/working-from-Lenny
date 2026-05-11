@@ -12,7 +12,7 @@ updated: 2026-05-11
 
 ## Calendar door number
 
-Provisional: **Door 1** (first in Phase 0 build order). Owner can reassign once all tiles are drafted and the visual layout is fixed.
+**Door 2.** Owner explicitly reserved door 1 for something else (likely a more universal/welcoming tile such as #44 PM Pitfalls). Door 2 keeps #53 visible early in the calendar without making the horoscope joke the first thing a visitor sees.
 
 ## 3–4 word hint
 
@@ -36,7 +36,7 @@ Tile click → `/horoscope`.
 
 ```
 ┌─────────────────────┐
-│        1            │   ← door number
+│        2            │   ← door number
 │                     │
 │  Mercury is in      │   ← 3-4 word hint
 │  retrospective      │

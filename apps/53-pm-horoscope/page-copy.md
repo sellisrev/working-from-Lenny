@@ -46,16 +46,6 @@ Twelve archetypes, written once from the corpus's topics on PM pitfalls, bad-PM 
 
 ## Block 3: Short ironic-but-humble description
 
-> Below the output. Editorial policy: ironic but humbly so, no em dashes, no AI-writing tells, written in the owner's voice. One paragraph.
+> Below the output. Owner-locked. Sets the voice template for the next app's Block 3 draft.
 
-> Reviewed and corrected by owner before #44's equivalent block is drafted.
-
-**Draft v1:**
-
-A horoscope of PM archetypes. If yours stings a little, that's the point. The astrology is fake; the patterns are not.
-
-**Alternates for owner to consider:**
-
-- *v2 (slightly longer, names the source):* Twelve archetypes drawn from the bad-PM-behaviors and pitfalls topics, dressed as horoscope signs. The aspects are fake. The pitfalls are not. Refresh tomorrow for a new reading.
-- *v3 (more self-aware):* A horoscope only as accurate as the PM pitfalls it's named after. Regrettably, accurate enough.
-- *v4 (closing wink):* Mercury can do whatever Mercury wants. The Theatre Director, however, has a 9am.
+Mercury can do whatever Mercury wants. The Theatre Director, however, has a 9am.
