@@ -10,7 +10,7 @@ updated: 2026-05-11
 
 ---
 
-Built mostly from Lenny Rachitsky's corpus, including Claire Vo's *How I AI* show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what's gone stale.
+Built mostly from Lenny Rachitsky's corpus, including Claire Vo's *How I AI* show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.
 
 The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.
 
