@@ -33,7 +33,7 @@ Below the output:
 
 ### 2a. What this app does for you
 
-Twenty common pitfalls that show up in product work, distilled from the corpus's pitfall and bad-PM-behavior themes. You rate each as always, sometimes, or never, and the app gives you the three highest-leverage to fix this quarter, each with a short corpus-anchored example. Built for the PM who would rather be told the uncomfortable thing now than learn it from a retro six months from now.
+Twenty common pitfalls that show up in product work, distilled from the corpus's pitfall and bad-PM-behavior themes. You rate each as always, sometimes, or never, and the app gives you the three highest-leverage to fix this quarter, each with a short corpus-anchored example. Built for the PM who would rather be told the uncomfortable thing now than learn it from a retro six months from now, or the colleague trying to figure out whether what they're seeing has a name.
 
 ### 2b. How it works
 
