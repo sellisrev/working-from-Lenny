@@ -1,0 +1,99 @@
+{
+  "_comment": "MCP resource spec for #44 PM Pitfalls Self-Audit. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 44,
+    "name": "PM Pitfalls Self-Audit",
+    "phase": 2,
+    "type": "quiz + LLM narration"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/pitfalls",
+    "name": "PM Pitfalls Self-Audit",
+    "description": "Twenty corpus-derived PM pitfalls. User rates each, gets back the three highest-leverage to fix this quarter with personalized narration.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "pm_pitfalls_score",
+      "description": "Deterministic. Returns the user's score (0-20) and the three highest-leverage pitfall IDs given their twenty answers.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["always", "sometimes", "never"]
+            },
+            "minItems": 20,
+            "maxItems": 20,
+            "description": "Twenty answers in pitfall-ID order (1 through 20)."
+          }
+        },
+        "required": ["answers"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "score_display": { "type": "integer", "minimum": 0, "maximum": 20 },
+          "top_three_pitfall_ids": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "exemplar_quotes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "Pre-written corpus-anchored exemplar quote per top-three pitfall."
+          }
+        }
+      }
+    },
+    {
+      "name": "pm_pitfalls_narrate",
+      "description": "LLM-narrated. Takes the score and top three picks and returns personalized one-paragraph diagnoses + behavior suggestions per pitfall. Uses local corpus chunks for grounding.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "score_display": { "type": "integer" },
+          "top_three_pitfall_ids": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. User's role, stage, company size — sharpens the narration. Empty string if not provided."
+          }
+        },
+        "required": ["score_display", "top_three_pitfall_ids"]
+      }
+    },
+    {
+      "name": "pm_pitfalls_drift",
+      "description": "MCP-only (stateful). Returns the user's calibration drift if they've audited before — what shifted, what didn't, and a one-line read.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 560,
+    "preferredHeight": 720
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Confirm enum-in-array works in MCP tool inputSchema.",
+    "Decide whether pm_pitfalls_drift should require explicit user opt-in or be on-by-default (privacy posture in plan says default off)."
+  ]
+}
