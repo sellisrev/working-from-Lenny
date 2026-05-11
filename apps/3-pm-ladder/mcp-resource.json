@@ -1,0 +1,104 @@
+{
+  "_comment": "MCP resource spec for #3 PM Ladder Self-Assessment. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 3,
+    "name": "PM Ladder Self-Assessment",
+    "phase": 2,
+    "type": "quiz + LLM narration"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/pm-ladder",
+    "name": "PM Ladder Self-Assessment",
+    "description": "Thirty questions across five PM career dimensions. Returns effective level, gap report, three behaviors for the quarter, and an optional manager-calibration delta.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "pm_ladder_score",
+      "description": "Deterministic. Returns per-dimension levels, the overall effective level, and the widest-gap target dimension for the next level.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "minItems": 30,
+            "maxItems": 30,
+            "description": "Thirty answers in question-ID order. Each answer is a level (1-5)."
+          }
+        },
+        "required": ["answers"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "dimension_levels": {
+            "type": "object",
+            "properties": {
+              "scope": { "type": "number" },
+              "ambiguity": { "type": "number" },
+              "influence": { "type": "number" },
+              "judgment": { "type": "number" },
+              "craft": { "type": "number" }
+            }
+          },
+          "effective_level": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "widest_gap_dimension": { "type": "string" },
+          "target_level": { "type": "integer", "minimum": 1, "maximum": 5 }
+        }
+      }
+    },
+    {
+      "name": "pm_ladder_narrate",
+      "description": "LLM-narrated gap report and three behaviors to practice this quarter, anchored in corpus chunks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dimension_levels": { "type": "object" },
+          "effective_level": { "type": "integer" },
+          "target_level": { "type": "integer" }
+        },
+        "required": ["dimension_levels", "effective_level", "target_level"]
+      }
+    },
+    {
+      "name": "pm_ladder_calibrate",
+      "description": "LLM-narrated calibration delta. Reads the user's self-scoring alongside their manager's last review and returns the dimensions of widest disagreement with discussion questions for the next 1:1.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dimension_levels": { "type": "object" },
+          "manager_review_text": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 8000,
+            "description": "The text of the user's last performance review from their manager."
+          }
+        },
+        "required": ["dimension_levels", "manager_review_text"]
+      }
+    },
+    {
+      "name": "pm_ladder_drift",
+      "description": "MCP-only (stateful). Compares the user's current scoring against a previous run and reports drift. Default off — requires opt-in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 640,
+    "preferredHeight": 800
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars).",
+    "Decide whether pm_ladder_drift requires explicit opt-in per run, or one-time consent at MCP install."
+  ]
+}
