@@ -32,7 +32,7 @@ Below the reading, a small bar:
 
 ### 2a. What this app does for you
 
-A daily horoscope where the twelve signs are real product-management archetypes drawn from the corpus's bad-PM and pitfall topics. Pick one, or take a six-question quiz to find yours, and you get a one-paragraph reading in horoscope rhythm anchored in actual PM behaviors. Made for the kind of PM who has caught themselves doing all twelve.
+A daily horoscope where the twelve signs are real product-management archetypes drawn from the corpus's bad-PM and pitfall topics. Pick one, or take a six-question quiz to find yours, and you get a one-paragraph reading in horoscope rhythm anchored in actual PM behaviors. Made for the kind of PM who has caught themselves doing all twelve, or their colleagues trying to read the tea leaves.
 
 ### 2b. How it works
 
