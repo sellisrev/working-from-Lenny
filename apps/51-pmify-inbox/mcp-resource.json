@@ -1,0 +1,80 @@
+{
+  "_comment": "MCP resource spec for #51 PM-ify My Inbox. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 51,
+    "name": "PM-ify My Inbox",
+    "phase": 2,
+    "type": "paste-and-critique"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/pmify",
+    "name": "PM-ify My Inbox",
+    "description": "Translate messages between plain English and corporate-PM-speak, with footnotes citing the bad-PM patterns each translation triggers.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "pmify_translate",
+      "description": "Translates a message in the chosen direction and footnotes it with corpus-grounded bad-PM citations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["pm-ify", "de-pm-ify"],
+            "description": "pm-ify: plain English → corporate-PM-speak. de-pm-ify: corporate-PM-speak → plain English."
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "The message to translate."
+          }
+        },
+        "required": ["mode", "text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "translation": { "type": "string" },
+          "footnotes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pattern_name": { "type": "string" },
+                "diagnosis": { "type": "string" },
+                "corpus_topic": { "type": "string", "description": "Topic file the pattern is anchored in." }
+              }
+            },
+            "minItems": 2,
+            "maxItems": 4
+          }
+        }
+      }
+    },
+    {
+      "name": "pmify_history",
+      "description": "MCP-only (stateful). Returns the user's past translations. Default off — requires explicit opt-in per the plan's privacy posture.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "limit": { "type": "integer", "default": 10, "maximum": 100 }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 560,
+    "preferredHeight": 640
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Decide whether the tool should refuse very long inputs (>2000 chars) or truncate them — 2000 is a current guess.",
+    "Confirm structured footnotes (array of objects) is acceptable in MCP outputSchema, or whether the host renders better with a single markdown string."
+  ]
+}
