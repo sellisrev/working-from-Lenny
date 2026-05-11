@@ -1,0 +1,88 @@
+{
+  "_comment": "MCP resource spec for #38 Founder-mode vs Hire-PM. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 38,
+    "name": "Founder-mode vs Hire-PM",
+    "phase": 2,
+    "type": "wizard / diagnostic"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/founder-mode-vs-hire",
+    "name": "Founder-mode vs Hire-PM",
+    "description": "Four-input diagnostic for founders. Returns one of four verdicts (stay founder-mode, hire APM, hire mid-PM, hire head of product), what good looks like at that level, and the cost of getting it wrong.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "founder_mode_vs_hire_diagnose",
+      "description": "Deterministic. Returns the verdict from the four inputs. Does not call an LLM.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pm_frequency": {
+            "type": "string",
+            "enum": ["full-time", "most-of-the-time", "some-of-the-time", "rarely"]
+          },
+          "pm_enjoyment": {
+            "type": "string",
+            "enum": ["enjoy", "tolerate", "dislike"]
+          },
+          "ceo_bandwidth": {
+            "type": "string",
+            "enum": ["room-to-add-product", "stretched-but-functioning", "overstretched"]
+          },
+          "product_density_6mo": {
+            "type": "string",
+            "enum": ["heavy", "moderate", "light"]
+          }
+        },
+        "required": ["pm_frequency", "pm_enjoyment", "ceo_bandwidth", "product_density_6mo"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": ["stay-founder-mode", "hire-apm", "hire-mid-pm", "hire-head-of-product"]
+          }
+        }
+      }
+    },
+    {
+      "name": "founder_mode_vs_hire_narrate",
+      "description": "LLM-narrated. Takes the verdict and inputs, returns three sections: verdict in plain language with rationale, what good looks like at that level, cost of getting it wrong.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "verdict": { "type": "string" },
+          "user_inputs": {
+            "type": "object",
+            "description": "The four original inputs verbatim so narration can reference specifics."
+          }
+        },
+        "required": ["verdict", "user_inputs"]
+      }
+    },
+    {
+      "name": "founder_mode_vs_hire_drift",
+      "description": "MCP-only (stateful). Compares the current verdict to a previous run and reports what shifted. Default off — requires opt-in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 560,
+    "preferredHeight": 600
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Decide whether to expose a single combined tool that calls #12 then #38 in one round trip (shorter founder flow inside Claude Desktop) vs keeping them as two tool calls."
+  ]
+}
