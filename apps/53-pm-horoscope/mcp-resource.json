@@ -1,0 +1,94 @@
+{
+  "_comment": "MCP resource spec for #53 PM Horoscope. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young and may have changed; owner to validate against current docs before locking.",
+  "_app": {
+    "id": 53,
+    "name": "PM Horoscope",
+    "phase": 2,
+    "type": "deterministic"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/horoscope",
+    "name": "PM Horoscope",
+    "description": "Daily reading based on twelve corpus-derived PM archetypes. Deterministic, no LLM call.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "pm_horoscope_read",
+      "description": "Returns today's PM horoscope reading for a chosen archetype. Deterministic, composed from date + archetype.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "archetype": {
+            "type": "string",
+            "enum": [
+              "bet-defender",
+              "theatre-director",
+              "cornered-resource",
+              "pivot-hanged",
+              "customer-adjacent",
+              "founder-mode-returnee",
+              "stakeholder-pleaser",
+              "top-1-percent",
+              "saying-no",
+              "eval-forward",
+              "strategy-skeptic",
+              "empathy-tourist"
+            ],
+            "description": "User's archetype, set once via quiz or direct pick."
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "ISO date. Defaults to today if omitted."
+          }
+        },
+        "required": ["archetype"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "archetype": { "type": "string" },
+          "aspect": { "type": "string" },
+          "prediction": { "type": "string" },
+          "nudge": { "type": "string" },
+          "lucky_topic_file": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "pm_horoscope_quiz",
+      "description": "Returns the six-question archetype quiz. User answers map to one of twelve archetypes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "minItems": 6,
+            "maxItems": 6,
+            "description": "Six integer answers, indices into each question's options."
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "archetype": { "type": "string" },
+          "next_archetype": { "type": "string", "description": "Second-closest archetype, in case the user disagrees with the primary." }
+        }
+      }
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 480,
+    "preferredHeight": 320
+  },
+  "_open_questions": [
+    "Validate `ui://` URI scheme against current MCP Apps spec.",
+    "Confirm `mimeType: text/html` is the right way to declare UI resource vs structured output.",
+    "Decide whether quiz state lives in the server (persistent across sessions) or in the host (cookie/local-storage)."
+  ]
+}
