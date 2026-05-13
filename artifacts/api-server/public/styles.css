@@ -71,38 +71,42 @@ main {
   padding-bottom: 3rem;
 }
 
-/* Tile grid */
+/* ================================================================
+   Tile grid — perspective for 3D door rotation
+   ================================================================ */
 .tiles {
   list-style: none;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.875rem;
-  perspective: 1200px;
+  perspective: 1400px;
 }
 
 .tiles li {
   min-width: 0;
 }
 
+/* ================================================================
+   Tile = the doorFRAME plus a glow that lives behind the door.
+   The actual door is the .tile-panel child; it rotates / slides
+   open on hover and reveals the glow underneath through the crack.
+   ================================================================ */
 .tile {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.25rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  display: block;
+  border-radius: 7px;
   text-decoration: none;
   color: inherit;
-  background: #fafafa;
   height: 100%;
-  transform-style: preserve-3d;
-  transition:
-    transform 0.3s ease-out,
-    background 0.3s ease-out,
-    border-color 0.3s ease-out,
-    box-shadow 0.3s ease-out;
+  min-height: 140px;
+  padding: 5px;
+  overflow: hidden;
+  /* per-style background = the doorframe material */
+  background: linear-gradient(135deg, #2a1f14, #3d2c1c);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.04);
 }
 
 .tile:focus {
@@ -110,236 +114,515 @@ main {
   outline-offset: 2px;
 }
 
-/* Hover-state styles only apply on devices with a real pointer.
-   On touch devices, :hover fires briefly between tap and navigation
-   and would cause a flash. (pointer: fine) excludes touch screens. */
-@media (hover: hover) and (pointer: fine) {
-  .tile:hover,
-  .tile:focus-visible {
-    background: #f0f0f0;
-    border-color: #bbb;
-    outline: none;
-    box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.08);
-  }
+/* Glow layer — radial gradient inside the frame; appears through
+   the gap when the door rotates / slides open. */
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 3px;
+  z-index: 0;
+  /* per-style background sets the glow color */
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 200, 100, 0.55) 0%,
+    rgba(255, 200, 100, 0.12) 60%,
+    rgba(255, 200, 100, 0.02) 100%
+  );
+  pointer-events: none;
+}
+
+/* Door panel — the visible material that rotates / slides open. */
+.tile-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0.8rem;
+  height: 100%;
+  border-radius: 3px;
+  transition:
+    transform 0.3s ease-out,
+    box-shadow 0.3s ease-out;
+  /* per-style background = the door material */
 }
 
 .tile-door {
   font-size: 2.25rem;
   font-weight: 700;
   line-height: 1;
-  color: #1a1a1a;
   letter-spacing: -0.02em;
+  /* per-style color = number on the door */
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .tile-hint {
-  font-size: 0.8rem;
-  color: #666;
-  line-height: 1.4;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  /* per-style color */
 }
 
 /* ================================================================
-   Door styles — six distinct opening gestures, each with a subtle
-   decoration. All 0.3s, all pure CSS, all triggered by hover/focus
-   so the user perceives the motion before click-through navigation.
+   Six door types — each with its own material, decoration, and
+   opening gesture. The decoration sits on the .tile-panel via its
+   ::before and ::after pseudo-elements.
    ================================================================ */
 
-/* Door 1 — Classic hinged door (left hinge) */
+/* ─── Door 1: Classic wooden door (warm) ────────────────────────── */
 .tile-style-1 {
+  background: linear-gradient(135deg, #2a1a0c, #4d3520);
+}
+.tile-style-1::before {
+  background: radial-gradient(
+    ellipse at 35% 55%,
+    rgba(255, 195, 110, 0.65) 0%,
+    rgba(255, 195, 110, 0.18) 55%,
+    rgba(255, 195, 110, 0.02) 100%
+  );
+}
+.tile-style-1 .tile-panel {
+  background:
+    /* subtle vertical wood grain */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 6px,
+      rgba(0, 0, 0, 0.04) 6px,
+      rgba(0, 0, 0, 0.04) 7px
+    ),
+    linear-gradient(180deg, #b88a52, #94703f);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.15);
   transform-origin: left center;
 }
-.tile-style-1::after {
-  /* small handle on the right */
+.tile-style-1 .tile-panel::after {
+  /* small brass knob on the right at handle height */
   content: '';
   position: absolute;
-  right: 0.7rem;
-  top: 50%;
-  width: 0.3rem;
-  height: 0.3rem;
+  right: 0.55rem;
+  top: 58%;
+  width: 0.42rem;
+  height: 0.42rem;
   border-radius: 50%;
-  background: #c8c8c8;
-  transform: translateY(-50%);
-  transition: background 0.3s ease-out;
+  background: radial-gradient(circle at 30% 30%, #ffd87a, #a87a30);
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.3);
+}
+.tile-style-1 .tile-door,
+.tile-style-1 .tile-hint {
+  color: #fff5e1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+.tile-style-1 .tile-hint {
+  color: rgba(255, 245, 225, 0.85);
 }
 
-/* Door 2 — Stage curtain (parts to the sides) */
-.tile-style-2::before,
-.tile-style-2::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: #d0d0d0;
-  transition: transform 0.3s ease-out, background 0.3s ease-out;
-  pointer-events: none;
+/* ─── Door 2: Cathedral arched door (indigo glow) ───────────────── */
+.tile-style-2 {
+  background: linear-gradient(135deg, #1a1a28, #34344a);
 }
 .tile-style-2::before {
-  left: 50%;
-  transform-origin: center;
-}
-.tile-style-2::after {
-  left: 50%;
-  transform-origin: center;
-}
-
-/* Door 3 — Slide right (drawer-pull) */
-.tile-style-3::after {
-  /* vertical pull-edge on right */
-  content: '';
-  position: absolute;
-  top: 18%;
-  bottom: 18%;
-  right: 0.45rem;
-  width: 2px;
-  border-radius: 1px;
-  background: #d0d0d0;
-  transition: background 0.3s ease-out;
-}
-.tile-style-3 {
-  transform-origin: right center;
-}
-
-/* Door 4 — Garage roll-up (slat hairlines, lifts upward) */
-.tile-style-4::before {
-  content: '';
-  position: absolute;
-  inset: 0.6rem;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 0.85rem,
-    rgba(0, 0, 0, 0.05) 0.85rem,
-    rgba(0, 0, 0, 0.05) 0.86rem
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(140, 130, 230, 0.55) 0%,
+    rgba(100, 95, 200, 0.18) 55%,
+    rgba(80, 75, 160, 0.02) 100%
   );
-  border-radius: 4px;
-  pointer-events: none;
-  transition: opacity 0.3s ease-out;
 }
-.tile-style-4 {
-  transform-origin: top center;
+.tile-style-2 .tile-panel {
+  background: linear-gradient(180deg, #4a3825, #2e2010);
+  border-radius: 22px 22px 3px 3px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 18px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 220, 170, 0.08);
+  transform-origin: left center;
 }
-
-/* Door 5 — Trapdoor (top hinge, flips backward) */
-.tile-style-5::before {
-  /* hinge line at top */
+.tile-style-2 .tile-panel::before {
+  /* iron band horizontal */
   content: '';
   position: absolute;
-  top: 0;
-  left: 18%;
-  right: 18%;
-  height: 1px;
-  background: #d0d0d0;
-  transition: background 0.3s ease-out;
+  top: 32%;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #3a3a3a 20%, #5a5a5a 50%, #3a3a3a 80%, transparent);
+  border-radius: 1px;
 }
-.tile-style-5 {
-  transform-origin: top center;
-}
-
-/* Door 6 — Vault wheel (right hinge with central circle) */
-.tile-style-6::after {
-  /* circular wheel in the center-right */
+.tile-style-2 .tile-panel::after {
+  /* iron ring handle */
   content: '';
   position: absolute;
-  right: 0.85rem;
-  top: 50%;
+  right: 0.6rem;
+  top: 58%;
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 50%;
-  border: 1px solid #c8c8c8;
-  transform: translateY(-50%) rotate(0deg);
-  transition: transform 0.3s ease-out, border-color 0.3s ease-out;
+  border: 2px solid #2a2a2a;
+  background: transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 0 1px rgba(0, 0, 0, 0.6);
 }
+.tile-style-2 .tile-door,
+.tile-style-2 .tile-hint {
+  color: #f0d9a0;
+}
+.tile-style-2 .tile-hint {
+  color: rgba(240, 217, 160, 0.78);
+}
+
+/* ─── Door 3: Modern office door (cool teal glow) ──────────────── */
+.tile-style-3 {
+  background: linear-gradient(135deg, #d8d8d8, #b8b8b8);
+}
+.tile-style-3::before {
+  background: radial-gradient(
+    ellipse at 30% 50%,
+    rgba(140, 210, 220, 0.55) 0%,
+    rgba(140, 210, 220, 0.18) 55%,
+    rgba(140, 210, 220, 0.02) 100%
+  );
+}
+.tile-style-3 .tile-panel {
+  background: linear-gradient(180deg, #f0f0f2, #d8dade);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+  transform-origin: left center;
+}
+.tile-style-3 .tile-panel::after {
+  /* vertical chrome handle on the right */
+  content: '';
+  position: absolute;
+  right: 0.5rem;
+  top: 30%;
+  bottom: 30%;
+  width: 0.22rem;
+  border-radius: 1.5px;
+  background: linear-gradient(180deg, #9a9a9a, #c0c0c0 50%, #6a6a6a);
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
+}
+.tile-style-3 .tile-door {
+  color: #2a2a2a;
+}
+.tile-style-3 .tile-hint {
+  color: #555;
+}
+
+/* ─── Door 4: Barn sliding door (warm orange glow) ─────────────── */
+.tile-style-4 {
+  background: linear-gradient(180deg, #1a1408, #2a1f10);
+}
+.tile-style-4::before {
+  background: radial-gradient(
+    ellipse at 30% 50%,
+    rgba(255, 165, 90, 0.55) 0%,
+    rgba(255, 140, 80, 0.18) 55%,
+    rgba(220, 110, 60, 0.02) 100%
+  );
+}
+.tile-style-4 .tile-panel {
+  background:
+    /* vertical plank lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 18%,
+      rgba(0, 0, 0, 0.18) 18%,
+      rgba(0, 0, 0, 0.18) calc(18% + 1px),
+      transparent calc(18% + 1px),
+      transparent 33%
+    ),
+    linear-gradient(180deg, #8a5a30, #6b4220);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+  transform-origin: center center;
+}
+.tile-style-4 .tile-panel::before {
+  /* top sliding track */
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -2%;
+  right: -2%;
+  height: 3px;
+  background: linear-gradient(180deg, #2a2017, #15100a);
+  z-index: 2;
+}
+.tile-style-4 .tile-panel::after {
+  /* horizontal pull bar near the right edge */
+  content: '';
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  width: 1rem;
+  height: 0.32rem;
+  background: linear-gradient(180deg, #3a3a3a, #1a1a1a);
+  border-radius: 2px;
+  transform: translateY(-50%);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.tile-style-4 .tile-door,
+.tile-style-4 .tile-hint {
+  color: #fde0c2;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+.tile-style-4 .tile-hint {
+  color: rgba(253, 224, 194, 0.8);
+}
+
+/* ─── Door 5: Trapdoor / hatch (soft green glow) ───────────────── */
+.tile-style-5 {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #2a1f12 0,
+      #2a1f12 24%,
+      #1d150a 24%,
+      #1d150a 25%
+    );
+}
+.tile-style-5::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(140, 200, 140, 0.55) 0%,
+    rgba(120, 180, 130, 0.18) 55%,
+    rgba(80, 140, 100, 0.02) 100%
+  );
+}
+.tile-style-5 .tile-panel {
+  background:
+    /* diagonal grain hint */
+    repeating-linear-gradient(
+      45deg,
+      transparent 0,
+      transparent 8px,
+      rgba(0, 0, 0, 0.05) 8px,
+      rgba(0, 0, 0, 0.05) 9px
+    ),
+    linear-gradient(160deg, #856037, #5e4220);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+    inset 0 2px 6px rgba(255, 220, 170, 0.1),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+  transform-origin: top center;
+}
+.tile-style-5 .tile-panel::before {
+  /* hinge bar at the top */
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 22%;
+  right: 22%;
+  height: 3px;
+  background: linear-gradient(90deg, #1a1a1a, #4a4a4a 50%, #1a1a1a);
+  border-radius: 1px;
+  z-index: 2;
+}
+.tile-style-5 .tile-panel::after {
+  /* recessed ring handle in lower center */
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0.6rem;
+  width: 0.75rem;
+  height: 0.45rem;
+  border-radius: 50% 50% 50% 50% / 75% 75% 25% 25%;
+  border: 1.5px solid #2a1a0a;
+  background: rgba(0, 0, 0, 0.15);
+  transform: translateX(-50%);
+}
+.tile-style-5 .tile-door,
+.tile-style-5 .tile-hint {
+  color: #fde6c4;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+.tile-style-5 .tile-hint {
+  color: rgba(253, 230, 196, 0.8);
+}
+
+/* ─── Door 6: Vault door (dusty red glow) ──────────────────────── */
 .tile-style-6 {
+  background: linear-gradient(135deg, #1a1a1c, #34343a);
+}
+.tile-style-6::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(220, 110, 110, 0.5) 0%,
+    rgba(200, 90, 90, 0.18) 55%,
+    rgba(160, 70, 70, 0.02) 100%
+  );
+}
+.tile-style-6 .tile-panel {
+  background:
+    /* brushed metal */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 2px,
+      rgba(0, 0, 0, 0.025) 2px,
+      rgba(0, 0, 0, 0.025) 3px
+    ),
+    linear-gradient(180deg, #b8bcc0, #7a7e84);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.2);
   transform-origin: right center;
 }
+.tile-style-6 .tile-panel::before {
+  /* bolt heads around the edge — corners */
+  content: '';
+  position: absolute;
+  inset: 0.35rem;
+  border-radius: 2px;
+  background:
+    radial-gradient(circle at 4px 4px, #4a4a4a 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 4px) 4px, #4a4a4a 1.5px, transparent 2px),
+    radial-gradient(circle at 4px calc(100% - 4px), #4a4a4a 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 4px) calc(100% - 4px), #4a4a4a 1.5px, transparent 2px);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.tile-style-6 .tile-panel::after {
+  /* the vault wheel — circle with crosshair via gradient */
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid #3a3a3a;
+  background:
+    /* crosshair spokes */
+    linear-gradient(0deg, transparent 47%, #3a3a3a 47%, #3a3a3a 53%, transparent 53%),
+    linear-gradient(90deg, transparent 47%, #3a3a3a 47%, #3a3a3a 53%, transparent 53%),
+    radial-gradient(circle at center, #6a6e74, #4a4e54);
+  transform: translate(-50%, -50%) rotate(0deg);
+  transition: transform 0.3s ease-out;
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.25);
+}
+.tile-style-6 .tile-door {
+  color: #1a1a1a;
+}
+.tile-style-6 .tile-hint {
+  color: #2a2a2a;
+}
 
-/* Open animations only apply on devices with a real pointer (mouse / trackpad).
-   On touch devices, :hover would briefly fire between tap and navigation
-   and cause an unwanted flash of the door animation. */
+/* ================================================================
+   Open animations — only on devices with a real pointer.
+   Touch devices skip these entirely (no flash between tap and nav).
+   ================================================================ */
 @media (hover: hover) and (pointer: fine) {
-  /* Door 1 */
-  .tile-style-1:hover,
-  .tile-style-1:focus-visible {
+  /* Door 1 — swings open on left hinge */
+  .tile-style-1:hover .tile-panel,
+  .tile-style-1:focus-visible .tile-panel {
+    transform: rotateY(-20deg);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      6px 0 12px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Door 2 — heavy cathedral swing */
+  .tile-style-2:hover .tile-panel,
+  .tile-style-2:focus-visible .tile-panel {
+    transform: rotateY(-18deg);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 0 18px rgba(0, 0, 0, 0.3),
+      6px 0 14px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Door 3 — office door, lighter swing */
+  .tile-style-3:hover .tile-panel,
+  .tile-style-3:focus-visible .tile-panel {
     transform: rotateY(-22deg);
-  }
-  .tile-style-1:hover::after,
-  .tile-style-1:focus-visible::after {
-    background: #888;
-  }
-
-  /* Door 2 */
-  .tile-style-2:hover,
-  .tile-style-2:focus-visible {
-    transform: scale(1.03);
-  }
-  .tile-style-2:hover::before,
-  .tile-style-2:focus-visible::before {
-    transform: translateX(-40%);
-    background: #888;
-  }
-  .tile-style-2:hover::after,
-  .tile-style-2:focus-visible::after {
-    transform: translateX(40%);
-    background: #888;
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      5px 0 10px rgba(0, 0, 0, 0.1);
   }
 
-  /* Door 3 */
-  .tile-style-3:hover,
-  .tile-style-3:focus-visible {
-    transform: translateX(8px) rotateY(-10deg);
-  }
-  .tile-style-3:hover::after,
-  .tile-style-3:focus-visible::after {
-    background: #888;
-  }
-
-  /* Door 4 */
-  .tile-style-4:hover,
-  .tile-style-4:focus-visible {
-    transform: translateY(-6px) scale(1.02);
-  }
-  .tile-style-4:hover::before,
-  .tile-style-4:focus-visible::before {
-    opacity: 0.4;
+  /* Door 4 — barn door slides to the right */
+  .tile-style-4:hover .tile-panel,
+  .tile-style-4:focus-visible .tile-panel {
+    transform: translateX(22%);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+      -4px 0 10px rgba(0, 0, 0, 0.18);
   }
 
-  /* Door 5 */
-  .tile-style-5:hover,
-  .tile-style-5:focus-visible {
-    transform: rotateX(-18deg);
-  }
-  .tile-style-5:hover::before,
-  .tile-style-5:focus-visible::before {
-    background: #888;
+  /* Door 5 — trapdoor flips backward on top hinge */
+  .tile-style-5:hover .tile-panel,
+  .tile-style-5:focus-visible .tile-panel {
+    transform: rotateX(-32deg);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+      inset 0 2px 6px rgba(255, 220, 170, 0.1),
+      inset 0 -2px 6px rgba(0, 0, 0, 0.25),
+      0 6px 12px rgba(0, 0, 0, 0.18);
   }
 
-  /* Door 6 */
-  .tile-style-6:hover,
-  .tile-style-6:focus-visible {
-    transform: rotateY(20deg);
+  /* Door 6 — vault swings open on right hinge + wheel rotates */
+  .tile-style-6:hover .tile-panel,
+  .tile-style-6:focus-visible .tile-panel {
+    transform: rotateY(16deg);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 6px rgba(0, 0, 0, 0.2),
+      -6px 0 14px rgba(0, 0, 0, 0.22);
   }
-  .tile-style-6:hover::after,
-  .tile-style-6:focus-visible::after {
-    transform: translateY(-50%) rotate(180deg);
-    border-color: #555;
+  .tile-style-6:hover .tile-panel::after,
+  .tile-style-6:focus-visible .tile-panel::after {
+    transform: translate(-50%, -50%) rotate(140deg);
   }
 }
 
-/* Reduce motion preference — respect users who opt out */
+/* Reduce-motion preference — pin doors closed */
 @media (prefers-reduced-motion: reduce) {
-  .tile,
-  .tile::before,
-  .tile::after {
-    transition: background 0.12s ease, border-color 0.12s ease;
+  .tile-panel,
+  .tile-style-6 .tile-panel::after {
+    transition: none !important;
     transform: none !important;
   }
-  .tile:hover,
-  .tile:focus-visible {
-    transform: none !important;
+  @media (hover: hover) and (pointer: fine) {
+    .tile-style-1:hover .tile-panel,
+    .tile-style-2:hover .tile-panel,
+    .tile-style-3:hover .tile-panel,
+    .tile-style-4:hover .tile-panel,
+    .tile-style-5:hover .tile-panel,
+    .tile-style-6:hover .tile-panel,
+    .tile-style-6:hover .tile-panel::after,
+    .tile-style-1:focus-visible .tile-panel,
+    .tile-style-2:focus-visible .tile-panel,
+    .tile-style-3:focus-visible .tile-panel,
+    .tile-style-4:focus-visible .tile-panel,
+    .tile-style-5:focus-visible .tile-panel,
+    .tile-style-6:focus-visible .tile-panel,
+    .tile-style-6:focus-visible .tile-panel::after {
+      transform: none !important;
+    }
   }
 }
 
