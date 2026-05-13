@@ -185,7 +185,7 @@ main {
    left for right-hinge / right-slide, bottom for top-hinge).
    ================================================================ */
 
-/* ─── Door 1: Red painted residential door ────────────────────── */
+/* ─── Door 1: Red painted residential — LEFT-HINGE SWING ──────── */
 .tile-style-1 {
   background: linear-gradient(135deg, #1a0f06, #2c1c10);
 }
@@ -245,10 +245,10 @@ main {
     0 1px 2px rgba(0, 0, 0, 0.5);
 }
 .tile-style-1 .tile-caption {
-  color: #d9b894;
+  color: #fbeacc;  /* WCAG AAA on #1a0f06 frame */
 }
 
-/* ─── Door 2: Gothic cathedral door (indigo glow) ─────────────── */
+/* ─── Door 2: Gothic cathedral — DRAWBRIDGE (bottom-hinge drop) ─ */
 .tile-style-2 {
   background: linear-gradient(135deg, #0e0e16, #1c1c2c);
 }
@@ -256,11 +256,12 @@ main {
   background: #14142a;
 }
 .tile-style-2 .tile-doorway::before {
+  /* glow at the TOP — exposed when the drawbridge drops down */
   background: radial-gradient(
-    ellipse at 75% 55%,
+    ellipse at 50% 18%,
     rgba(150, 130, 245, 0.95) 0%,
-    rgba(110, 90, 220, 0.5) 30%,
-    rgba(85, 70, 180, 0.18) 60%,
+    rgba(110, 90, 220, 0.5) 35%,
+    rgba(85, 70, 180, 0.15) 70%,
     transparent 100%
   );
 }
@@ -274,7 +275,7 @@ main {
     inset 0 0 0 1px rgba(0, 0, 0, 0.5),
     inset 0 0 20px rgba(0, 0, 0, 0.4),
     inset 0 2px 0 rgba(255, 220, 170, 0.06);
-  transform-origin: left center;
+  transform-origin: bottom center;
 }
 .tile-style-2 .tile-panel::before {
   /* two iron strap bands with rivet dots */
@@ -312,19 +313,20 @@ main {
     0 1px 2px rgba(0, 0, 0, 0.6);
 }
 .tile-style-2 .tile-caption {
-  color: #b8a8d0;
+  color: #ebe3f7;  /* WCAG AAA on #0e0e16 frame */
 }
 
-/* ─── Door 3: Modern white office door (cool teal) ────────────── */
+/* ─── Door 3: Modern office — SLIDES DOWN into floor (teal) ──── */
 .tile-style-3 {
-  background: linear-gradient(135deg, #8a8d92, #6a6d72);
+  background: linear-gradient(135deg, #1c2026, #0e1116);
 }
 .tile-style-3 .tile-doorway {
-  background: #d8e4e8;
+  background: #0e1820;
 }
 .tile-style-3 .tile-doorway::before {
+  /* glow at the TOP — exposed when the door sinks down */
   background: radial-gradient(
-    ellipse at 78% 55%,
+    ellipse at 50% 22%,
     rgba(150, 230, 240, 0.95) 0%,
     rgba(120, 200, 220, 0.5) 35%,
     rgba(90, 170, 200, 0.15) 70%,
@@ -334,10 +336,10 @@ main {
 .tile-style-3 .tile-panel {
   background: linear-gradient(180deg, #f4f5f7 0%, #e2e4e8 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
-  transform-origin: left center;
+    inset 0 -2px 4px rgba(0, 0, 0, 0.08);
+  transform-origin: bottom center;
 }
 .tile-style-3 .tile-panel::before {
   /* peephole + room number plate (combined) */
@@ -370,7 +372,7 @@ main {
     0 1px 1px rgba(0, 0, 0, 0.25);
 }
 .tile-style-3 .tile-caption {
-  color: #2a2a2a;
+  color: #e0eef2;  /* WCAG AAA on #1c2026 frame */
 }
 
 /* ─── Door 4: Weathered grey barn door (warm orange) ──────────── */
@@ -432,7 +434,7 @@ main {
     0 1px 2px rgba(0, 0, 0, 0.5);
 }
 .tile-style-4 .tile-caption {
-  color: #d9b894;
+  color: #fbe6c8;  /* WCAG AAA on #0e0a05 frame */
 }
 
 /* ─── Door 5: Copper trapdoor / hatch (soft green glow) ───────── */
@@ -498,7 +500,7 @@ main {
     inset 0 1px 1px rgba(255, 200, 130, 0.2);
 }
 .tile-style-5 .tile-caption {
-  color: #c8b884;
+  color: #fbe8be;  /* WCAG AAA on #1a140a frame */
 }
 
 /* ─── Door 6: Heavy vault door (dusty red) ────────────────────── */
@@ -576,7 +578,7 @@ main {
     inset 0 2px 2px rgba(255, 255, 255, 0.1);
 }
 .tile-style-6 .tile-caption {
-  color: #c8b0b0;
+  color: #f5dcdc;  /* WCAG AAA on #0e0e10 frame */
 }
 
 /* ================================================================
@@ -593,22 +595,24 @@ main {
       8px 2px 18px rgba(0, 0, 0, 0.3);
   }
 
+  /* Door 2 — drawbridge drops forward (bottom hinge) */
   .tile-style-2:hover .tile-panel,
   .tile-style-2:focus-visible .tile-panel {
-    transform: rotateY(-34deg);
+    transform: rotateX(34deg);
     box-shadow:
       inset 0 0 0 1px rgba(0, 0, 0, 0.5),
       inset 0 0 20px rgba(0, 0, 0, 0.4),
-      9px 2px 18px rgba(0, 0, 0, 0.4);
+      0 6px 16px rgba(0, 0, 0, 0.4);
   }
 
+  /* Door 3 — slides down into the floor */
   .tile-style-3:hover .tile-panel,
   .tile-style-3:focus-visible .tile-panel {
-    transform: rotateY(-42deg);
+    transform: translateY(68%);
     box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.1),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.18),
       inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      8px 2px 16px rgba(0, 0, 0, 0.15);
+      0 -4px 12px rgba(0, 0, 0, 0.18);
   }
 
   .tile-style-4:hover .tile-panel,
