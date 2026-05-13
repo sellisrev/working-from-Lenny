@@ -30,23 +30,83 @@
   <main>
     <div class="container">
 
-      <!-- Block 1: Working interface -->
+      <!-- Block 1: Structured input + mode toggle -->
       <form class="hyb-form" id="hyb-form" novalidate>
 
-        <textarea
-          class="hyb-paste"
-          id="hyb-paste"
-          rows="6"
-          placeholder="e.g. three PMs, nine engineers, two designers. Notion for specs, Linear for tickets, Slack for everything. Standups Mon/Wed/Fri. Roadmap is a pinned Slack thread."
-          aria-label="Describe your team in a sentence or two"></textarea>
+        <div class="hyb-fields">
+
+          <div class="hyb-field">
+            <div class="hyb-field-label">Team composition</div>
+            <div class="hyb-team-wrap">
+              <label class="hyb-team-sub">
+                <span>PMs</span>
+                <input type="number" id="hyb-pm-count" min="0" step="1" placeholder="0">
+              </label>
+              <label class="hyb-team-sub">
+                <span>Engineers</span>
+                <input type="number" id="hyb-eng-count" min="0" step="1" placeholder="0">
+              </label>
+              <label class="hyb-team-sub">
+                <span>Designers</span>
+                <input type="number" id="hyb-des-count" min="0" step="1" placeholder="0">
+              </label>
+            </div>
+          </div>
+
+          <div class="hyb-field">
+            <label class="hyb-field-label" for="hyb-tools">Tools you use</label>
+            <input
+              type="text"
+              class="hyb-text-input"
+              id="hyb-tools"
+              placeholder="e.g. Notion, Linear, Slack">
+          </div>
+
+          <div class="hyb-field">
+            <label class="hyb-field-label" for="hyb-rituals">Rituals you have</label>
+            <input
+              type="text"
+              class="hyb-text-input"
+              id="hyb-rituals"
+              placeholder="e.g. Mon/Wed/Fri standups, pinned roadmap, Friday demos">
+          </div>
+
+          <div class="hyb-field">
+            <label class="hyb-field-label" for="hyb-last-shipped">Last thing you shipped</label>
+            <input
+              type="text"
+              class="hyb-text-input"
+              id="hyb-last-shipped"
+              placeholder="e.g. the new onboarding flow last quarter">
+          </div>
+
+        </div>
+
+        <div class="hyb-field">
+          <div class="hyb-field-label">Mode</div>
+          <div class="hyb-mode" role="radiogroup" aria-label="Output mode">
+            <label class="hyb-mode-label">
+              <input type="radio" name="mode" value="reverence-profile" checked>
+              <span>Reverence profile</span>
+            </label>
+            <label class="hyb-mode-label">
+              <input type="radio" name="mode" value="linkedin-humblebrag">
+              <span>LinkedIn humblebrag</span>
+            </label>
+            <label class="hyb-mode-label">
+              <input type="radio" name="mode" value="acquired-cold-open">
+              <span>Acquired cold-open</span>
+            </label>
+          </div>
+        </div>
 
         <p class="hyb-validation" id="hyb-validation" role="alert">
-          Tell the app about your team first.
+          Fill in at least the team composition and one tool or ritual before generating.
         </p>
 
         <button type="submit" class="hyb-submit" id="hyb-submit">Generate the profile</button>
 
-        <p class="hyb-privacy">Your paste is not stored. The button opens your input in Claude in a new tab to generate the profile.</p>
+        <p class="hyb-privacy">Your inputs are not stored. The button opens your description in Claude in a new tab to generate the output.</p>
 
       </form>
 
@@ -57,7 +117,7 @@
         <p>Paste a sentence or two about your team — who's on it, what tools you use, what meetings happen — and the app returns the kind of reverence-profile write-up usually reserved for stage-eight unicorns: pull quote, mythical origin story, architecture diagram with your Notion relabeled as a proprietary knowledge graph, the ritual section, and the closing line about what every Series B can learn from you. Built for the PM who has caught themselves embellishing a Slack thread into a methodology, and for the engineer or founder who has read one of these profiles and wondered if it's all just Notion with confidence.</p>
 
         <h2>How it works</h2>
-        <p>The structure of the parody — pull quote, three paragraphs, diagram, origin, rituals, closer — is held in the prompt, not the model, so the comedy doesn't drift between providers. The LLM fills in the earnest treatment of whatever you pasted, with a few guardrails (no AI-writing tells, no hedging, no breaking the fourth wall). Generation runs through Gemini Flash on the web with the usual free-tier ceiling; if it's hit, a single click hands the same prompt off to Claude in your own subscription. Two optional modes (a 47-bullet Twitter thread, a podcast cold-open) live behind a toggle once Phase 1 ships.</p>
+        <p>The structure of the parody — pull quote, three paragraphs, diagram, origin, rituals, closer — is held in the prompt, not the model, so the comedy doesn't drift between providers. The LLM fills in the earnest treatment of whatever you pasted, with a few guardrails (no AI-writing tells, no hedging, no breaking the fourth wall). Three mode options share the same structured input: a 600-900 word reverence profile, a one-paragraph LinkedIn humblebrag in the founder's voice, or an 80-120 word Acquired podcast cold-open. Generation runs through Gemini Flash on the web with the usual free-tier ceiling; if it's hit, a single click hands the same prompt off to Claude in your own subscription.</p>
 
         <h2>Foundation</h2>
         <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
@@ -90,83 +150,193 @@
 
   <script>
     // ───────────────────────────────────────────────────────────
-    // Claude handoff prompt (mirrors apps/52-how-you-build/prompt.md)
+    // Submit-button label per mode
     // ───────────────────────────────────────────────────────────
-    function buildPrompt(userPaste) {
-      return (
-        'You are a parody generator for the breathless-reverence-profile genre —\n' +
-        'the kind of write-up where minor process choices are canonized as\n' +
-        'proprietary methodology. Your job is to take a small team\'s actual\n' +
-        'setup and write the profile that elevates it as if it were a Series B\n' +
-        'unicorn\'s secret.\n\n' +
-        'The joke is the genre. Tone is earnest. Vocabulary is mythological.\n' +
-        'Evidence is whatever was in the input. Never break the fourth wall.\n' +
-        'Never acknowledge the parody. The reader should be 30% of the way\n' +
-        'through before realizing the team has three ICs and one Notion page.\n\n' +
-        'Constraints:\n' +
-        '- No AI-writing tells: no "delve", "leverage", "unlock", "unpack",\n' +
-        '  "in today\'s fast-paced". Em dashes are fine; they are authentic to\n' +
-        '  the genre.\n' +
-        '- No hedging. The reverence is total.\n' +
-        '- Specific made-up people are better than vague "the team". Use the\n' +
-        '  names from the input or invent two plausible ones.\n\n' +
-        'Output the six sections below, each with its header. Total length\n' +
-        '600-900 words.\n\n' +
-        '## Pull quote\n' +
-        'One line, sentence-case, no quotation marks. Treats a banal artifact\n' +
-        'from the input (the standup, the Notion doc, a recurring 1:1) as\n' +
-        'load-bearing infrastructure.\n\n' +
-        '## How [Team] builds product\n' +
-        'Three paragraphs.\n' +
-        '- Paragraph 1: company-stage framing. Lean small and underdogged.\n' +
-        '  Make up plausible stage details (Series A, X employees) if missing\n' +
-        '  from the input.\n' +
-        '- Paragraph 2: zoom in on one ritual the team has.\n' +
-        '- Paragraph 3: name a person and credit them with the system.\n\n' +
-        '## Architecture diagram\n' +
-        'ASCII or Unicode-line diagram showing how the team\'s tools fit\n' +
-        'together. Re-label each tool as if it were a proprietary system\n' +
-        '(Notion → "the Atlas knowledge graph"; Slack → "the Signal mesh";\n' +
-        'Linear → "the Throughput engine"). At least three tools. Boxes,\n' +
-        'arrows, and labels only — no prose inside the diagram.\n\n' +
-        '## Origin story\n' +
-        'Two paragraphs. How the team\'s current way of working came to be,\n' +
-        'told with the cadence of a creation story. At least one decision\n' +
-        'was made over coffee or on a walk. Reference specific people from\n' +
-        'section 2.\n\n' +
-        '## Rituals\n' +
-        'Bullet list of 4-6 rituals. Each bullet starts with a day or cadence\n' +
-        '("Every Monday morning", "Twice a quarter"), names the ritual,\n' +
-        'explains why this team does it differently. Reference at least one\n' +
-        'tool by its proprietary-system name from the architecture diagram.\n\n' +
-        '## What every Series B can learn from [Team]\n' +
-        'One closing paragraph. Distill the team\'s approach into a transferable\n' +
-        'lesson — small enough that the lesson is just "they have a Slack\n' +
-        'thread" or "they meet on Tuesdays". The joke is that this is being\n' +
-        'held up as a method.\n\n' +
-        'User input follows [INPUT].\n\n' +
-        '[INPUT]\n' +
-        userPaste
-      );
+    const SUBMIT_LABEL = {
+      'reverence-profile': 'Generate the profile',
+      'linkedin-humblebrag': 'Write the LinkedIn post',
+      'acquired-cold-open': 'Write the cold open',
+    };
+
+    function updateSubmitLabel() {
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      document.getElementById('hyb-submit').textContent = SUBMIT_LABEL[mode];
     }
+
+    // ───────────────────────────────────────────────────────────
+    // Read inputs
+    // ───────────────────────────────────────────────────────────
+    function readInputs() {
+      const pm = parseInt(document.getElementById('hyb-pm-count').value, 10);
+      const eng = parseInt(document.getElementById('hyb-eng-count').value, 10);
+      const des = parseInt(document.getElementById('hyb-des-count').value, 10);
+      const tools = document.getElementById('hyb-tools').value.trim();
+      const rituals = document.getElementById('hyb-rituals').value.trim();
+      const lastShipped = document.getElementById('hyb-last-shipped').value.trim();
+
+      return {
+        pm: isNaN(pm) ? 0 : pm,
+        eng: isNaN(eng) ? 0 : eng,
+        des: isNaN(des) ? 0 : des,
+        tools: tools,
+        rituals: rituals,
+        lastShipped: lastShipped,
+      };
+    }
+
+    function hasMinimumInput(inputs) {
+      const teamFilled = (inputs.pm + inputs.eng + inputs.des) > 0;
+      const someContent = inputs.tools || inputs.rituals || inputs.lastShipped;
+      return teamFilled && someContent;
+    }
+
+    function buildInputBlock(inputs) {
+      const parts = [];
+      parts.push('Team composition: ' + inputs.pm + ' PMs, ' + inputs.eng + ' engineers, ' + inputs.des + ' designers');
+      if (inputs.tools) parts.push('Tools used: ' + inputs.tools);
+      if (inputs.rituals) parts.push('Rituals: ' + inputs.rituals);
+      if (inputs.lastShipped) parts.push('Last shipped: ' + inputs.lastShipped);
+      return parts.join('\n');
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Three mode prompts (mirror apps/52-how-you-build/prompt.md)
+    // ───────────────────────────────────────────────────────────
+    const PROMPTS = {
+      'reverence-profile': function(inputBlock) {
+        return (
+          'You are a parody generator for the breathless-reverence-profile genre —\n' +
+          'the kind of write-up where minor process choices are canonized as\n' +
+          'proprietary methodology. Your job is to take a small team\'s actual\n' +
+          'setup and write the profile that elevates it as if it were a Series B\n' +
+          'unicorn\'s secret.\n\n' +
+          'The joke is the genre. Tone is earnest. Vocabulary is mythological.\n' +
+          'Evidence is whatever was in the input. Never break the fourth wall.\n' +
+          'Never acknowledge the parody. The reader should be 30% of the way\n' +
+          'through before realizing the team has three ICs and one Notion page.\n\n' +
+          'Constraints:\n' +
+          '- No AI-writing tells: no "delve", "leverage", "unlock", "unpack",\n' +
+          '  "in today\'s fast-paced". Em dashes are fine; they are authentic to\n' +
+          '  the genre.\n' +
+          '- No hedging. The reverence is total.\n' +
+          '- Specific made-up people are better than vague "the team". Use the\n' +
+          '  names from the input or invent two plausible ones.\n\n' +
+          'Output the six sections below, each with its header. Total length\n' +
+          '600-900 words.\n\n' +
+          '## Pull quote\n' +
+          'One line, sentence-case, no quotation marks. Treats a banal artifact\n' +
+          'from the input (the standup, the Notion doc, a recurring 1:1) as\n' +
+          'load-bearing infrastructure.\n\n' +
+          '## How [Team] builds product\n' +
+          'Three paragraphs.\n' +
+          '- Paragraph 1: company-stage framing. Lean small and underdogged.\n' +
+          '  Make up plausible stage details (Series A, X employees) if missing\n' +
+          '  from the input.\n' +
+          '- Paragraph 2: zoom in on one ritual the team has.\n' +
+          '- Paragraph 3: name a person and credit them with the system.\n\n' +
+          '## Architecture diagram\n' +
+          'ASCII or Unicode-line diagram showing how the team\'s tools fit\n' +
+          'together. Re-label each tool as if it were a proprietary system\n' +
+          '(Notion → "the Atlas knowledge graph"; Slack → "the Signal mesh";\n' +
+          'Linear → "the Throughput engine"). At least three tools. Boxes,\n' +
+          'arrows, and labels only — no prose inside the diagram.\n\n' +
+          '## Origin story\n' +
+          'Two paragraphs. How the team\'s current way of working came to be,\n' +
+          'told with the cadence of a creation story. At least one decision\n' +
+          'was made over coffee or on a walk. Reference specific people from\n' +
+          'section 2.\n\n' +
+          '## Rituals\n' +
+          'Bullet list of 4-6 rituals. Each bullet starts with a day or cadence\n' +
+          '("Every Monday morning", "Twice a quarter"), names the ritual,\n' +
+          'explains why this team does it differently. Reference at least one\n' +
+          'tool by its proprietary-system name from the architecture diagram.\n\n' +
+          '## What every Series B can learn from [Team]\n' +
+          'One closing paragraph. Distill the team\'s approach into a transferable\n' +
+          'lesson — small enough that the lesson is just "they have a Slack\n' +
+          'thread" or "they meet on Tuesdays". The joke is that this is being\n' +
+          'held up as a method.\n\n' +
+          'User input follows [INPUT].\n\n' +
+          '[INPUT]\n' +
+          inputBlock
+        );
+      },
+      'linkedin-humblebrag': function(inputBlock) {
+        return (
+          'You are writing the LinkedIn post a startup founder would write about\n' +
+          'their own team. It is a humblebrag: the post celebrates a banal team\n' +
+          'artifact (a tool, a meeting, a doc) as if it were the secret of the\n' +
+          'company\'s success. The tone is earnest with one slight tell that the\n' +
+          'author is overstating things — a hedge, a contradictory aside, or a\n' +
+          'suspiciously specific detail.\n\n' +
+          'Format:\n' +
+          '- One short opening line that sounds like a confession or a "real\n' +
+          '  talk" admission.\n' +
+          '- One paragraph (3-5 sentences) that elevates a specific tool or\n' +
+          '  ritual from the input into a methodology.\n' +
+          '- One closing line that asks the LinkedIn comment section a\n' +
+          '  rhetorical question. Bait for engagement.\n' +
+          '- 100-150 words total. No hashtags. No emojis except optional one\n' +
+          '  at the very start if it fits.\n\n' +
+          'Constraints:\n' +
+          '- No AI tells: no "delve", "leverage", "unlock", "unpack", "in\n' +
+          '  today\'s fast-paced".\n' +
+          '- Reference at least one specific tool or ritual from the input.\n' +
+          '- The "tell" should be subtle — not a wink at the reader, just a\n' +
+          '  word or phrase that a real over-poster would write without\n' +
+          '  realizing.\n\n' +
+          'User input follows [INPUT].\n\n' +
+          '[INPUT]\n' +
+          inputBlock
+        );
+      },
+      'acquired-cold-open': function(inputBlock) {
+        return (
+          'You are writing the cold open for an Acquired podcast episode about\n' +
+          'a small product team. The cold open is 80-120 words and establishes\n' +
+          'the team\'s mythology through one specific story — a meeting, a tool\n' +
+          'adoption, a hallway conversation. The cadence is the joke: confident,\n' +
+          'slightly slowed-down, every line earns the next one, never deliver\n' +
+          'the punchline directly.\n\n' +
+          'Format:\n' +
+          '- 4-6 short sentences, each its own beat.\n' +
+          '- Tell one specific story drawn from the input (a ritual, a tool,\n' +
+          '  a recent ship). Mythologize one small detail.\n' +
+          '- End with a hook line that promises the rest of the episode (e.g.,\n' +
+          '  "This is the story of how that one pinned Slack thread became the\n' +
+          '  reason they shipped on time." or "In this episode, we go inside\n' +
+          '  the room where that decision was made.")\n\n' +
+          'Constraints:\n' +
+          '- No AI tells.\n' +
+          '- No music cues, no episode numbers, no production notes — only the\n' +
+          '  narrator\'s words.\n' +
+          '- Reference at least one specific tool or ritual from the input by\n' +
+          '  name (not paraphrased).\n' +
+          '- The narrator never acknowledges the smallness of the team. The\n' +
+          '  reverence is total.\n\n' +
+          'User input follows [INPUT].\n\n' +
+          '[INPUT]\n' +
+          inputBlock
+        );
+      },
+    };
 
     // ───────────────────────────────────────────────────────────
     // Submit handler
     // ───────────────────────────────────────────────────────────
     function handleSubmit(e) {
       e.preventDefault();
-      const text = document.getElementById('hyb-paste').value.trim();
+      const inputs = readInputs();
       const validation = document.getElementById('hyb-validation');
 
-      if (!text) {
+      if (!hasMinimumInput(inputs)) {
         validation.classList.add('visible');
-        document.getElementById('hyb-paste').focus();
         return;
       }
-
       validation.classList.remove('visible');
 
-      const prompt = buildPrompt(text);
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const inputBlock = buildInputBlock(inputs);
+      const prompt = PROMPTS[mode](inputBlock);
       const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
       window.open(url, '_blank', 'noopener');
     }
@@ -174,6 +344,10 @@
     // ───────────────────────────────────────────────────────────
     // Init
     // ───────────────────────────────────────────────────────────
+    updateSubmitLabel();
+    document.querySelectorAll('input[name="mode"]').forEach(function(r) {
+      r.addEventListener('change', updateSubmitLabel);
+    });
     document.getElementById('hyb-form').addEventListener('submit', handleSubmit);
   </script>
 

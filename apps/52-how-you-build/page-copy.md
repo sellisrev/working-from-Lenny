@@ -16,14 +16,16 @@ updated: 2026-05-11
 
 The working interface. On `/how-you-build`:
 
-- Paste box at the top with placeholder text: *"e.g. three PMs, nine engineers, two designers. Notion for specs, Linear for tickets, Slack for everything. Standups Mon/Wed/Fri. Roadmap is a pinned Slack thread."*
-- Submit button: "Generate the profile".
-- Output renders below, section by section: pull quote, then the three-paragraph profile, then the architecture diagram, origin story, rituals, closer.
-- Below the output: `try a different version in Claude` (URL-trick handoff), `regenerate`, `copy as markdown`.
+- Structured input at the top (four fields): team composition (PMs / engineers / designers as numbers), tools you use (comma-separated text), rituals you have (comma-separated text), last thing you shipped (one short sentence).
+- Mode toggle: **Reverence profile** (default, 600-900 words) | **LinkedIn humblebrag** (one paragraph, founder voice) | **Acquired cold-open** (80-120 words, podcast-narrator voice).
+- Submit button label adapts to mode: "Generate the profile" / "Write the LinkedIn post" / "Write the cold open".
+- Output is handed off to Claude in a new tab (URL-trick). The full prompt for the chosen mode is encoded with the user's input filled in.
 
-No preamble above the paste box. The form is the landing.
+No preamble above the form. The form is the landing.
 
 User input is not stored. Per the plan's privacy posture: tool invocations only, no payload.
+
+**Why scaffolded inputs and mode toggle (added 2026-05-13):** The earlier free-form paste box landed flat. Empty inputs are intimidating, the parody had no replay value past the first read, and the joke wore off. Structured fields force specificity (which makes the parody land harder), and the mode toggle gives the same input three different formats to go to. Same core joke, three readings.
 
 ---
 

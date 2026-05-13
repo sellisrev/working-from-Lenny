@@ -2,15 +2,43 @@
 app-id: 52
 app-name: How [You] Build Product
 phase: 0
-type: paste-and-critique (LLM-generated parody)
-updated: 2026-05-11
+type: structured-input + LLM-generated parody (multi-mode)
+updated: 2026-05-13
 ---
 
 # Parody prompt — #52 How [You] Build Product
 
 > Parody of the breathless-reverence-profile genre. The prompt holds the structure; the LLM fills in the earnest treatment of whatever the user pasted.
+>
+> Updated 2026-05-13: replaced free-form paste box with structured fields and added two new modes alongside the original reverence profile. The original "paste a sentence" version had no replay value; structured input scaffolds the joke and the mode toggle gives the parody somewhere to go after the first read.
 
-## The full prompt
+## Structured input
+
+Four fields collected by the page:
+
+| Field | Type | Placeholder / example |
+|---|---|---|
+| Team composition | Three number inputs: PMs, engineers, designers | 3 / 9 / 2 |
+| Tools you use | Comma-separated text | "Notion, Linear, Slack" |
+| Rituals you have | Comma-separated text | "Mon/Wed/Fri standups, pinned roadmap, Friday demos" |
+| Last thing you shipped | Short text (one sentence) | "the new onboarding flow last quarter" |
+
+These get assembled into a `[INPUT]` block that every mode's prompt receives:
+
+```
+Team composition: {pm_count} PMs, {eng_count} engineers, {des_count} designers
+Tools used: {tools}
+Rituals: {rituals}
+Last shipped: {last_shipped}
+```
+
+## Three modes
+
+User picks one mode at a time. Each mode is a separate prompt structure that wraps the same `[INPUT]` block.
+
+### Mode: `reverence-profile` (default)
+
+The original parody. 600-900 word reverence profile in six sections.
 
 ```
 You are a parody generator for the breathless-reverence-profile genre —
@@ -76,53 +104,148 @@ held up as a method.
 User input follows [INPUT].
 
 [INPUT]
-{user_paste}
+{structured_input_block}
+```
+
+### Mode: `linkedin-humblebrag` (new)
+
+Short. One paragraph. The LinkedIn post the founder would write to celebrate a banal artifact as the secret of the team's success. Ends with the engagement-bait question to the comment section.
+
+```
+You are writing the LinkedIn post a startup founder would write about
+their own team. It is a humblebrag: the post celebrates a banal team
+artifact (a tool, a meeting, a doc) as if it were the secret of the
+company's success. The tone is earnest with one slight tell that the
+author is overstating things — a hedge, a contradictory aside, or a
+suspiciously specific detail.
+
+Format:
+- One short opening line that sounds like a confession or a "real
+  talk" admission.
+- One paragraph (3-5 sentences) that elevates a specific tool or
+  ritual from the input into a methodology.
+- One closing line that asks the LinkedIn comment section a
+  rhetorical question. Bait for engagement.
+- 100-150 words total. No hashtags. No emojis except optional one
+  at the very start if it fits.
+
+Constraints:
+- No AI tells: no "delve", "leverage", "unlock", "unpack", "in
+  today's fast-paced".
+- Reference at least one specific tool or ritual from the input.
+- The "tell" should be subtle — not a wink at the reader, just a
+  word or phrase that a real over-poster would write without
+  realizing.
+
+User input follows [INPUT].
+
+[INPUT]
+{structured_input_block}
+```
+
+### Mode: `acquired-cold-open` (new)
+
+Acquired-podcast-style cold open. 80-120 words. The narrative cadence is the joke — slow setup, mythologized small choice, hook line at the end.
+
+```
+You are writing the cold open for an Acquired podcast episode about
+a small product team. The cold open is 80-120 words and establishes
+the team's mythology through one specific story — a meeting, a tool
+adoption, a hallway conversation. The cadence is the joke: confident,
+slightly slowed-down, every line earns the next one, never deliver
+the punchline directly.
+
+Format:
+- 4-6 short sentences, each its own beat.
+- Tell one specific story drawn from the input (a ritual, a tool,
+  a recent ship). Mythologize one small detail.
+- End with a hook line that promises the rest of the episode (e.g.,
+  "This is the story of how that one pinned Slack thread became the
+  reason they shipped on time." or "In this episode, we go inside
+  the room where that decision was made.")
+
+Constraints:
+- No AI tells.
+- No music cues, no episode numbers, no production notes — only the
+  narrator's words.
+- Reference at least one specific tool or ritual from the input by
+  name (not paraphrased).
+- The narrator never acknowledges the smallness of the team. The
+  reverence is total.
+
+User input follows [INPUT].
+
+[INPUT]
+{structured_input_block}
 ```
 
 ## Phase 0 URL-trick handoff
 
-The full prompt above (with `{user_paste}` substituted) is URL-encoded and handed off to `claude.ai/new?q=<encoded>`. The user's Claude subscription generates the profile. No inference cost on our side.
+Page assembles the structured input block, picks the right prompt template based on the mode, fills in the `[INPUT]` slot, URL-encodes the whole prompt, and opens `claude.ai/new?q=<encoded>`. The user's Claude subscription generates the output.
 
-Encoded prompt is ~3-5 KB. Claude.ai URL params accept this comfortably.
+URL template:
+```
+https://claude.ai/new?q={url_encoded_prompt}
+```
+
+Encoded prompts: reverence-profile is ~3-5 KB; LinkedIn and Acquired modes are smaller. All fit comfortably in claude.ai's URL.
 
 ## Phase 1 Worker inference
 
-Same prompt submitted to Gemini Flash via the Cloudflare Worker. Output streams back to the page section by section.
+Same three prompts submitted to Gemini Flash via the Cloudflare Worker. Output streams back to the page.
 
 User input is NOT logged.
 
 ## Phase 2 MCP App
 
-Tool callable from inside Claude Desktop with a multi-section output. State: optional "team profile" saved per user, default off — lets the user iterate on the input over time.
+Tool callable from inside Claude Desktop with mode selection. State: optional "team profile" saved per user, default off — lets the user iterate the input over time and try different modes against the same team description.
 
-## Optional modes (Phase 1+, not Phase 0)
+## Example structured input
 
-Two extra modes that are too rich for the URL-trick but cheap to add server-side:
+| Field | Example value |
+|---|---|
+| PM count | 3 |
+| Engineer count | 9 |
+| Designer count | 2 |
+| Tools | Notion, Linear, Slack |
+| Rituals | Mon/Wed/Fri standups, pinned roadmap, Friday demos |
+| Last shipped | the new onboarding flow last quarter |
 
-- **Twitter thread (47 bullets):** restructures the same parody as a numbered thread with a hard 47-bullet count. Numbers chosen deliberately — 47 is the canonical "thread is too long" number.
-- **Podcast cold-open:** a 90-second introduction in the cadence of a Lenny-podcast cold open, reverent and gently rambling. Text-only for Phase 1; an actual voice clone is out of scope.
-
-Both modes share the same base parody prompt with a final transformation pass.
-
-## Example input → output flavor (for QA)
-
-**Input:** "We're 3 PMs, 9 engineers, 2 designers. We use Notion for specs, Linear for tickets, Slack for everything else. Standups Mon/Wed/Fri at 9. Roadmap lives in a Slack thread that gets pinned and re-pinned."
-
-**Expected pull quote flavor:** "The Tuesday cadence is not a meeting. It is the operating system of how their product gets shipped."
-
-**Expected architecture diagram flavor:**
+Assembled `[INPUT]` block:
 ```
-┌─────────────────────┐
-│   the Atlas KG      │  (Notion — specs, decisions, post-mortems)
-│   (single source)   │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐      ┌─────────────────────┐
-│   the Throughput    │ ←──→ │   the Signal mesh   │
-│   engine (Linear)   │      │   (Slack pinned     │
-│                     │      │    threads)         │
-└─────────────────────┘      └─────────────────────┘
+Team composition: 3 PMs, 9 engineers, 2 designers
+Tools used: Notion, Linear, Slack
+Rituals: Mon/Wed/Fri standups, pinned roadmap, Friday demos
+Last shipped: the new onboarding flow last quarter
 ```
 
-**Expected closing-line flavor:** "What every Series B can learn from this team is that the most important channel is often the one that has been pinned twice."
+## Expected output flavor per mode (for QA, not shipped)
+
+**Reverence profile (excerpt):**
+
+> The Tuesday cadence is not a meeting. It is the operating system of how their product gets shipped.
+
+> Architecture diagram:
+> ```
+> ┌─────────────────────┐
+> │   the Atlas KG      │  (Notion)
+> │   (single source)   │
+> └──────────┬──────────┘
+>            │
+>            ▼
+> ┌─────────────────────┐      ┌─────────────────────┐
+> │   the Throughput    │ ←──→ │   the Signal mesh   │
+> │   engine (Linear)   │      │   (Slack pinned     │
+> │                     │      │    threads)         │
+> └─────────────────────┘      └─────────────────────┘
+> ```
+
+**LinkedIn humblebrag (excerpt):**
+
+> Most founders treat their pinned Slack threads like a junk drawer. We treat ours like a load-bearing wall. The team's roadmap has lived in one pinned thread for fourteen months and counting. (We've re-pinned it twice. That's not a metric we share often.) Three PMs, nine engineers, two designers — and a Slack thread that, on a quiet Tuesday, is doing more for our org clarity than the last three offsites combined.
+>
+> Curious: where does YOUR team's roadmap live? Be honest.
+
+**Acquired cold-open (excerpt):**
+
+> Three PMs. Nine engineers. Two designers. And a Slack thread that, depending on who you ask, is either a coincidence or the reason the company shipped on time last quarter. It started, as these things do, with a question Marcus asked over coffee in February. He didn't expect it to outlast the offsite. In this episode, we go inside the team that turned a pinned message into an operating system.
