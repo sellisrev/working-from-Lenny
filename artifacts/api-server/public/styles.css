@@ -419,6 +419,664 @@ footer .sep {
 }
 
 /* ================================================================
+   App pages — shared form, output, and action patterns
+   Used by .fph-* (founder-pm-hire), .pmify-* (pmify), .hyb-* (how-you-build),
+   .ladder-* (pm-ladder), .horoscope-* (horoscope).
+   ================================================================ */
+
+/* Validation messages */
+.fph-validation,
+.pmify-validation,
+.hyb-validation,
+.ladder-validation {
+  font-size: 0.875rem;
+  color: #92400e;
+  margin-top: 0.85rem;
+  display: none;
+}
+
+.fph-validation.visible,
+.pmify-validation.visible,
+.hyb-validation.visible,
+.ladder-validation.visible {
+  display: block;
+}
+
+/* Primary submit buttons */
+.fph-submit,
+.pmify-submit,
+.hyb-submit,
+.ladder-submit {
+  display: inline-block;
+  margin-top: 1.5rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.fph-submit:hover,
+.pmify-submit:hover,
+.hyb-submit:hover,
+.ladder-submit:hover {
+  background: #333;
+}
+
+/* Output containers (hidden until form submitted) */
+.fph-output,
+.ladder-output {
+  display: none;
+  border-top: 2px solid #e8e8e8;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.fph-output.visible,
+.ladder-output.visible {
+  display: block;
+}
+
+/* Action button rows */
+.fph-actions,
+.ladder-actions,
+.horoscope-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+  align-items: center;
+}
+
+/* Secondary buttons */
+.fph-btn,
+.ladder-btn,
+.horoscope-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  color: #1a1a1a;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.fph-btn:hover,
+.ladder-btn:hover,
+.horoscope-btn:hover {
+  background: #f0f0f0;
+  border-color: #bbb;
+  color: #1a1a1a;
+}
+
+.horoscope-btn-primary {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+.horoscope-btn-primary:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+/* "link copied" share confirmations */
+.fph-share-confirm,
+.ladder-share-confirm,
+.horoscope-share-confirm {
+  font-size: 0.8rem;
+  color: #666;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fph-share-confirm.visible,
+.ladder-share-confirm.visible,
+.horoscope-share-confirm.visible {
+  opacity: 1;
+}
+
+/* Description blocks below the working interface */
+.fph-description,
+.pmify-description,
+.hyb-description,
+.ladder-description,
+.horoscope-description {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e8e8e8;
+}
+
+/* Closing ironic blurb */
+.fph-blurb,
+.pmify-blurb,
+.hyb-blurb,
+.ladder-blurb,
+.horoscope-blurb {
+  margin-top: 2.5rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #777;
+}
+
+/* Privacy line under paste-and-go forms */
+.pmify-privacy,
+.hyb-privacy {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+/* ================================================================
+   Founder PM hire (.fph-*)
+   ================================================================ */
+
+.fph-form {
+  margin-bottom: 0;
+}
+
+.fph-field {
+  padding: 0.85rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+
+.fph-field.unanswered {
+  background: #fffbe6;
+  border-bottom-color: #f0e4a0;
+}
+
+.fph-field-label {
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.fph-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fph-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  padding: 0.25rem 0.45rem;
+  border-radius: 3px;
+  transition: background 0.1s ease;
+}
+
+.fph-radio-label:hover {
+  background: #f5f5f5;
+}
+
+.fph-radio-label input[type="radio"] {
+  cursor: pointer;
+  accent-color: #1a1a1a;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.fph-team-wrap {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.fph-team-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.fph-team-sub input[type="number"] {
+  width: 5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.fph-verdict {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: #1a1a1a;
+}
+
+.fph-section-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #555;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fph-good {
+  font-size: 0.9375rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.fph-costs {
+  padding-left: 1.4rem;
+}
+
+.fph-costs li {
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.55;
+}
+
+/* ================================================================
+   PM-ify My Inbox (.pmify-*)
+   ================================================================ */
+
+.pmify-form {
+  margin-bottom: 0;
+}
+
+.pmify-mode {
+  display: inline-flex;
+  gap: 0.25rem;
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 0.2rem;
+  margin-bottom: 1rem;
+}
+
+.pmify-mode-label {
+  position: relative;
+  cursor: pointer;
+  padding: 0.4rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #555;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.pmify-mode-label input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pmify-mode-label:has(input:checked) {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.pmify-paste {
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #1a1a1a;
+  resize: vertical;
+}
+
+.pmify-paste:focus {
+  outline: 2px solid #0050d0;
+  outline-offset: 1px;
+  border-color: #0050d0;
+}
+
+/* ================================================================
+   How [You] Build Product (.hyb-*)
+   ================================================================ */
+
+.hyb-form {
+  margin-bottom: 0;
+}
+
+.hyb-paste {
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #1a1a1a;
+  resize: vertical;
+}
+
+.hyb-paste:focus {
+  outline: 2px solid #0050d0;
+  outline-offset: 1px;
+  border-color: #0050d0;
+}
+
+/* ================================================================
+   PM Ladder (.ladder-*)
+   ================================================================ */
+
+.ladder-form {
+  margin-bottom: 0;
+}
+
+.ladder-intro {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.ladder-section {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  margin-bottom: 0.85rem;
+  padding: 0 1rem;
+  background: #fafafa;
+}
+
+.ladder-section[open] {
+  background: #fff;
+}
+
+.ladder-section-summary {
+  cursor: pointer;
+  padding: 0.85rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ladder-section-desc {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.ladder-legend {
+  font-size: 0.78rem;
+  color: #888;
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ladder-question {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.12s ease;
+  border-radius: 3px;
+}
+
+.ladder-question:last-child {
+  border-bottom: none;
+}
+
+.ladder-question.unanswered {
+  background: #fffbe6;
+}
+
+.ladder-question-label {
+  font-size: 0.92rem;
+  color: #1a1a1a;
+  margin-bottom: 0.4rem;
+}
+
+.ladder-question-num {
+  color: #888;
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.1rem;
+}
+
+.ladder-radios {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ladder-radio-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: #666;
+  text-align: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+  transition: background 0.1s ease;
+  min-width: 2.4rem;
+}
+
+.ladder-radio-label:hover {
+  background: #f5f5f5;
+}
+
+.ladder-radio-label input[type="radio"] {
+  cursor: pointer;
+  accent-color: #1a1a1a;
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.ladder-calibration-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: 1.25rem;
+  cursor: pointer;
+}
+
+.ladder-calibration-toggle input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #1a1a1a;
+  width: 1rem;
+  height: 1rem;
+}
+
+.ladder-calibration-input {
+  display: none;
+  margin-top: 0.85rem;
+}
+
+.ladder-calibration-input.visible {
+  display: block;
+}
+
+.ladder-calibration-input label {
+  display: block;
+  font-size: 0.85rem;
+  color: #444;
+  margin-bottom: 0.35rem;
+}
+
+.ladder-calibration-input textarea {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #1a1a1a;
+  resize: vertical;
+}
+
+.ladder-effective {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+
+.ladder-section-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #555;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ladder-dimensions {
+  padding-left: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.ladder-dimensions li {
+  margin-bottom: 0.35rem;
+  font-size: 0.9375rem;
+  color: #333;
+}
+
+.ladder-gap-intro {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+
+/* ================================================================
+   PM Horoscope (.horoscope-*)
+   ================================================================ */
+
+.horoscope-picker {
+  display: none;
+}
+
+.horoscope-picker.visible {
+  display: block;
+}
+
+.horoscope-picker-intro {
+  font-size: 0.95rem;
+  color: #444;
+  margin-bottom: 1.5rem;
+}
+
+.horoscope-archetype-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0;
+}
+
+.horoscope-archetype-grid li {
+  min-width: 0;
+}
+
+.horoscope-archetype-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  height: 100%;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.horoscope-archetype-card:hover,
+.horoscope-archetype-card:focus-visible {
+  background: #f0f0f0;
+  border-color: #bbb;
+  outline: none;
+}
+
+.horoscope-archetype-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.horoscope-archetype-card-virtue,
+.horoscope-archetype-card-pitfall {
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.horoscope-reading {
+  display: none;
+}
+
+.horoscope-reading.visible {
+  display: block;
+}
+
+.horoscope-date {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.horoscope-archetype-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+}
+
+.horoscope-archetype-virtue,
+.horoscope-archetype-pitfall {
+  font-size: 0.95rem;
+  color: #444;
+  margin-bottom: 0.25rem;
+}
+
+.horoscope-reading-placeholder {
+  background: #f7f7f7;
+  border-left: 3px solid #ccc;
+  padding: 0.85rem 1.1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #555;
+  border-radius: 2px;
+}
+
+.horoscope-reading-placeholder p {
+  margin: 0;
+}
+
+/* ================================================================
    Responsive
    ================================================================ */
 
@@ -431,6 +1089,19 @@ footer .sep {
 
   .tile-door {
     font-size: 1.875rem;
+  }
+
+  .horoscope-archetype-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ladder-radios {
+    gap: 0.15rem;
+  }
+
+  .ladder-radio-label {
+    min-width: 2rem;
+    padding: 0.2rem 0.35rem;
   }
 }
 
