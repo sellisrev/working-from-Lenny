@@ -1,0 +1,109 @@
+{
+  "_comment": "MCP resource spec for the merged Founder PM hire app (supersedes #12 + #38). Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": "12-38",
+    "name": "Founder PM hire",
+    "phase": 2,
+    "type": "wizard / diagnostic",
+    "supersedes": ["12", "38"]
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/founder-pm-hire",
+    "name": "Founder PM hire",
+    "description": "Eight-input diagnostic for founders. Collapses the two-step 'should I hire a PM?' + 'which level?' into one verdict: stay-founder-mode, not-yet (with interim playbook), hire-apm, hire-empowered-pm, or hire-head-of-product. Each verdict comes with what good looks like and the typical cost of getting it wrong.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "founder_pm_hire_diagnose",
+      "description": "Deterministic. Returns the verdict + interim_playbook_id from the eight inputs. Does not call an LLM.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": ["pre-seed", "seed", "series-a", "series-b-plus"]
+          },
+          "engineer_count": { "type": "integer", "minimum": 0 },
+          "designer_count": { "type": "integer", "minimum": 0 },
+          "pm_work_today": {
+            "type": "string",
+            "enum": ["the-founder", "doubling-engineer", "doubling-designer", "ceo-and-head-eng", "nobody"]
+          },
+          "founder_time_on_product": {
+            "type": "string",
+            "enum": ["rarely", "some-of-the-time", "most-of-the-time", "full-time"]
+          },
+          "founder_enjoyment": {
+            "type": "string",
+            "enum": ["enjoy", "tolerate", "dislike"]
+          },
+          "ceo_bandwidth": {
+            "type": "string",
+            "enum": ["room-to-add-product", "stretched-but-functioning", "overstretched"]
+          },
+          "product_density_6mo": {
+            "type": "string",
+            "enum": ["light", "moderate", "heavy"]
+          },
+          "biggest_bottleneck": {
+            "type": "string",
+            "enum": ["we-dont-know-what-to-build", "we-cant-keep-up-with-stakeholder-asks", "engineering-builds-wrong-thing", "no-time-for-customer-research", "no-time-for-strategy"]
+          }
+        },
+        "required": ["stage", "engineer_count", "designer_count", "pm_work_today", "founder_time_on_product", "founder_enjoyment", "ceo_bandwidth", "product_density_6mo", "biggest_bottleneck"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": ["stay-founder-mode", "not-yet", "hire-apm", "hire-empowered-pm", "hire-head-of-product"]
+          },
+          "interim_playbook_id": {
+            "type": ["string", "null"],
+            "enum": ["pre-seed-founder-owns-product", "seed-early-team", "seed-founder-distracted", "need-product-clarity-first", null]
+          }
+        }
+      }
+    },
+    {
+      "name": "founder_pm_hire_narrate",
+      "description": "LLM-narrated. Takes the diagnostic output and inputs, returns the three-section reading: verdict, level description (or interim playbook), wrong-fit cost.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "verdict": { "type": "string" },
+          "interim_playbook_id": { "type": ["string", "null"] },
+          "user_inputs": {
+            "type": "object",
+            "description": "The eight original inputs verbatim so the narration can reference specifics."
+          }
+        },
+        "required": ["verdict", "user_inputs"]
+      }
+    },
+    {
+      "name": "founder_pm_hire_drift",
+      "description": "MCP-only (stateful). Compares the current diagnostic to a previous run and reports what shifted. Default off — requires opt-in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 560,
+    "preferredHeight": 640
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Confirm enum-with-null is acceptable in MCP outputSchema (or refactor interim_playbook_id to optional field without null).",
+    "Decide how the diagnose tool exposes the bias-toward-not-yet (early stages) and bias-away-from-head-of-product (non-heavy density) — debug logs in the tool output, or surface only in narration?"
+  ]
+}
