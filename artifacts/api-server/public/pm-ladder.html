@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PM Ladder Self-Assessment — Working from Lenny</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PM Ladder Self-Assessment — Working from Lenny">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="PM Ladder Self-Assessment — Working from Lenny">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/">Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Block 1: Quiz -->
+      <form class="ladder-form" id="ladder-form" novalidate>
+
+        <p class="ladder-intro">For each question, pick the level that best describes your current behavior (not aspirations). 30 questions across five dimensions. The level legend (APM through Principal) sits at the top of each section.</p>
+
+        <div id="ladder-sections" aria-label="PM ladder self-assessment"></div>
+
+        <label class="ladder-calibration-toggle">
+          <input type="checkbox" id="ladder-calibration-on">
+          <span>Include the calibration delta (compares your scoring to your manager's last review)</span>
+        </label>
+
+        <div class="ladder-calibration-input" id="ladder-calibration-input">
+          <label for="ladder-manager-review">Paste your manager's last performance review (text only, not stored):</label>
+          <textarea id="ladder-manager-review" rows="6" placeholder="Paste here. Used only to build the Claude handoff prompt; not stored anywhere."></textarea>
+        </div>
+
+        <p class="ladder-validation" id="ladder-validation" role="alert">
+          Please answer all 30 questions to see your level.
+        </p>
+
+        <button type="submit" class="ladder-submit" id="ladder-submit">See where you are</button>
+      </form>
+
+      <!-- Output -->
+      <div class="ladder-output" id="ladder-output">
+        <p class="ladder-effective" id="ladder-effective-text"></p>
+
+        <h3 class="ladder-section-header">Per-dimension levels</h3>
+        <ul class="ladder-dimensions" id="ladder-dimensions-list"></ul>
+
+        <h3 class="ladder-section-header">Gap report and three behaviors</h3>
+        <p class="ladder-gap-intro">The gap report and the three behaviors to practice this quarter are LLM-narrated. Open in Claude with your scoring vector pre-filled.</p>
+
+        <div class="ladder-actions">
+          <button type="button" class="ladder-btn" id="ladder-share-btn">share my level</button>
+          <span class="ladder-share-confirm" id="ladder-share-confirm" aria-live="polite">link copied</span>
+          <a href="#" class="ladder-btn" id="ladder-claude-btn" target="_blank" rel="noopener">fuller version in Claude</a>
+          <button type="button" class="ladder-btn" id="ladder-retake-btn">retake</button>
+        </div>
+      </div>
+
+      <!-- Block 2: Description -->
+      <div class="ladder-description">
+
+        <h2>What this app does for you</h2>
+        <p>If you're a PM, you've seen these dimensions in your last performance review. If you're a manager of PMs, you've used some version of this rubric. The app gives you a 30-question version that returns your effective level (APM through Principal), the specific gaps to the next step, and three behaviors to practice this quarter. Optionally, paste your manager's last review and the app computes a calibration delta: where you and your manager see you differently, surfaced as a discussion agenda for your next 1:1.</p>
+
+        <h2>How it works</h2>
+        <p>Thirty questions across five dimensions: scope, ambiguity tolerance, influence, judgment, and craft. Scoring is deterministic; each answer maps to a level 1 through 5, and your level on each dimension is the median of the six answers in that section (not the average — outliers in either direction shouldn't distort). The gap report and three-behavior suggestions are LLM-generated from your scoring pattern using Gemini Flash on the web. The calibration delta runs a separate prompt that reads your scoring and your manager's review side by side. Free-tier ceiling applies; on hit, a single click hands the same prompts off to Claude in your own subscription.</p>
+
+        <h2>Foundation</h2>
+        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
+        <div class="callout">
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+        </div>
+
+      </div>
+
+      <!-- Block 3: Closing blurb -->
+      <p class="ladder-blurb">If you scored Principal, the rubric was easier than the job.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <!-- TODO: Tally form URL -->
+      <a href="#">Feedback</a>
+      <span class="sep">·</span>
+      <!-- TODO: repo URL (currently private) -->
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // ───────────────────────────────────────────────────────────
+    // Dimensions and questions (verbatim from apps/3-pm-ladder/prompt.md)
+    // Final answer banks (150 anchored level descriptors) are on the
+    // content authoring backlog. For Phase 0, each question shows a
+    // generic 1-5 level scale with the level names.
+    // ───────────────────────────────────────────────────────────
+    const LEVEL_NAMES = {
+      1: 'APM',
+      2: 'PM',
+      3: 'Senior PM',
+      4: 'Staff PM',
+      5: 'Principal',
+    };
+
+    const DIMENSIONS = [
+      {
+        id: 'scope',
+        name: 'Scope',
+        description: 'The size and time-horizon of the work you own end-to-end.',
+        questions: [
+          'Largest decision you owned end-to-end in your most recent quarter.',
+          'Time horizon of your typical commitments.',
+          'Number of teams affected by your typical work.',
+          'Customer segment scope (a feature, a segment, or the whole market).',
+          'Strategic-to-tactical mix in your week.',
+          'Org-level visibility of your work (who reviews it).',
+        ],
+      },
+      {
+        id: 'ambiguity',
+        name: 'Ambiguity tolerance',
+        description: "Comfort and competence when the goal isn't pre-defined.",
+        questions: [
+          "What you do when the goal isn't pre-defined.",
+          'Default response when data is missing.',
+          'How you handle conflicting requirements between two senior stakeholders.',
+          'Reaction time to a leadership pivot.',
+          "Comfort with shipping a product you're not 100% sure about.",
+          'How you frame "I don’t know" out loud.',
+        ],
+      },
+      {
+        id: 'influence',
+        name: 'Influence',
+        description: "Ability to move people who don't report to you.",
+        questions: [
+          'How you handle disagreement with engineering leadership.',
+          'How exec stakeholders engage with your work (and at what cadence).',
+          'Cross-functional pull (does design, GTM, and data come to you proactively).',
+          'Mentorship reach (how many PMs you have ongoing coaching relationships with).',
+          'External visibility (talks, writing, hiring panels).',
+          'How you frame proposals (which audience do you build for).',
+        ],
+      },
+      {
+        id: 'judgment',
+        name: 'Judgment',
+        description: 'Quality of decisions made under incomplete information.',
+        questions: [
+          'How you make trade-offs under time pressure.',
+          'Calibration on your bets (do you track confidence at the time of decision).',
+          'How you handle a failed launch.',
+          'Reaction to a clear signal that disconfirms your strategy.',
+          'Stop-doing list quality (what you cut last quarter and why).',
+          'Speed-vs-quality discernment (which one was wrong in your last 90 days).',
+        ],
+      },
+      {
+        id: 'craft',
+        name: 'Craft',
+        description: 'Depth of skill in the trade itself.',
+        questions: [
+          'Quality of your written artifacts (specs, decision docs).',
+          'Customer-research depth (frequency and shape).',
+          'Data fluency (what you can run yourself vs ask for).',
+          'Design-quality literacy (can you red-line a design).',
+          'Engineering-system literacy (can you read a service map).',
+          'AI and eval literacy (do you ship AI features with an eval set).',
+        ],
+      },
+    ];
+
+    // ───────────────────────────────────────────────────────────
+    // Build form (5 collapsible sections, 6 questions each)
+    // ───────────────────────────────────────────────────────────
+    function buildForm() {
+      const wrap = document.getElementById('ladder-sections');
+      DIMENSIONS.forEach(function(dim, dimIdx) {
+        const details = document.createElement('details');
+        details.className = 'ladder-section';
+        if (dimIdx === 0) details.open = true;
+        details.dataset.dimId = dim.id;
+
+        const summary = document.createElement('summary');
+        summary.className = 'ladder-section-summary';
+        summary.textContent = dim.name;
+        details.appendChild(summary);
+
+        const desc = document.createElement('p');
+        desc.className = 'ladder-section-desc';
+        desc.textContent = dim.description;
+        details.appendChild(desc);
+
+        // Legend
+        const legend = document.createElement('div');
+        legend.className = 'ladder-legend';
+        legend.textContent = '1 = APM    2 = PM    3 = Senior    4 = Staff    5 = Principal';
+        details.appendChild(legend);
+
+        dim.questions.forEach(function(qText, qIdx) {
+          const qNum = dimIdx * 6 + qIdx + 1;
+          const fieldName = dim.id + '-q' + (qIdx + 1);
+
+          const qDiv = document.createElement('div');
+          qDiv.className = 'ladder-question';
+          qDiv.dataset.field = fieldName;
+
+          const label = document.createElement('div');
+          label.className = 'ladder-question-label';
+          const num = document.createElement('span');
+          num.className = 'ladder-question-num';
+          num.textContent = 'Q' + qNum + '.';
+          const txt = document.createElement('span');
+          txt.className = 'ladder-question-text';
+          txt.textContent = ' ' + qText;
+          label.appendChild(num);
+          label.appendChild(txt);
+          qDiv.appendChild(label);
+
+          const radios = document.createElement('div');
+          radios.className = 'ladder-radios';
+          radios.setAttribute('role', 'radiogroup');
+          radios.setAttribute('aria-label', 'Level for question ' + qNum);
+
+          for (let level = 1; level <= 5; level++) {
+            const radioLabel = document.createElement('label');
+            radioLabel.className = 'ladder-radio-label';
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = fieldName;
+            input.value = String(level);
+            const span = document.createElement('span');
+            span.textContent = level;
+            radioLabel.appendChild(input);
+            radioLabel.appendChild(span);
+            radios.appendChild(radioLabel);
+          }
+
+          qDiv.appendChild(radios);
+          details.appendChild(qDiv);
+        });
+
+        wrap.appendChild(details);
+      });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Read answers; compute medians
+    // ───────────────────────────────────────────────────────────
+    function median(arr) {
+      const sorted = arr.slice().sort(function(a, b) { return a - b; });
+      const n = sorted.length;
+      if (n === 0) return null;
+      if (n % 2 === 1) return sorted[(n - 1) / 2];
+      return (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+    }
+
+    function readAnswers() {
+      const answers = {};
+      const unanswered = [];
+      DIMENSIONS.forEach(function(dim) {
+        answers[dim.id] = [];
+        dim.questions.forEach(function(_, qIdx) {
+          const fieldName = dim.id + '-q' + (qIdx + 1);
+          const checked = document.querySelector('input[name="' + fieldName + '"]:checked');
+          if (checked) {
+            answers[dim.id].push(parseInt(checked.value, 10));
+          } else {
+            unanswered.push(fieldName);
+          }
+        });
+      });
+      return { answers: answers, unanswered: unanswered };
+    }
+
+    function compute(answers) {
+      const dimensionLevels = {};
+      DIMENSIONS.forEach(function(dim) {
+        dimensionLevels[dim.id] = median(answers[dim.id]);
+      });
+      const effectiveLevel = median(Object.values(dimensionLevels));
+      return { dimensionLevels: dimensionLevels, effectiveLevel: effectiveLevel };
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Submit handler
+    // ───────────────────────────────────────────────────────────
+    function handleSubmit(e) {
+      e.preventDefault();
+      const { answers, unanswered } = readAnswers();
+
+      document.querySelectorAll('.ladder-question').forEach(function(q) {
+        q.classList.remove('unanswered');
+      });
+
+      if (unanswered.length > 0) {
+        unanswered.forEach(function(field) {
+          const q = document.querySelector('.ladder-question[data-field="' + field + '"]');
+          if (q) {
+            q.classList.add('unanswered');
+            // Open the parent section so the user can see the missed question
+            const details = q.closest('details');
+            if (details) details.open = true;
+          }
+        });
+        document.getElementById('ladder-validation').classList.add('visible');
+        const first = document.querySelector('.ladder-question.unanswered');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      document.getElementById('ladder-validation').classList.remove('visible');
+
+      const result = compute(answers);
+      const calibrationOn = document.getElementById('ladder-calibration-on').checked;
+      const managerReview = calibrationOn
+        ? document.getElementById('ladder-manager-review').value.trim()
+        : '';
+      showOutput(result, calibrationOn, managerReview);
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Format a level number for display (handles 2.5 etc.)
+    // ───────────────────────────────────────────────────────────
+    function formatLevel(level) {
+      if (level === null || level === undefined) return '—';
+      const rounded = Math.floor(level);
+      const fractional = level - rounded;
+      let name;
+      if (fractional === 0) {
+        name = LEVEL_NAMES[level] || 'level ' + level;
+      } else {
+        // 2.5 → between PM and Senior PM
+        const lower = LEVEL_NAMES[rounded] || 'level ' + rounded;
+        const upper = LEVEL_NAMES[rounded + 1] || 'level ' + (rounded + 1);
+        name = 'between ' + lower + ' and ' + upper;
+      }
+      return level + ' (' + name + ')';
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Render output
+    // ───────────────────────────────────────────────────────────
+    function showOutput(result, calibrationOn, managerReview) {
+      const eff = result.effectiveLevel;
+      const effText = formatLevel(eff);
+      document.getElementById('ladder-effective-text').textContent = 'Effective level: ' + effText;
+
+      const list = document.getElementById('ladder-dimensions-list');
+      list.innerHTML = '';
+      DIMENSIONS.forEach(function(dim) {
+        const li = document.createElement('li');
+        li.textContent = dim.name + ': ' + formatLevel(result.dimensionLevels[dim.id]);
+        list.appendChild(li);
+      });
+
+      const shareBtn = document.getElementById('ladder-share-btn');
+      shareBtn.onclick = function() { handleShare(eff); };
+
+      const claudeText = buildClaudeText(result, calibrationOn, managerReview);
+      const claudeBtn = document.getElementById('ladder-claude-btn');
+      claudeBtn.href = 'https://claude.ai/new?q=' + encodeURIComponent(claudeText);
+
+      const output = document.getElementById('ladder-output');
+      output.classList.add('visible');
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Share button
+    // ───────────────────────────────────────────────────────────
+    function handleShare(effectiveLevel) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('level', effectiveLevel);
+      navigator.clipboard.writeText(url.toString()).then(function() {
+        const confirm = document.getElementById('ladder-share-confirm');
+        confirm.classList.add('visible');
+        setTimeout(function() {
+          confirm.classList.remove('visible');
+        }, 2000);
+      }).catch(function() {
+        prompt('Copy this link:', url.toString());
+      });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Claude handoff text
+    // ───────────────────────────────────────────────────────────
+    function buildClaudeText(result, calibrationOn, managerReview) {
+      const targetLevel = Math.min(5, Math.ceil(result.effectiveLevel) + (Number.isInteger(result.effectiveLevel) ? 1 : 0));
+      const targetName = LEVEL_NAMES[targetLevel] || 'level ' + targetLevel;
+
+      const dimLines = DIMENSIONS.map(function(dim) {
+        return '- ' + dim.name + ': ' + result.dimensionLevels[dim.id];
+      }).join('\n');
+
+      const base =
+        'I just took a 30-question PM ladder self-assessment on Working from Lenny.\n\n' +
+        'My dimension levels (median of six answers each):\n' +
+        dimLines + '\n' +
+        '\n' +
+        'Effective level (median of dimensions): ' + result.effectiveLevel + ' (' +
+          (Number.isInteger(result.effectiveLevel)
+            ? (LEVEL_NAMES[result.effectiveLevel] || ('level ' + result.effectiveLevel))
+            : 'between levels')
+        + ').\n' +
+        'Target level for the gap report: ' + targetLevel + ' (' + targetName + ').\n\n' +
+        'Please return a gap report drawn from Lenny Rachitsky’s interview corpus\n' +
+        'and adjacent PM ladder frameworks (Petra Wille’s PMwheel, Sean Sullivan’s\n' +
+        'PM Scorecard, Julia Nechaieva’s PM Daisy):\n' +
+        '1. A one-paragraph summary of where I am, leading with my strongest\n' +
+        '   dimension and my widest gap.\n' +
+        '2. Three concrete behaviors to practice this quarter that close the\n' +
+        '   widest gap. For each: what to do, why it matters at the target\n' +
+        '   level, what the dropoff looks like if I skip it.\n' +
+        '3. One sentence on the dimensions I am already at or above target.\n\n' +
+        'Voice: direct, no corporate softening, no em dashes, no "delve" or\n' +
+        '"unpack" or "in today’s fast-paced". Owner-of-the-tool voice: a\n' +
+        'candid coach who has seen this pattern before. 350-450 words total.';
+
+      if (calibrationOn && managerReview) {
+        return (
+          base +
+          '\n\n' +
+          'CALIBRATION DELTA REQUEST:\n' +
+          'After the gap report, identify the 1-3 dimensions where my\n' +
+          'self-rating diverges most from my manager’s implied rating in\n' +
+          'the review below. For each: name the dimension, summarize what I\n' +
+          'said about myself, summarize what my manager said (specific quote\n' +
+          'if possible), one sentence on which view is likely more accurate\n' +
+          'and why, and one specific discussion question for our next 1:1.\n' +
+          'Under 400 words. Same voice rules. No softening.\n\n' +
+          'MANAGER REVIEW:\n' +
+          managerReview
+        );
+      }
+
+      return base;
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Calibration toggle
+    // ───────────────────────────────────────────────────────────
+    function handleCalibrationToggle() {
+      const on = document.getElementById('ladder-calibration-on').checked;
+      const input = document.getElementById('ladder-calibration-input');
+      const submit = document.getElementById('ladder-submit');
+      input.classList.toggle('visible', on);
+      submit.textContent = on ? 'See where you are + the calibration delta' : 'See where you are';
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Retake
+    // ───────────────────────────────────────────────────────────
+    function handleRetake() {
+      document.querySelectorAll('input[type="radio"]').forEach(function(input) {
+        input.checked = false;
+      });
+      document.querySelectorAll('.ladder-question').forEach(function(q) {
+        q.classList.remove('unanswered');
+      });
+      document.getElementById('ladder-validation').classList.remove('visible');
+      document.getElementById('ladder-output').classList.remove('visible');
+      document.getElementById('ladder-manager-review').value = '';
+      document.getElementById('ladder-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Init
+    // ───────────────────────────────────────────────────────────
+    buildForm();
+    document.getElementById('ladder-form').addEventListener('submit', handleSubmit);
+    document.getElementById('ladder-calibration-on').addEventListener('change', handleCalibrationToggle);
+    document.getElementById('ladder-retake-btn').addEventListener('click', handleRetake);
+  </script>
+
+</body>
+</html>

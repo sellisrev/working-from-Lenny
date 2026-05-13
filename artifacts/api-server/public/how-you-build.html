@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>How [You] Build Product — Working from Lenny</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="How [You] Build Product — Working from Lenny">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How [You] Build Product — Working from Lenny">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/">Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Block 1: Working interface -->
+      <form class="hyb-form" id="hyb-form" novalidate>
+
+        <textarea
+          class="hyb-paste"
+          id="hyb-paste"
+          rows="6"
+          placeholder="e.g. three PMs, nine engineers, two designers. Notion for specs, Linear for tickets, Slack for everything. Standups Mon/Wed/Fri. Roadmap is a pinned Slack thread."
+          aria-label="Describe your team in a sentence or two"></textarea>
+
+        <p class="hyb-validation" id="hyb-validation" role="alert">
+          Tell the app about your team first.
+        </p>
+
+        <button type="submit" class="hyb-submit" id="hyb-submit">Generate the profile</button>
+
+        <p class="hyb-privacy">Your paste is not stored. The button opens your input in Claude in a new tab to generate the profile.</p>
+
+      </form>
+
+      <!-- Block 2: Description -->
+      <div class="hyb-description">
+
+        <h2>What this app does for you</h2>
+        <p>Paste a sentence or two about your team — who's on it, what tools you use, what meetings happen — and the app returns the kind of reverence-profile write-up usually reserved for stage-eight unicorns: pull quote, mythical origin story, architecture diagram with your Notion relabeled as a proprietary knowledge graph, the ritual section, and the closing line about what every Series B can learn from you. Built for the PM who has caught themselves embellishing a Slack thread into a methodology, and for the engineer or founder who has read one of these profiles and wondered if it's all just Notion with confidence.</p>
+
+        <h2>How it works</h2>
+        <p>The structure of the parody — pull quote, three paragraphs, diagram, origin, rituals, closer — is held in the prompt, not the model, so the comedy doesn't drift between providers. The LLM fills in the earnest treatment of whatever you pasted, with a few guardrails (no AI-writing tells, no hedging, no breaking the fourth wall). Generation runs through Gemini Flash on the web with the usual free-tier ceiling; if it's hit, a single click hands the same prompt off to Claude in your own subscription. Two optional modes (a 47-bullet Twitter thread, a podcast cold-open) live behind a toggle once Phase 1 ships.</p>
+
+        <h2>Foundation</h2>
+        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
+        <div class="callout">
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+        </div>
+
+      </div>
+
+      <!-- Block 3: Closing blurb -->
+      <p class="hyb-blurb">How did your team make a Notion doc this important? Mostly by accident.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <!-- TODO: Tally form URL -->
+      <a href="#">Feedback</a>
+      <span class="sep">·</span>
+      <!-- TODO: repo URL (currently private) -->
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // ───────────────────────────────────────────────────────────
+    // Claude handoff prompt (mirrors apps/52-how-you-build/prompt.md)
+    // ───────────────────────────────────────────────────────────
+    function buildPrompt(userPaste) {
+      return (
+        'You are a parody generator for the breathless-reverence-profile genre —\n' +
+        'the kind of write-up where minor process choices are canonized as\n' +
+        'proprietary methodology. Your job is to take a small team\'s actual\n' +
+        'setup and write the profile that elevates it as if it were a Series B\n' +
+        'unicorn\'s secret.\n\n' +
+        'The joke is the genre. Tone is earnest. Vocabulary is mythological.\n' +
+        'Evidence is whatever was in the input. Never break the fourth wall.\n' +
+        'Never acknowledge the parody. The reader should be 30% of the way\n' +
+        'through before realizing the team has three ICs and one Notion page.\n\n' +
+        'Constraints:\n' +
+        '- No AI-writing tells: no "delve", "leverage", "unlock", "unpack",\n' +
+        '  "in today\'s fast-paced". Em dashes are fine; they are authentic to\n' +
+        '  the genre.\n' +
+        '- No hedging. The reverence is total.\n' +
+        '- Specific made-up people are better than vague "the team". Use the\n' +
+        '  names from the input or invent two plausible ones.\n\n' +
+        'Output the six sections below, each with its header. Total length\n' +
+        '600-900 words.\n\n' +
+        '## Pull quote\n' +
+        'One line, sentence-case, no quotation marks. Treats a banal artifact\n' +
+        'from the input (the standup, the Notion doc, a recurring 1:1) as\n' +
+        'load-bearing infrastructure.\n\n' +
+        '## How [Team] builds product\n' +
+        'Three paragraphs.\n' +
+        '- Paragraph 1: company-stage framing. Lean small and underdogged.\n' +
+        '  Make up plausible stage details (Series A, X employees) if missing\n' +
+        '  from the input.\n' +
+        '- Paragraph 2: zoom in on one ritual the team has.\n' +
+        '- Paragraph 3: name a person and credit them with the system.\n\n' +
+        '## Architecture diagram\n' +
+        'ASCII or Unicode-line diagram showing how the team\'s tools fit\n' +
+        'together. Re-label each tool as if it were a proprietary system\n' +
+        '(Notion → "the Atlas knowledge graph"; Slack → "the Signal mesh";\n' +
+        'Linear → "the Throughput engine"). At least three tools. Boxes,\n' +
+        'arrows, and labels only — no prose inside the diagram.\n\n' +
+        '## Origin story\n' +
+        'Two paragraphs. How the team\'s current way of working came to be,\n' +
+        'told with the cadence of a creation story. At least one decision\n' +
+        'was made over coffee or on a walk. Reference specific people from\n' +
+        'section 2.\n\n' +
+        '## Rituals\n' +
+        'Bullet list of 4-6 rituals. Each bullet starts with a day or cadence\n' +
+        '("Every Monday morning", "Twice a quarter"), names the ritual,\n' +
+        'explains why this team does it differently. Reference at least one\n' +
+        'tool by its proprietary-system name from the architecture diagram.\n\n' +
+        '## What every Series B can learn from [Team]\n' +
+        'One closing paragraph. Distill the team\'s approach into a transferable\n' +
+        'lesson — small enough that the lesson is just "they have a Slack\n' +
+        'thread" or "they meet on Tuesdays". The joke is that this is being\n' +
+        'held up as a method.\n\n' +
+        'User input follows [INPUT].\n\n' +
+        '[INPUT]\n' +
+        userPaste
+      );
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Submit handler
+    // ───────────────────────────────────────────────────────────
+    function handleSubmit(e) {
+      e.preventDefault();
+      const text = document.getElementById('hyb-paste').value.trim();
+      const validation = document.getElementById('hyb-validation');
+
+      if (!text) {
+        validation.classList.add('visible');
+        document.getElementById('hyb-paste').focus();
+        return;
+      }
+
+      validation.classList.remove('visible');
+
+      const prompt = buildPrompt(text);
+      const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+      window.open(url, '_blank', 'noopener');
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Init
+    // ───────────────────────────────────────────────────────────
+    document.getElementById('hyb-form').addEventListener('submit', handleSubmit);
+  </script>
+
+</body>
+</html>

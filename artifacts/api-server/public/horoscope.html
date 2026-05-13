@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PM Horoscope — Working from Lenny</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PM Horoscope — Working from Lenny">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="PM Horoscope — Working from Lenny">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/">Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Block 1: Picker (if no archetype yet) -->
+      <section class="horoscope-picker" id="horoscope-picker">
+        <p class="horoscope-picker-intro">Pick the archetype that fits you today. Twelve options, all drawn from real corpus patterns.</p>
+        <ul class="horoscope-archetype-grid" id="horoscope-archetype-grid"></ul>
+      </section>
+
+      <!-- Block 1: Reading (if archetype picked) -->
+      <section class="horoscope-reading" id="horoscope-reading">
+        <p class="horoscope-date" id="horoscope-date"></p>
+        <h1 class="horoscope-archetype-name" id="horoscope-archetype-name"></h1>
+        <p class="horoscope-archetype-virtue" id="horoscope-archetype-virtue"></p>
+        <p class="horoscope-archetype-pitfall" id="horoscope-archetype-pitfall"></p>
+
+        <div class="horoscope-reading-placeholder">
+          <p>The deterministic daily reading (aspect, prediction, nudge) will compose here once the corpus content is authored. For now, the full reading is available on demand from Claude.</p>
+        </div>
+
+        <div class="horoscope-actions">
+          <button type="button" class="horoscope-btn" id="horoscope-change-btn">← change archetype</button>
+          <button type="button" class="horoscope-btn" id="horoscope-share-btn">share this reading</button>
+          <span class="horoscope-share-confirm" id="horoscope-share-confirm" aria-live="polite">link copied</span>
+          <a href="#" class="horoscope-btn horoscope-btn-primary" id="horoscope-claude-btn" target="_blank" rel="noopener">want a longer reading?</a>
+        </div>
+      </section>
+
+      <!-- Block 2: Description -->
+      <div class="horoscope-description">
+
+        <h2>What this app does for you</h2>
+        <p>A daily horoscope where the twelve signs are real product-management archetypes drawn from the corpus's bad-PM and pitfall topics. Pick one, or take a six-question quiz to find yours, and you get a one-paragraph reading in horoscope rhythm anchored in actual PM behaviors. Made for the kind of PM who has caught themselves doing all twelve, or their colleagues trying to read the tea leaves.</p>
+
+        <h2>How it works</h2>
+        <p>Twelve archetypes, written once from the corpus's topics on PM pitfalls, bad-PM behaviors, saying no, and the top-1-percent PM profile. Each day's reading is composed deterministically from your archetype and today's date, picking from a pre-written set of aspects, predictions, and nudges. No LLM, no API call, no rate limit. The "lucky topic file" link sends you to the matching corpus page if you want to read the source.</p>
+
+        <h2>Foundation</h2>
+        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
+        <div class="callout">
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+        </div>
+
+      </div>
+
+      <!-- Block 3: Closing blurb -->
+      <p class="horoscope-blurb">Mercury can do whatever Mercury wants. The Theatre Director, however, has a 9am.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <!-- TODO: Tally form URL -->
+      <a href="#">Feedback</a>
+      <span class="sep">·</span>
+      <!-- TODO: repo URL (currently private) -->
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // ───────────────────────────────────────────────────────────
+    // Twelve archetypes (locked, verbatim from apps/53-pm-horoscope/prompt.md)
+    // ───────────────────────────────────────────────────────────
+    const ARCHETYPES = [
+      { id: 1,  name: 'The Bet-Defender',         virtue: 'Holds the line on a bet under exec pressure',                pitfall: 'Cargo-cult dissent — saying no to look smart' },
+      { id: 2,  name: 'The Theatre Director',     virtue: 'Runs the ritual well',                                       pitfall: 'Standups as performance art, no real coordination' },
+      { id: 3,  name: 'The Cornered Resource',    virtue: 'Has a real moat',                                            pitfall: 'Mistakes "I’m the only one who knows" for a moat' },
+      { id: 4,  name: 'The Pivot-Hanged',         virtue: 'Adaptive, learns fast',                                      pitfall: "Hangs in indecision, can't commit to the new direction" },
+      { id: 5,  name: 'The Customer-Adjacent',    virtue: 'Talks to paying customers weekly',                           pitfall: 'Confuses sales Slack quotes for "talked to the customer"' },
+      { id: 6,  name: 'The Founder-Mode Returnee', virtue: 'Steps back into product after a stretch away',              pitfall: "Re-overrides the team's hard-won judgment in week one" },
+      { id: 7,  name: 'The Stakeholder-Pleaser',  virtue: 'Keeps the room calm',                                        pitfall: 'Ships nothing controversial enough to matter' },
+      { id: 8,  name: 'The Top-1-Percent',        virtue: 'Rare quality bar',                                           pitfall: "Martyrdom and burnout, can't trust the team" },
+      { id: 9,  name: 'The Saying-No',            virtue: 'Holds the line',                                             pitfall: 'Hedges to "let me check" and never closes' },
+      { id: 10, name: 'The Eval-Forward',         virtue: 'Rigorous about AI feature evals',                            pitfall: 'Blocks shipping with infinite eval requirements' },
+      { id: 11, name: 'The Strategy-Skeptic',     virtue: 'Spots non-strategy',                                         pitfall: 'Diagnoses without proposing alternatives' },
+      { id: 12, name: 'The Empathy-Tourist',      virtue: 'Does occasional user calls',                                 pitfall: "Treats them as performance, doesn't change behavior" },
+    ];
+
+    const STORAGE_KEY = 'wfl-horoscope-archetype';
+
+    // ───────────────────────────────────────────────────────────
+    // Build the picker grid
+    // ───────────────────────────────────────────────────────────
+    function buildPicker() {
+      const grid = document.getElementById('horoscope-archetype-grid');
+      grid.innerHTML = '';
+      ARCHETYPES.forEach(function(a) {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'horoscope-archetype-card';
+        btn.dataset.id = String(a.id);
+
+        const name = document.createElement('div');
+        name.className = 'horoscope-archetype-card-name';
+        name.textContent = a.name;
+
+        const virtue = document.createElement('div');
+        virtue.className = 'horoscope-archetype-card-virtue';
+        virtue.textContent = 'Virtue: ' + a.virtue + '.';
+
+        const pitfall = document.createElement('div');
+        pitfall.className = 'horoscope-archetype-card-pitfall';
+        pitfall.textContent = 'Pitfall: ' + a.pitfall + '.';
+
+        btn.appendChild(name);
+        btn.appendChild(virtue);
+        btn.appendChild(pitfall);
+        btn.addEventListener('click', function() { pickArchetype(a.id); });
+        li.appendChild(btn);
+        grid.appendChild(li);
+      });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Storage helpers
+    // ───────────────────────────────────────────────────────────
+    function loadArchetype() {
+      try {
+        const v = localStorage.getItem(STORAGE_KEY);
+        return v ? parseInt(v, 10) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function saveArchetype(id) {
+      try { localStorage.setItem(STORAGE_KEY, String(id)); } catch (e) {}
+    }
+
+    function clearArchetype() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Switch views
+    // ───────────────────────────────────────────────────────────
+    function showPicker() {
+      document.getElementById('horoscope-picker').classList.add('visible');
+      document.getElementById('horoscope-reading').classList.remove('visible');
+    }
+
+    function showReading(archetypeId) {
+      const a = ARCHETYPES.find(function(x) { return x.id === archetypeId; });
+      if (!a) {
+        showPicker();
+        return;
+      }
+      document.getElementById('horoscope-date').textContent = formatToday();
+      document.getElementById('horoscope-archetype-name').textContent = a.name;
+      document.getElementById('horoscope-archetype-virtue').textContent = 'Virtue: ' + a.virtue + '.';
+      document.getElementById('horoscope-archetype-pitfall').textContent = 'Pitfall: ' + a.pitfall + '.';
+
+      // Wire up Claude button with prompt for today's reading
+      const claudeBtn = document.getElementById('horoscope-claude-btn');
+      claudeBtn.href = 'https://claude.ai/new?q=' + encodeURIComponent(buildClaudeText(a));
+
+      // Wire up share button
+      const shareBtn = document.getElementById('horoscope-share-btn');
+      shareBtn.onclick = function() { handleShare(a.id); };
+
+      document.getElementById('horoscope-picker').classList.remove('visible');
+      document.getElementById('horoscope-reading').classList.add('visible');
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Date format
+    // ───────────────────────────────────────────────────────────
+    function formatToday() {
+      const d = new Date();
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    }
+
+    function isoToday() {
+      const d = new Date();
+      const pad = function(n) { return n < 10 ? '0' + n : String(n); };
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Claude handoff text
+    // ───────────────────────────────────────────────────────────
+    function buildClaudeText(a) {
+      return (
+        'Today my PM horoscope archetype is "' + a.name + '".\n' +
+        'Virtue: ' + a.virtue + '.\n' +
+        'Pitfall: ' + a.pitfall + '.\n' +
+        'Today\'s date: ' + isoToday() + '.\n\n' +
+        'Please write me a one-paragraph horoscope reading in horoscope rhythm,\n' +
+        'anchored in Lenny Rachitsky\'s corpus (especially the pm-pitfalls,\n' +
+        'spotting-bad-pm-behaviors, saying-no, and top-1-percent-pm themes).\n\n' +
+        'Use the following four-slot structure:\n' +
+        '1. ASPECT: name another archetype from the twelve and one specific\n' +
+        '   aspect happening between us today (square, trine, opposition,\n' +
+        '   conjunction). Keep it concrete — what does this aspect mean for\n' +
+        '   my day in product terms?\n' +
+        '2. PREDICTION: one specific thing that is likely to happen today\n' +
+        '   given my pitfall. Confident, slightly dramatic, never actually\n' +
+        '   predictive.\n' +
+        '3. NUDGE: one concrete, doable action I can take in the next two\n' +
+        '   hours that pushes me toward my virtue and away from my pitfall.\n' +
+        '4. LUCKY TOPIC FILE: name one corpus topic file I should read\n' +
+        '   today to reinforce my virtue.\n\n' +
+        'Tone: confident, slightly dramatic, never actually predictive.\n' +
+        'No corporate softening. No em dashes. No "delve" or "unpack".\n' +
+        'Under 200 words.'
+      );
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Share button
+    // ───────────────────────────────────────────────────────────
+    function handleShare(archetypeId) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('archetype', archetypeId);
+      url.searchParams.set('date', isoToday());
+      navigator.clipboard.writeText(url.toString()).then(function() {
+        const confirm = document.getElementById('horoscope-share-confirm');
+        confirm.classList.add('visible');
+        setTimeout(function() {
+          confirm.classList.remove('visible');
+        }, 2000);
+      }).catch(function() {
+        prompt('Copy this link:', url.toString());
+      });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Actions
+    // ───────────────────────────────────────────────────────────
+    function pickArchetype(id) {
+      saveArchetype(id);
+      showReading(id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleChange() {
+      clearArchetype();
+      showPicker();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Init
+    // ───────────────────────────────────────────────────────────
+    buildPicker();
+
+    // Allow ?archetype=N&date=YYYY-MM-DD in the URL (shared links)
+    function parseUrlArchetype() {
+      const params = new URLSearchParams(window.location.search);
+      const a = params.get('archetype');
+      if (a) {
+        const id = parseInt(a, 10);
+        if (id >= 1 && id <= 12) return id;
+      }
+      return null;
+    }
+
+    const urlArchetype = parseUrlArchetype();
+    const storedArchetype = loadArchetype();
+    const initial = urlArchetype || storedArchetype;
+
+    if (initial) {
+      showReading(initial);
+    } else {
+      showPicker();
+    }
+
+    document.getElementById('horoscope-change-btn').addEventListener('click', handleChange);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PM-ify My Inbox — Working from Lenny</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PM-ify My Inbox — Working from Lenny">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="PM-ify My Inbox — Working from Lenny">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/">Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Block 1: Working interface -->
+      <form class="pmify-form" id="pmify-form" novalidate>
+
+        <div class="pmify-mode" role="radiogroup" aria-label="Translation direction">
+          <label class="pmify-mode-label">
+            <input type="radio" name="mode" value="pm-ify" checked>
+            <span>PM-ify</span>
+          </label>
+          <label class="pmify-mode-label">
+            <input type="radio" name="mode" value="de-pm-ify">
+            <span>De-PM-ify</span>
+          </label>
+        </div>
+
+        <textarea
+          class="pmify-paste"
+          id="pmify-paste"
+          rows="6"
+          placeholder=""
+          aria-label="Paste your message here"></textarea>
+
+        <p class="pmify-validation" id="pmify-validation" role="alert">
+          Paste a message above first.
+        </p>
+
+        <button type="submit" class="pmify-submit" id="pmify-submit">Translate</button>
+
+        <p class="pmify-privacy">Your paste is not stored. The Translate button opens your input in Claude in a new tab.</p>
+
+      </form>
+
+      <!-- Block 2: Description -->
+      <div class="pmify-description">
+
+        <h2>What this app does for you</h2>
+        <p>Paste a message from outside the office — your mother asking you to call more often, a friend wondering about Saturday, a teacher's note, a dentist reminder — and the app returns the corporate-PM-translated version you'd send a sales VP, with footnotes naming the bad-PM patterns each line triggers. A second mode goes the other way: paste a real work decline you sent recently and see what it sounds like in normal-human English. Built for the PM who has caught themselves typing "I'll need to deprioritize that ask" to their own family, and the family member who has noticed and wonders if it's a phase.</p>
+
+        <h2>How it works</h2>
+        <p>Two modes share one prompt structure: translate the pasted message in one direction or the other, then footnote the output with citations from the corpus's pm-pitfalls, spotting-bad-pm-behaviors, saying-no, and process-vs-outcomes themes. The translation runs through Gemini Flash on the web, with the free-tier ceiling described in the foundation block. If it's hit, a single click hands the same translation off to Claude in your own subscription. Your pasted text is not stored; only the count of translations done that day, which is what the rate limit tracks.</p>
+
+        <h2>Foundation</h2>
+        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
+        <div class="callout">
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+        </div>
+
+      </div>
+
+      <!-- Block 3: Closing blurb -->
+      <p class="pmify-blurb">There is no Q3 in human relationships.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <!-- TODO: Tally form URL -->
+      <a href="#">Feedback</a>
+      <span class="sep">·</span>
+      <!-- TODO: repo URL (currently private) -->
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // ───────────────────────────────────────────────────────────
+    // Mode-specific placeholders that rotate per visit
+    // ───────────────────────────────────────────────────────────
+    const PLACEHOLDERS = {
+      'pm-ify': [
+        'Hey honey, can you call your mother on Sunday? She has been worried.',
+        'Hi! Are we still on for Saturday? Let me know what time works.',
+        'Reminder: Dr. Smith on Thursday at 3pm. Please confirm.',
+        'The grocery list is on the fridge. Don’t forget the milk this time.',
+      ],
+      'de-pm-ify': [
+        'Per our earlier sync, I’m going to push back on this ask. I don’t have the bandwidth this sprint, and the ROI isn’t clear. Let’s revisit in our 1:1 next week.',
+        'Circling back on this thread — want to deprioritize for now and revisit in Q3 once we have more signal.',
+      ],
+    };
+
+    function pickPlaceholder(mode) {
+      const pool = PLACEHOLDERS[mode];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function updatePlaceholder() {
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      document.getElementById('pmify-paste').placeholder = pickPlaceholder(mode);
+      document.getElementById('pmify-submit').textContent =
+        mode === 'pm-ify' ? 'Translate' : 'Re-humanize';
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Claude handoff prompt (mirrors apps/51-pmify-inbox/prompt.md)
+    // ───────────────────────────────────────────────────────────
+    function buildPrompt(mode, userText) {
+      return (
+        'You are a translator with one job: convert messages between plain\n' +
+        'English and corporate-PM-speak, then footnote the result with\n' +
+        'citations to the bad-PM-behavior corpus. The humor lands because\n' +
+        'the patterns are real, not because the translation is over the top.\n\n' +
+        'Mode for this request: ' + mode + '\n\n' +
+        'If mode is "pm-ify":\n' +
+        '  Input is a message from outside the office. Translate it as the PM\n' +
+        '  would send the same message to a sales VP. Use capacity language,\n' +
+        '  Q2 deprioritization framing, async-by-default scheduling, and at\n' +
+        '  least one "circling back". 4-6 sentences max.\n\n' +
+        'If mode is "de-pm-ify":\n' +
+        '  Input is a real work message the user wrote. Translate it back to\n' +
+        '  plain English, as if speaking to a friend at a coffee shop.\n' +
+        '  4-6 sentences max.\n\n' +
+        'After the translation, on a new line, output 2-4 footnotes naming\n' +
+        'the bad-PM patterns the translation triggers (pm-ify mode) or the\n' +
+        'ones the original demonstrated (de-pm-ify mode). Footnote format:\n' +
+        '  "1. {pattern_name} — {one-sentence diagnosis}."\n\n' +
+        'Pull pattern names from these corpus themes only:\n' +
+        '  - pm-pitfalls\n' +
+        '  - spotting-bad-pm-behaviors\n' +
+        '  - saying-no\n' +
+        '  - process-vs-outcomes\n\n' +
+        'Output rules:\n' +
+        '- Never explain the joke. The translation is the joke.\n' +
+        '- Footnotes are deadpan, single-line.\n' +
+        '- Keep translation + footnotes under 300 words total.\n' +
+        '- Do not output "Translation:" or "Footnotes:" headers. Just the\n' +
+        '  translated message, a blank line, then the numbered footnotes.\n\n' +
+        'Input follows the marker [INPUT].\n\n' +
+        '[INPUT]\n' +
+        userText
+      );
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Submit handler
+    // ───────────────────────────────────────────────────────────
+    function handleSubmit(e) {
+      e.preventDefault();
+      const text = document.getElementById('pmify-paste').value.trim();
+      const validation = document.getElementById('pmify-validation');
+
+      if (!text) {
+        validation.classList.add('visible');
+        document.getElementById('pmify-paste').focus();
+        return;
+      }
+
+      validation.classList.remove('visible');
+
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const prompt = buildPrompt(mode, text);
+      const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+      window.open(url, '_blank', 'noopener');
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Init
+    // ───────────────────────────────────────────────────────────
+    updatePlaceholder();
+    document.querySelectorAll('input[name="mode"]').forEach(function(r) {
+      r.addEventListener('change', updatePlaceholder);
+    });
+    document.getElementById('pmify-form').addEventListener('submit', handleSubmit);
+  </script>
+
+</body>
+</html>
