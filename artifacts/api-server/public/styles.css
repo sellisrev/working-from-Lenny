@@ -1,0 +1,446 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #1a1a1a;
+  background: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  width: 100%;
+}
+
+/* Header */
+header {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #e8e8e8;
+  margin-bottom: 2rem;
+}
+
+header nav a {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+/* Main */
+main {
+  flex: 1;
+  padding-bottom: 3rem;
+}
+
+/* Tile grid */
+.tiles {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.875rem;
+}
+
+.tiles li {
+  min-width: 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  background: #fafafa;
+  height: 100%;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.tile:hover,
+.tile:focus-visible {
+  background: #f0f0f0;
+  border-color: #bbb;
+  outline: none;
+}
+
+.tile:focus {
+  outline: 2px solid #0050d0;
+  outline-offset: 2px;
+}
+
+.tile-door {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #1a1a1a;
+  letter-spacing: -0.02em;
+}
+
+.tile-hint {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Typography for inner pages */
+h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+a {
+  color: #0050d0;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #003999;
+}
+
+ul:not(.tiles) {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+ul:not(.tiles) li {
+  margin-bottom: 0.4rem;
+}
+
+/* Attribution callout */
+.callout {
+  border-left: 3px solid #ccc;
+  background: #f7f7f7;
+  padding: 0.85rem 1.1rem;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  color: #444;
+  border-radius: 2px;
+}
+
+/* About bottom note */
+.footnote {
+  margin-top: 2.5rem;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: #777;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  border-top: 1px solid #e8e8e8;
+  padding: 1.25rem 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+footer .container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+}
+
+footer a {
+  color: #555;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+  color: #1a1a1a;
+}
+
+footer .sep {
+  color: #ccc;
+  user-select: none;
+}
+
+/* ================================================================
+   Pitfalls page (.pitfalls-*)
+   ================================================================ */
+
+/* Form */
+.pitfalls-form {
+  margin-bottom: 0;
+}
+
+.pitfalls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+
+.pitfalls-row.unanswered {
+  background: #fffbe6;
+  border-bottom-color: #f0e4a0;
+}
+
+.pitfalls-row-label {
+  display: flex;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.pitfalls-row-number {
+  font-size: 0.78rem;
+  color: #999;
+  min-width: 1.25rem;
+  padding-top: 0.18rem;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.pitfalls-row-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #1a1a1a;
+}
+
+.pitfalls-radios {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+.pitfalls-radio-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: #666;
+  text-align: center;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  transition: background 0.1s ease;
+  min-width: 3rem;
+}
+
+.pitfalls-radio-label:hover {
+  background: #f5f5f5;
+}
+
+.pitfalls-radio-label input[type="radio"] {
+  cursor: pointer;
+  accent-color: #1a1a1a;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Validation message */
+.pitfalls-validation {
+  font-size: 0.875rem;
+  color: #92400e;
+  margin-top: 0.85rem;
+  display: none;
+}
+
+.pitfalls-validation.visible {
+  display: block;
+}
+
+/* Submit button */
+.pitfalls-submit {
+  display: inline-block;
+  margin-top: 1.5rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.pitfalls-submit:hover {
+  background: #333;
+}
+
+/* Output section */
+.pitfalls-output {
+  display: none;
+  border-top: 2px solid #e8e8e8;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.pitfalls-output.visible {
+  display: block;
+}
+
+.pitfalls-score {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+}
+
+.pitfalls-picks-header {
+  font-size: 0.9375rem;
+  color: #444;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.pitfalls-picks {
+  padding-left: 1.4rem;
+  margin-bottom: 0;
+}
+
+.pitfalls-pick {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pitfalls-pick:last-child {
+  border-bottom: none;
+}
+
+.pitfalls-pick-text {
+  display: block;
+  font-size: 0.9375rem;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.pitfalls-pick-extras {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #555;
+  /* Extension point: exemplar quote and Read more link go here */
+}
+
+/* Action buttons */
+.pitfalls-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+  align-items: center;
+}
+
+.pitfalls-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  color: #1a1a1a;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.pitfalls-btn:hover {
+  background: #f0f0f0;
+  border-color: #bbb;
+  color: #1a1a1a;
+}
+
+.pitfalls-share-confirm {
+  font-size: 0.8rem;
+  color: #666;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pitfalls-share-confirm.visible {
+  opacity: 1;
+}
+
+/* Description block */
+.pitfalls-description {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e8e8e8;
+}
+
+/* Closing blurb */
+.pitfalls-blurb {
+  margin-top: 2.5rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #777;
+}
+
+/* ================================================================
+   Responsive
+   ================================================================ */
+
+/* Responsive */
+@media (max-width: 640px) {
+  .tiles {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .tile-door {
+    font-size: 1.875rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .tiles {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .tile {
+    padding: 0.875rem 0.75rem;
+  }
+}

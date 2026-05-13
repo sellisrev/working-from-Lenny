@@ -18,3 +18,15 @@ __pycache__/
 *.pyo
 .pytest_cache/
 *.egg-info/
+
+# Node / Replit
+node_modules/
+.cache/
+.upm/
+.local/
+.breakpoints
+*.log
+.npmrc
+
+# Local-only scratch (may contain secrets)
+replit-import.txt

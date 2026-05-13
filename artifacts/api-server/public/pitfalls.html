@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PM Pitfalls Self-Audit — Working from Lenny</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PM Pitfalls Self-Audit — Working from Lenny">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="PM Pitfalls Self-Audit — Working from Lenny">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/">Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Block 1: Quiz form -->
+      <form class="pitfalls-form" id="pitfalls-form" novalidate>
+        <div id="pitfalls-list" aria-label="PM pitfalls self-audit">
+          <!-- Rows built by JS -->
+        </div>
+        <p class="pitfalls-validation" id="pitfalls-validation" role="alert">
+          Please rate all 20 pitfalls above to see your results.
+        </p>
+        <button type="submit" class="pitfalls-submit">See my three to fix this quarter</button>
+      </form>
+
+      <!-- Output (hidden until all 20 answered) -->
+      <div class="pitfalls-output" id="pitfalls-output">
+        <p class="pitfalls-score" id="pitfalls-score-text"></p>
+        <p class="pitfalls-picks-header" id="pitfalls-picks-header"></p>
+        <ol class="pitfalls-picks" id="pitfalls-picks-list">
+          <!-- Items built by JS -->
+        </ol>
+        <div class="pitfalls-actions">
+          <button type="button" class="pitfalls-btn" id="pitfalls-share-btn">share this result</button>
+          <span class="pitfalls-share-confirm" id="pitfalls-share-confirm" aria-live="polite">link copied</span>
+          <a href="#" class="pitfalls-btn" id="pitfalls-claude-btn" target="_blank" rel="noopener">fuller reading in Claude</a>
+          <button type="button" class="pitfalls-btn" id="pitfalls-retake-btn">retake</button>
+        </div>
+      </div>
+
+      <!-- Block 2: Description -->
+      <div class="pitfalls-description">
+
+        <h2>What this app does for you</h2>
+        <p>Twenty common pitfalls that show up in product work, distilled from the corpus's pitfall and bad-PM-behavior themes. You rate each as always, sometimes, or never, and the app gives you the three highest-leverage to fix this quarter, each with a short corpus-anchored example. Built for the PM who would rather be told the uncomfortable thing now than learn it from a retro six months from now, or the colleague trying to figure out whether what they're seeing has a name.</p>
+
+        <h2>How it works</h2>
+        <p>The twenty pitfalls are fixed and locked. Scoring is deterministic: each "always" counts double, each "sometimes" counts once, and the top three picks are weighted by how much each pitfall compounds across the org (some hurt only the PM, some take the whole team down a quarter). The personalized narration runs through Gemini Flash on the web; the score and picks themselves don't need a model. There's a free-tier ceiling on the narration — if it's hit, the score and picks still come through and the "fuller reading in Claude" button takes you the rest of the way.</p>
+
+        <h2>Foundation</h2>
+        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
+        <div class="callout">
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+        </div>
+
+      </div>
+
+      <!-- Block 3: Closing blurb -->
+      <p class="pitfalls-blurb">Twenty pitfalls. Most PMs are guilty of seven. The honest ones admit nine.</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <!-- TODO: Tally form URL -->
+      <a href="#">Feedback</a>
+      <span class="sep">·</span>
+      <!-- TODO: repo URL (currently private) -->
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    const PITFALLS = [
+      { id: 1,  text: "Letting AI write the spec without owning the judgment behind it", leverage: 3 },
+      { id: 2,  text: "Shipping AI features without an eval set", leverage: 3 },
+      { id: 3,  text: "No paying-customer conversation in the last 30 days", leverage: 3 },
+      { id: 4,  text: "Conflating roadmap with strategy", leverage: 3 },
+      { id: 5,  text: "Stakeholder-pleasing over bet-defending", leverage: 3 },
+      { id: 6,  text: "Not measuring shipped features after launch", leverage: 3 },
+      { id: 7,  text: "OKRs as activity lists (\u201cship X\u201d instead of \u201cY users adopt X\u201d)", leverage: 3 },
+      { id: 8,  text: "Spending time on the roadmap when the unanswered question is the bet", leverage: 3 },
+      { id: 9,  text: "Theatre standups \u2014 status ritual, no real coordination", leverage: 2 },
+      { id: 10, text: "Treating internal stakeholders as customers", leverage: 2 },
+      { id: 11, text: "Letting \u201cdata-driven\u201d replace a hard judgment call", leverage: 2 },
+      { id: 12, text: "Confusing consensus with alignment", leverage: 2 },
+      { id: 13, text: "Avoiding the hard \u201cno\u201d", leverage: 2 },
+      { id: 14, text: "Over-indexing on the loudest customer complaint", leverage: 2 },
+      { id: 15, text: "Velocity as a goal rather than a side effect", leverage: 2 },
+      { id: 16, text: "Skipping the \u201cwhy\u201d in every spec", leverage: 2 },
+      { id: 17, text: "Not noticing when politics shift around your bet", leverage: 2 },
+      { id: 18, text: "Hiding from the post-mortem when something flops", leverage: 2 },
+      { id: 19, text: "Hoarding credit from engineers and designers", leverage: 2 },
+      { id: 20, text: "Confusing being busy with being useful", leverage: 1 },
+    ];
+
+    function getAnswerValue(val) {
+      if (val === 'always') return 2;
+      if (val === 'sometimes') return 1;
+      return 0;
+    }
+
+    function buildForm() {
+      const list = document.getElementById('pitfalls-list');
+      PITFALLS.forEach(function(p) {
+        const row = document.createElement('div');
+        row.className = 'pitfalls-row';
+        row.dataset.id = p.id;
+
+        const label = document.createElement('div');
+        label.className = 'pitfalls-row-label';
+
+        const num = document.createElement('span');
+        num.className = 'pitfalls-row-number';
+        num.textContent = p.id;
+
+        const txt = document.createElement('span');
+        txt.className = 'pitfalls-row-text';
+        txt.textContent = p.text;
+
+        label.appendChild(num);
+        label.appendChild(txt);
+
+        const radios = document.createElement('div');
+        radios.className = 'pitfalls-radios';
+        radios.setAttribute('role', 'radiogroup');
+        radios.setAttribute('aria-label', 'Rate pitfall ' + p.id);
+
+        ['always', 'sometimes', 'never'].forEach(function(val) {
+          const lbl = document.createElement('label');
+          lbl.className = 'pitfalls-radio-label';
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = 'p' + p.id;
+          input.value = val;
+
+          const span = document.createElement('span');
+          span.textContent = val;
+
+          lbl.appendChild(input);
+          lbl.appendChild(span);
+          radios.appendChild(lbl);
+        });
+
+        row.appendChild(label);
+        row.appendChild(radios);
+        list.appendChild(row);
+      });
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+
+      const answers = {};
+      const unanswered = [];
+
+      PITFALLS.forEach(function(p) {
+        const checked = document.querySelector('input[name="p' + p.id + '"]:checked');
+        if (checked) {
+          answers[p.id] = checked.value;
+        } else {
+          unanswered.push(p.id);
+        }
+      });
+
+      // Clear previous highlights
+      document.querySelectorAll('.pitfalls-row').forEach(function(row) {
+        row.classList.remove('unanswered');
+      });
+
+      if (unanswered.length > 0) {
+        unanswered.forEach(function(id) {
+          const row = document.querySelector('.pitfalls-row[data-id="' + id + '"]');
+          if (row) row.classList.add('unanswered');
+        });
+        document.getElementById('pitfalls-validation').classList.add('visible');
+        // Scroll to first unanswered
+        const first = document.querySelector('.pitfalls-row.unanswered');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      document.getElementById('pitfalls-validation').classList.remove('visible');
+
+      // Scoring
+      let scoreRaw = 0;
+      const weighted = PITFALLS.map(function(p) {
+        const av = getAnswerValue(answers[p.id]);
+        scoreRaw += av;
+        return { id: p.id, text: p.text, leverage: p.leverage, answerValue: av, weight: av * p.leverage };
+      });
+      const scoreDisplay = Math.round(scoreRaw / 2);
+
+      const allNever = weighted.every(function(p) { return p.weight === 0; });
+
+      let picks;
+      if (allNever) {
+        picks = [PITFALLS[0], PITFALLS[1], PITFALLS[3]]; // #1, #2, #4
+      } else {
+        const sorted = weighted.slice().sort(function(a, b) {
+          if (b.weight !== a.weight) return b.weight - a.weight;
+          if (b.leverage !== a.leverage) return b.leverage - a.leverage;
+          return a.id - b.id;
+        });
+        picks = sorted.slice(0, 3);
+      }
+
+      showOutput(scoreDisplay, picks, allNever);
+    }
+
+    function showOutput(scoreDisplay, picks, allNever) {
+      document.getElementById('pitfalls-score-text').textContent = 'You scored ' + scoreDisplay + '/20.';
+
+      const header = document.getElementById('pitfalls-picks-header');
+      if (allNever) {
+        header.textContent = 'Either you\u2019re in the top 1% or you\u2019re being kind to yourself. Try again being a little more honest.';
+      } else {
+        header.textContent = 'Your three highest-leverage to fix this quarter:';
+      }
+
+      const list = document.getElementById('pitfalls-picks-list');
+      list.innerHTML = '';
+      picks.forEach(function(p) {
+        const li = document.createElement('li');
+        li.className = 'pitfalls-pick';
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'pitfalls-pick-text';
+        textSpan.textContent = p.text;
+
+        const extras = document.createElement('div');
+        extras.className = 'pitfalls-pick-extras';
+        // Extension point: exemplar quote goes here
+        // Extension point: Read more link goes here
+
+        li.appendChild(textSpan);
+        li.appendChild(extras);
+        list.appendChild(li);
+      });
+
+      // Wire up share button
+      const shareBtn = document.getElementById('pitfalls-share-btn');
+      shareBtn.onclick = function() { handleShare(scoreDisplay); };
+
+      // Wire up Claude button
+      const claudeText = buildClaudeText(scoreDisplay, picks);
+      const claudeBtn = document.getElementById('pitfalls-claude-btn');
+      claudeBtn.href = 'https://claude.ai/new?q=' + encodeURIComponent(claudeText);
+
+      const output = document.getElementById('pitfalls-output');
+      output.classList.add('visible');
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function handleShare(scoreDisplay) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('score', scoreDisplay);
+      navigator.clipboard.writeText(url.toString()).then(function() {
+        const confirm = document.getElementById('pitfalls-share-confirm');
+        confirm.classList.add('visible');
+        setTimeout(function() {
+          confirm.classList.remove('visible');
+        }, 2000);
+      }).catch(function() {
+        // Fallback: prompt user
+        prompt('Copy this link:', url.toString());
+      });
+    }
+
+    function buildClaudeText(scoreDisplay, picks) {
+      return (
+        'I just took a PM pitfalls self-audit on Working from Lenny and scored\n' +
+        scoreDisplay + '/20. My three highest-leverage pitfalls to fix this quarter\n' +
+        'are:\n\n' +
+        '1. ' + picks[0].text + '\n' +
+        '2. ' + picks[1].text + '\n' +
+        '3. ' + picks[2].text + '\n\n' +
+        'For each, please pull from Lenny Rachitsky\u2019s interview corpus (especially the\n' +
+        'pm-pitfalls and spotting-bad-pm-behaviors themes) and give me:\n' +
+        '- a one-paragraph diagnosis of why this pitfall compounds for someone in\n' +
+        '  my shoes,\n' +
+        '- two concrete behaviors to start practicing this quarter, and\n' +
+        '- one canonical example from the corpus of a PM who fell into this pitfall\n' +
+        '  and what it cost them.\n\n' +
+        'Keep it honest. Don\u2019t soften it.'
+      );
+    }
+
+    function handleRetake() {
+      // Clear all radio selections
+      document.querySelectorAll('input[type="radio"]').forEach(function(input) {
+        input.checked = false;
+      });
+      // Clear highlights and validation
+      document.querySelectorAll('.pitfalls-row').forEach(function(row) {
+        row.classList.remove('unanswered');
+      });
+      document.getElementById('pitfalls-validation').classList.remove('visible');
+      // Hide output
+      document.getElementById('pitfalls-output').classList.remove('visible');
+      // Scroll to top of form
+      document.getElementById('pitfalls-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Init
+    buildForm();
+    document.getElementById('pitfalls-form').addEventListener('submit', handleSubmit);
+    document.getElementById('pitfalls-retake-btn').addEventListener('click', handleRetake);
+  </script>
+
+</body>
+</html>
