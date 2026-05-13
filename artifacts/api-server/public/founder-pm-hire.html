@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Founder PM hire — Working from Lenny</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Founder PM hire — Working from Lenny">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Founder PM hire — Working from Lenny">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/">Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Block 1: Wizard form -->
+      <form class="fph-form" id="fph-form" novalidate>
+        <div id="fph-fields" aria-label="Founder PM hire diagnostic">
+          <!-- Fields built by JS -->
+        </div>
+        <p class="fph-validation" id="fph-validation" role="alert">
+          Please answer all eight questions to see your result.
+        </p>
+        <button type="submit" class="fph-submit">Tell me</button>
+      </form>
+
+      <!-- Output (hidden until all 8 answered) -->
+      <div class="fph-output" id="fph-output">
+        <p class="fph-verdict" id="fph-verdict-text"></p>
+
+        <h3 class="fph-section-header">What good looks like</h3>
+        <p class="fph-good" id="fph-good-text"></p>
+
+        <h3 class="fph-section-header">Cost of getting it wrong</h3>
+        <ul class="fph-costs" id="fph-costs-list">
+          <!-- Items built by JS -->
+        </ul>
+
+        <div class="fph-actions">
+          <button type="button" class="fph-btn" id="fph-share-btn">share this answer</button>
+          <span class="fph-share-confirm" id="fph-share-confirm" aria-live="polite">link copied</span>
+          <a href="#" class="fph-btn" id="fph-claude-btn" target="_blank" rel="noopener">fuller read in Claude</a>
+          <button type="button" class="fph-btn" id="fph-retake-btn">retake</button>
+        </div>
+      </div>
+
+      <!-- Block 2: Description -->
+      <div class="fph-description">
+
+        <h2>What this app does for you</h2>
+        <p>Founders agonize over the PM hiring question and tend to split it into two coin flips: "should I hire?" and "which level?". This app collapses both into one answer. Tell it eight things about your company's stage, your time on product, your appetite for the work, and what the next six months look like, and it returns one of five answers: stay founder-mode, not yet (with an interim playbook), hire an APM, hire an empowered PM, or hire a head of product. Each answer comes with what good looks like at that level and the typical cost of getting it wrong. Built for the founder who already suspects the right answer is uncomfortable, and the PM trying to help their boss think through it.</p>
+
+        <h2>How it works</h2>
+        <p>The verdict is deterministic, drawn from a decision tree the corpus's founder-mode, hiring, and team-composition topics agree on within reasonable bounds. Stage and team size give the first cut. Your time on product and your enjoyment of it decide between staying in founder-mode and hiring. The product density of the next six months and your CEO bandwidth across other functions pick the level. The bottleneck flips a couple of edge cases — particularly the "we don't know what to build" answer, which routes to a clarity-first playbook rather than a hire. The tree is biased toward "not yet" for early stages, and biased away from "head of product" for any non-heavy product density, because the corpus is consistent that both of those are the most expensive wrong calls. The personalized narration runs through Gemini Flash on the web; the verdict itself doesn't need a model.</p>
+
+        <h2>Foundation</h2>
+        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
+        <div class="callout">
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+        </div>
+
+      </div>
+
+      <!-- Block 3: Closing blurb -->
+      <p class="fph-blurb">Maybe. Not yet. Yes (and at which level).</p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <!-- TODO: Tally form URL -->
+      <a href="#">Feedback</a>
+      <span class="sep">·</span>
+      <!-- TODO: repo URL (currently private) -->
+      <a href="#">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // ───────────────────────────────────────────────────────────
+    // Field definitions (8 inputs)
+    // ───────────────────────────────────────────────────────────
+    const FIELDS = [
+      {
+        id: 'stage',
+        label: 'What stage is your company at?',
+        type: 'radio',
+        options: [
+          { value: 'pre-seed', label: 'Pre-seed' },
+          { value: 'seed', label: 'Seed' },
+          { value: 'series-a', label: 'Series A' },
+          { value: 'series-b-plus', label: 'Series B or later' },
+        ],
+      },
+      {
+        id: 'team-size',
+        label: 'How big is the product-building team?',
+        type: 'composite-team',
+      },
+      {
+        id: 'pm-today',
+        label: 'Who does the PM work today?',
+        type: 'radio',
+        options: [
+          { value: 'the-founder', label: 'The founder (you)' },
+          { value: 'doubling-engineer', label: 'A doubling-up engineer' },
+          { value: 'doubling-designer', label: 'A doubling-up designer' },
+          { value: 'ceo-and-head-eng', label: 'The CEO and the head of eng together' },
+          { value: 'nobody', label: 'Nobody (the work goes undone)' },
+        ],
+      },
+      {
+        id: 'founder-time',
+        label: 'How much of your time goes to product work?',
+        type: 'radio',
+        options: [
+          { value: 'rarely', label: 'Rarely (less than 30%)' },
+          { value: 'some-of-the-time', label: 'Some of the time (30 to 50%)' },
+          { value: 'most-of-the-time', label: 'Most of the time (50 to 70%)' },
+          { value: 'full-time', label: 'Full-time (more than 70%)' },
+        ],
+      },
+      {
+        id: 'enjoyment',
+        label: 'Do you enjoy doing PM work?',
+        type: 'radio',
+        options: [
+          { value: 'enjoy', label: 'Enjoy' },
+          { value: 'tolerate', label: 'Tolerate' },
+          { value: 'dislike', label: 'Dislike' },
+        ],
+      },
+      {
+        id: 'ceo-bandwidth',
+        label: 'How is your CEO bandwidth across other functions?',
+        type: 'radio',
+        options: [
+          { value: 'room-to-add-product', label: 'Room to add product' },
+          { value: 'stretched-but-functioning', label: 'Stretched but functioning' },
+          { value: 'overstretched', label: 'Overstretched' },
+        ],
+      },
+      {
+        id: 'product-density',
+        label: 'How product-dense are the next six months?',
+        type: 'radio',
+        options: [
+          { value: 'light', label: 'Light (refinement, hardening)' },
+          { value: 'moderate', label: 'Moderate (steady shipping)' },
+          { value: 'heavy', label: 'Heavy (new launches, expansions, bets)' },
+        ],
+      },
+      {
+        id: 'bottleneck',
+        label: 'What is the biggest bottleneck right now?',
+        type: 'radio',
+        options: [
+          { value: 'we-dont-know-what-to-build', label: 'We don’t know what to build' },
+          { value: 'we-cant-keep-up-with-stakeholder-asks', label: 'We can’t keep up with stakeholder asks' },
+          { value: 'engineering-builds-wrong-thing', label: 'Engineering keeps building the wrong thing' },
+          { value: 'no-time-for-customer-research', label: 'No time for customer research' },
+          { value: 'no-time-for-strategy', label: 'No time for strategy' },
+        ],
+      },
+    ];
+
+    // ───────────────────────────────────────────────────────────
+    // Verdict content (pre-canned for Phase 0; LLM narration replaces in Phase 1)
+    // ───────────────────────────────────────────────────────────
+    const VERDICT_LABEL = {
+      'stay-founder-mode': 'Stay founder-mode for now.',
+      'not-yet': 'Not yet.',
+      'hire-apm': 'Hire an APM.',
+      'hire-empowered-pm': 'Hire an empowered PM.',
+      'hire-head-of-product': 'Hire a head of product.',
+    };
+
+    const GOOD_LOOKS_LIKE = {
+      'stay-founder-mode':
+        'Good founder-mode at this density looks like time-boxing your product work to a recurring weekly block (four to six hours), one customer conversation per week minimum, and a single page in a doc that names this quarter’s bet. The trap is letting product work expand into the unused gaps of your week. The bet-page anchor stops that.',
+      'hire-apm':
+        'An APM is your first-PM hire if you need execution offloaded. They take the well-defined work (sprint planning, requirements docs, stakeholder communication) so you stay directional. Good APM hires are hungry, low-ego, and ship faster than they explain. They are not strategy hires.',
+      'hire-empowered-pm':
+        'An empowered PM owns an area end-to-end. They set the area’s objectives, run customer research, defend their bets against you and the rest of the org, and ship without needing your sign-off on every doc. Good empowered PMs argue with you constructively. If they don’t, you hired an APM by mistake.',
+      'hire-head-of-product':
+        'A head of product runs the function. They set product strategy, hire and develop other PMs, and own the relationship with the CEO at the executive level. Good heads of product create a product organization that survives them. The most common failure mode is the founder bypassing them in their first six months. That pattern is the 18-month version of this wrong-fit cost.',
+    };
+
+    const PLAYBOOK_CONTENT = {
+      'pre-seed-founder-owns-product':
+        'You own product full-time. No part-time PM. Re-run this diagnostic when you reach your first paid customer.',
+      'seed-early-team':
+        'Pick one specific person to own the PM work end-to-end (usually the founder or a designer-doubling). Re-run when team size hits seven.',
+      'seed-founder-distracted':
+        'Get back to 60%+ on product, or hire now. The middle path is the wrong-fit cost trap. Three months of half-attention and you will still have to make this call.',
+      'need-product-clarity-first':
+        'Five customer interviews and a recurring two-hour weekly strategy block, for four weeks. Re-run this diagnostic at the end of the four weeks.',
+    };
+
+    // 2-3 most relevant wrong-fit costs per verdict
+    const WRONG_FIT_COSTS = {
+      'stay-founder-mode': [
+        'Any hire when you should have stayed founder-mode: 6 to 12 months. Premature hire, you still do the senior work, the new hire is frustrated, eventual replace.',
+      ],
+      'not-yet': [
+        'Hiring anyway when you should have waited: 6 to 12 months. Premature hire, you still do the senior work, the new hire is frustrated.',
+        'Skipping the playbook and re-running this in six months: 1 to 2 quarters of compounding velocity loss. The reason for the not-yet doesn’t resolve itself.',
+      ],
+      'hire-apm': [
+        'Hiring an empowered PM instead: 6 months. The mid-level PM is bored and frustrated; usually leaves within a year.',
+        'Hiring an APM when you needed an empowered PM: 6 months. APM ships, but the IC-level decisions still go through you. Velocity ceiling.',
+      ],
+      'hire-empowered-pm': [
+        'Hiring a head of product when you needed an empowered PM: 12 to 18 months. Over-engineered process, founder bypass, eventual replace cycle. Most expensive wrong call by a margin.',
+        'Hiring an APM when you needed an empowered PM: 6 months. APM ships, but IC-level decisions still go through you.',
+      ],
+      'hire-head-of-product': [
+        'Hiring a head of product too early (density isn’t actually heavy yet): 12 to 18 months. Over-engineered, founder bypass, replace cycle.',
+        'Hiring an empowered PM instead: 6 to 9 months. PM does the IC work well but can’t set function strategy; you end up doing the head-of-product job uncompensated.',
+      ],
+    };
+
+    // ───────────────────────────────────────────────────────────
+    // Form builder
+    // ───────────────────────────────────────────────────────────
+    function buildForm() {
+      const wrap = document.getElementById('fph-fields');
+      FIELDS.forEach(function(f) {
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'fph-field';
+        fieldDiv.dataset.id = f.id;
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'fph-field-label';
+        labelEl.textContent = f.label;
+        fieldDiv.appendChild(labelEl);
+
+        if (f.type === 'radio') {
+          const group = document.createElement('div');
+          group.className = 'fph-radio-group';
+          group.setAttribute('role', 'radiogroup');
+          group.setAttribute('aria-label', f.label);
+
+          f.options.forEach(function(o) {
+            const optLabel = document.createElement('label');
+            optLabel.className = 'fph-radio-label';
+
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = f.id;
+            input.value = o.value;
+
+            const span = document.createElement('span');
+            span.textContent = o.label;
+
+            optLabel.appendChild(input);
+            optLabel.appendChild(span);
+            group.appendChild(optLabel);
+          });
+
+          fieldDiv.appendChild(group);
+        } else if (f.type === 'composite-team') {
+          const teamWrap = document.createElement('div');
+          teamWrap.className = 'fph-team-wrap';
+
+          ['engineers', 'designers'].forEach(function(role) {
+            const sub = document.createElement('label');
+            sub.className = 'fph-team-sub';
+            const subLabel = document.createElement('span');
+            subLabel.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+            const subInput = document.createElement('input');
+            subInput.type = 'number';
+            subInput.name = 'team-size-' + role;
+            subInput.min = '0';
+            subInput.step = '1';
+            subInput.placeholder = '0';
+            sub.appendChild(subLabel);
+            sub.appendChild(subInput);
+            teamWrap.appendChild(sub);
+          });
+
+          fieldDiv.appendChild(teamWrap);
+        }
+
+        wrap.appendChild(fieldDiv);
+      });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Read form state
+    // ───────────────────────────────────────────────────────────
+    function readForm() {
+      const answers = {};
+      const unanswered = [];
+
+      FIELDS.forEach(function(f) {
+        if (f.type === 'radio') {
+          const checked = document.querySelector('input[name="' + f.id + '"]:checked');
+          if (checked) {
+            answers[f.id] = checked.value;
+          } else {
+            unanswered.push(f.id);
+          }
+        } else if (f.type === 'composite-team') {
+          const eng = document.querySelector('input[name="team-size-engineers"]').value;
+          const des = document.querySelector('input[name="team-size-designers"]').value;
+          // Accept empty as "0" — but require at least one to be filled non-empty to count as answered
+          const engVal = eng === '' ? null : parseInt(eng, 10);
+          const desVal = des === '' ? null : parseInt(des, 10);
+          if (engVal === null && desVal === null) {
+            unanswered.push(f.id);
+          } else {
+            answers['engineer_count'] = engVal === null ? 0 : engVal;
+            answers['designer_count'] = desVal === null ? 0 : desVal;
+            answers['team_size'] = answers.engineer_count + answers.designer_count;
+          }
+        }
+      });
+
+      return { answers: answers, unanswered: unanswered };
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Decision tree (port of prompt.md pseudocode)
+    // ───────────────────────────────────────────────────────────
+    function diagnose(a) {
+      let verdict = null;
+      let playbook = null;
+
+      // STEP 1 — Not-yet by stage and team size (timing gate)
+      if (a.stage === 'pre-seed') {
+        verdict = 'not-yet';
+        playbook = 'pre-seed-founder-owns-product';
+      } else if (a.stage === 'seed' && a.team_size < 5) {
+        verdict = 'not-yet';
+        playbook = 'seed-early-team';
+      } else if (
+        a.stage === 'seed' &&
+        a.team_size < 12 &&
+        (a['founder-time'] === 'rarely' || a['founder-time'] === 'some-of-the-time')
+      ) {
+        verdict = 'not-yet';
+        playbook = 'seed-founder-distracted';
+      }
+
+      // STEP 2 — Bottleneck-based clarity gate (overrides step 1 if active)
+      if (a.bottleneck === 'we-dont-know-what-to-build') {
+        verdict = 'not-yet';
+        playbook = 'need-product-clarity-first';
+      }
+
+      // STEP 3 — Forcing functions that CANCEL not-yet
+      if (verdict === 'not-yet' && a.stage !== 'pre-seed') {
+        if (
+          a['pm-today'] === 'nobody' ||
+          a['ceo-bandwidth'] === 'overstretched' ||
+          a.bottleneck === 'no-time-for-customer-research'
+        ) {
+          verdict = null;
+          playbook = null;
+        }
+      }
+
+      // STEP 4 — Stay-founder-mode detector
+      if (verdict === null) {
+        const stayClear =
+          a['founder-time'] === 'full-time' &&
+          a.enjoyment === 'enjoy' &&
+          a['product-density'] !== 'heavy' &&
+          a['ceo-bandwidth'] !== 'overstretched' &&
+          a.bottleneck !== 'no-time-for-customer-research' &&
+          a.bottleneck !== 'no-time-for-strategy';
+
+        const lightDensitySignal =
+          a['product-density'] === 'light' &&
+          (a['founder-time'] === 'rarely' || a['founder-time'] === 'some-of-the-time') &&
+          a['ceo-bandwidth'] !== 'overstretched';
+
+        if (stayClear || lightDensitySignal) {
+          verdict = 'stay-founder-mode';
+        }
+      }
+
+      // STEP 5 — Level selection if hiring
+      if (verdict === null) {
+        if (
+          a['product-density'] === 'heavy' &&
+          (a['ceo-bandwidth'] === 'overstretched' ||
+            a.stage === 'series-a' ||
+            a.stage === 'series-b-plus' ||
+            a.team_size >= 20)
+        ) {
+          verdict = 'hire-head-of-product';
+        } else if (
+          a['product-density'] === 'heavy' ||
+          (a.stage === 'series-a' && a.team_size >= 12) ||
+          a.stage === 'series-b-plus' ||
+          ((a['founder-time'] === 'full-time' || a['founder-time'] === 'most-of-the-time') &&
+            a['product-density'] === 'moderate' &&
+            (a.enjoyment === 'tolerate' || a.enjoyment === 'dislike'))
+        ) {
+          verdict = 'hire-empowered-pm';
+        } else {
+          verdict = 'hire-apm';
+        }
+      }
+
+      // STEP 6 — Head-of-product down-bias (safety net)
+      if (verdict === 'hire-head-of-product' && a['product-density'] !== 'heavy') {
+        verdict = 'hire-empowered-pm';
+      }
+
+      return { verdict: verdict, playbook: playbook };
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Submit handler
+    // ───────────────────────────────────────────────────────────
+    function handleSubmit(e) {
+      e.preventDefault();
+
+      const { answers, unanswered } = readForm();
+
+      document.querySelectorAll('.fph-field').forEach(function(f) {
+        f.classList.remove('unanswered');
+      });
+
+      if (unanswered.length > 0) {
+        unanswered.forEach(function(id) {
+          const field = document.querySelector('.fph-field[data-id="' + id + '"]');
+          if (field) field.classList.add('unanswered');
+        });
+        document.getElementById('fph-validation').classList.add('visible');
+        const first = document.querySelector('.fph-field.unanswered');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      document.getElementById('fph-validation').classList.remove('visible');
+
+      const result = diagnose(answers);
+      showOutput(result, answers);
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Render output
+    // ───────────────────────────────────────────────────────────
+    function showOutput(result, answers) {
+      const verdict = result.verdict;
+      const playbook = result.playbook;
+
+      document.getElementById('fph-verdict-text').textContent = VERDICT_LABEL[verdict];
+
+      const goodTextEl = document.getElementById('fph-good-text');
+      if (verdict === 'not-yet' && playbook) {
+        goodTextEl.textContent = PLAYBOOK_CONTENT[playbook];
+        document.querySelector('.fph-section-header').textContent = 'Interim playbook';
+      } else {
+        goodTextEl.textContent = GOOD_LOOKS_LIKE[verdict];
+        document.querySelector('.fph-section-header').textContent = 'What good looks like';
+      }
+
+      const costsList = document.getElementById('fph-costs-list');
+      costsList.innerHTML = '';
+      const costs = WRONG_FIT_COSTS[verdict] || [];
+      costs.forEach(function(c) {
+        const li = document.createElement('li');
+        li.textContent = c;
+        costsList.appendChild(li);
+      });
+
+      const shareBtn = document.getElementById('fph-share-btn');
+      shareBtn.onclick = function() { handleShare(verdict, playbook); };
+
+      const claudeText = buildClaudeText(verdict, playbook, answers);
+      const claudeBtn = document.getElementById('fph-claude-btn');
+      claudeBtn.href = 'https://claude.ai/new?q=' + encodeURIComponent(claudeText);
+
+      const output = document.getElementById('fph-output');
+      output.classList.add('visible');
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Share button
+    // ───────────────────────────────────────────────────────────
+    function handleShare(verdict, playbook) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('verdict', verdict);
+      if (playbook) {
+        url.searchParams.set('playbook', playbook);
+      } else {
+        url.searchParams.delete('playbook');
+      }
+      navigator.clipboard.writeText(url.toString()).then(function() {
+        const confirm = document.getElementById('fph-share-confirm');
+        confirm.classList.add('visible');
+        setTimeout(function() {
+          confirm.classList.remove('visible');
+        }, 2000);
+      }).catch(function() {
+        prompt('Copy this link:', url.toString());
+      });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Claude handoff text
+    // ───────────────────────────────────────────────────────────
+    function labelFor(fieldId, value) {
+      const field = FIELDS.find(function(f) { return f.id === fieldId; });
+      if (!field || !field.options) return value;
+      const opt = field.options.find(function(o) { return o.value === value; });
+      return opt ? opt.label : value;
+    }
+
+    function buildClaudeText(verdict, playbook, a) {
+      const verdictLabel = VERDICT_LABEL[verdict].replace(/\.$/, '');
+      const playbookClause = playbook ? ' (playbook: ' + playbook + ')' : '';
+
+      return (
+        'I just took a founder PM hire diagnostic on Working from Lenny.\n' +
+        'The verdict: ' + verdictLabel + playbookClause + '.\n\n' +
+        'My eight inputs were:\n' +
+        '- Stage: ' + labelFor('stage', a.stage) + '\n' +
+        '- Team size: ' + a.engineer_count + ' engineers, ' + a.designer_count + ' designers\n' +
+        '- Who does the PM work today: ' + labelFor('pm-today', a['pm-today']) + '\n' +
+        '- Founder time on product: ' + labelFor('founder-time', a['founder-time']) + '\n' +
+        '- Enjoyment of PM work: ' + labelFor('enjoyment', a.enjoyment) + '\n' +
+        '- CEO bandwidth across other functions: ' + labelFor('ceo-bandwidth', a['ceo-bandwidth']) + '\n' +
+        '- 6-month product density: ' + labelFor('product-density', a['product-density']) + '\n' +
+        '- Biggest bottleneck: ' + labelFor('bottleneck', a.bottleneck) + '\n\n' +
+        'For this verdict, please pull from Lenny Rachitsky’s interview corpus\n' +
+        '(especially the founder-mode, hire-pm-yet, and team-composition themes) and give me:\n' +
+        '- a one-paragraph diagnosis of why this verdict fits my specific situation,\n' +
+        '- what good looks like at this level (or, if not-yet, the specific playbook to follow\n' +
+        '  until I re-run this diagnostic),\n' +
+        '- the typical cost of the 2-3 most likely wrong calls for someone in my shoes, and\n' +
+        '- one canonical example from the corpus of a founder who landed on this verdict\n' +
+        '  and what happened next.\n\n' +
+        'Keep it honest. Don’t soften it.'
+      );
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Retake
+    // ───────────────────────────────────────────────────────────
+    function handleRetake() {
+      document.querySelectorAll('input[type="radio"]').forEach(function(input) {
+        input.checked = false;
+      });
+      document.querySelectorAll('input[type="number"]').forEach(function(input) {
+        input.value = '';
+      });
+      document.querySelectorAll('.fph-field').forEach(function(f) {
+        f.classList.remove('unanswered');
+      });
+      document.getElementById('fph-validation').classList.remove('visible');
+      document.getElementById('fph-output').classList.remove('visible');
+      document.getElementById('fph-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Init
+    // ───────────────────────────────────────────────────────────
+    buildForm();
+    document.getElementById('fph-form').addEventListener('submit', handleSubmit);
+    document.getElementById('fph-retake-btn').addEventListener('click', handleRetake);
+  </script>
+
+</body>
+</html>
