@@ -44,6 +44,27 @@ header nav a:hover {
   text-decoration: underline;
 }
 
+header nav a.nav-back {
+  color: #555;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+header nav a.nav-back:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+
+/* App page title (wayfinding, not a hero) */
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.01em;
+  color: #1a1a1a;
+}
+
 /* Main */
 main {
   flex: 1;

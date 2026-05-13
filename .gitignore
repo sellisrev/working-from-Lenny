@@ -30,3 +30,4 @@ node_modules/
 
 # Local-only scratch (may contain secrets)
 replit-import.txt
+replit-pull.txt

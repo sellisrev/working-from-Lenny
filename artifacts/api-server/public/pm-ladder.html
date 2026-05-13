@@ -23,12 +23,14 @@
 
   <header>
     <div class="container">
-      <nav><a href="/">Working from Lenny</a></nav>
+      <nav><a href="/" class="nav-back">← Working from Lenny</a></nav>
     </div>
   </header>
 
   <main>
     <div class="container">
+
+      <h1 class="page-title">PM Ladder Self-Assessment</h1>
 
       <!-- Block 1: Quiz -->
       <form class="ladder-form" id="ladder-form" novalidate>
@@ -217,7 +219,7 @@
         // Legend
         const legend = document.createElement('div');
         legend.className = 'ladder-legend';
-        legend.textContent = '1 = APM    2 = PM    3 = Senior    4 = Staff    5 = Principal';
+        legend.textContent = '1 = APM, 2 = PM, 3 = Senior, 4 = Staff, 5 = Principal';
         details.appendChild(legend);
 
         dim.questions.forEach(function(qText, qIdx) {
