@@ -105,17 +105,22 @@ main {
     box-shadow 0.3s ease-out;
 }
 
-.tile:hover,
-.tile:focus-visible {
-  background: #f0f0f0;
-  border-color: #bbb;
-  outline: none;
-  box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.08);
-}
-
 .tile:focus {
   outline: 2px solid #0050d0;
   outline-offset: 2px;
+}
+
+/* Hover-state styles only apply on devices with a real pointer.
+   On touch devices, :hover fires briefly between tap and navigation
+   and would cause a flash. (pointer: fine) excludes touch screens. */
+@media (hover: hover) and (pointer: fine) {
+  .tile:hover,
+  .tile:focus-visible {
+    background: #f0f0f0;
+    border-color: #bbb;
+    outline: none;
+    box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .tile-door {
@@ -159,14 +164,6 @@ main {
   transform: translateY(-50%);
   transition: background 0.3s ease-out;
 }
-.tile-style-1:hover,
-.tile-style-1:focus-visible {
-  transform: rotateY(-22deg);
-}
-.tile-style-1:hover::after,
-.tile-style-1:focus-visible::after {
-  background: #888;
-}
 
 /* Door 2 — Stage curtain (parts to the sides) */
 .tile-style-2::before,
@@ -188,20 +185,6 @@ main {
   left: 50%;
   transform-origin: center;
 }
-.tile-style-2:hover::before,
-.tile-style-2:focus-visible::before {
-  transform: translateX(-40%);
-  background: #888;
-}
-.tile-style-2:hover::after,
-.tile-style-2:focus-visible::after {
-  transform: translateX(40%);
-  background: #888;
-}
-.tile-style-2:hover,
-.tile-style-2:focus-visible {
-  transform: scale(1.03);
-}
 
 /* Door 3 — Slide right (drawer-pull) */
 .tile-style-3::after {
@@ -218,14 +201,6 @@ main {
 }
 .tile-style-3 {
   transform-origin: right center;
-}
-.tile-style-3:hover,
-.tile-style-3:focus-visible {
-  transform: translateX(8px) rotateY(-10deg);
-}
-.tile-style-3:hover::after,
-.tile-style-3:focus-visible::after {
-  background: #888;
 }
 
 /* Door 4 — Garage roll-up (slat hairlines, lifts upward) */
@@ -247,14 +222,6 @@ main {
 .tile-style-4 {
   transform-origin: top center;
 }
-.tile-style-4:hover,
-.tile-style-4:focus-visible {
-  transform: translateY(-6px) scale(1.02);
-}
-.tile-style-4:hover::before,
-.tile-style-4:focus-visible::before {
-  opacity: 0.4;
-}
 
 /* Door 5 — Trapdoor (top hinge, flips backward) */
 .tile-style-5::before {
@@ -270,14 +237,6 @@ main {
 }
 .tile-style-5 {
   transform-origin: top center;
-}
-.tile-style-5:hover,
-.tile-style-5:focus-visible {
-  transform: rotateX(-18deg);
-}
-.tile-style-5:hover::before,
-.tile-style-5:focus-visible::before {
-  background: #888;
 }
 
 /* Door 6 — Vault wheel (right hinge with central circle) */
@@ -297,14 +256,77 @@ main {
 .tile-style-6 {
   transform-origin: right center;
 }
-.tile-style-6:hover,
-.tile-style-6:focus-visible {
-  transform: rotateY(20deg);
-}
-.tile-style-6:hover::after,
-.tile-style-6:focus-visible::after {
-  transform: translateY(-50%) rotate(180deg);
-  border-color: #555;
+
+/* Open animations only apply on devices with a real pointer (mouse / trackpad).
+   On touch devices, :hover would briefly fire between tap and navigation
+   and cause an unwanted flash of the door animation. */
+@media (hover: hover) and (pointer: fine) {
+  /* Door 1 */
+  .tile-style-1:hover,
+  .tile-style-1:focus-visible {
+    transform: rotateY(-22deg);
+  }
+  .tile-style-1:hover::after,
+  .tile-style-1:focus-visible::after {
+    background: #888;
+  }
+
+  /* Door 2 */
+  .tile-style-2:hover,
+  .tile-style-2:focus-visible {
+    transform: scale(1.03);
+  }
+  .tile-style-2:hover::before,
+  .tile-style-2:focus-visible::before {
+    transform: translateX(-40%);
+    background: #888;
+  }
+  .tile-style-2:hover::after,
+  .tile-style-2:focus-visible::after {
+    transform: translateX(40%);
+    background: #888;
+  }
+
+  /* Door 3 */
+  .tile-style-3:hover,
+  .tile-style-3:focus-visible {
+    transform: translateX(8px) rotateY(-10deg);
+  }
+  .tile-style-3:hover::after,
+  .tile-style-3:focus-visible::after {
+    background: #888;
+  }
+
+  /* Door 4 */
+  .tile-style-4:hover,
+  .tile-style-4:focus-visible {
+    transform: translateY(-6px) scale(1.02);
+  }
+  .tile-style-4:hover::before,
+  .tile-style-4:focus-visible::before {
+    opacity: 0.4;
+  }
+
+  /* Door 5 */
+  .tile-style-5:hover,
+  .tile-style-5:focus-visible {
+    transform: rotateX(-18deg);
+  }
+  .tile-style-5:hover::before,
+  .tile-style-5:focus-visible::before {
+    background: #888;
+  }
+
+  /* Door 6 */
+  .tile-style-6:hover,
+  .tile-style-6:focus-visible {
+    transform: rotateY(20deg);
+  }
+  .tile-style-6:hover::after,
+  .tile-style-6:focus-visible::after {
+    transform: translateY(-50%) rotate(180deg);
+    border-color: #555;
+  }
 }
 
 /* Reduce motion preference — respect users who opt out */
