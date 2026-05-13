@@ -732,6 +732,18 @@ ul:not(.tiles) li {
   border-radius: 2px;
 }
 
+/* Inline attribution logo (used in the foundation block / about page).
+   Sized to read as part of the citation, not as a brand mark. */
+.attribution-logo {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  border-radius: 50%;
+  vertical-align: -0.25em;
+  margin-right: 0.2em;
+  object-fit: cover;
+}
+
 /* About bottom note */
 .footnote {
   margin-top: 2.5rem;
