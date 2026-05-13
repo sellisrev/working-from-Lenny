@@ -76,8 +76,9 @@ main {
   list-style: none;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.875rem;
+  perspective: 1200px;
 }
 
 .tiles li {
@@ -85,6 +86,7 @@ main {
 }
 
 .tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -95,7 +97,12 @@ main {
   color: inherit;
   background: #fafafa;
   height: 100%;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.3s ease-out,
+    background 0.3s ease-out,
+    border-color 0.3s ease-out,
+    box-shadow 0.3s ease-out;
 }
 
 .tile:hover,
@@ -103,6 +110,7 @@ main {
   background: #f0f0f0;
   border-color: #bbb;
   outline: none;
+  box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .tile:focus {
@@ -116,12 +124,201 @@ main {
   line-height: 1;
   color: #1a1a1a;
   letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
 }
 
 .tile-hint {
   font-size: 0.8rem;
   color: #666;
   line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+
+/* ================================================================
+   Door styles — six distinct opening gestures, each with a subtle
+   decoration. All 0.3s, all pure CSS, all triggered by hover/focus
+   so the user perceives the motion before click-through navigation.
+   ================================================================ */
+
+/* Door 1 — Classic hinged door (left hinge) */
+.tile-style-1 {
+  transform-origin: left center;
+}
+.tile-style-1::after {
+  /* small handle on the right */
+  content: '';
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: #c8c8c8;
+  transform: translateY(-50%);
+  transition: background 0.3s ease-out;
+}
+.tile-style-1:hover,
+.tile-style-1:focus-visible {
+  transform: rotateY(-22deg);
+}
+.tile-style-1:hover::after,
+.tile-style-1:focus-visible::after {
+  background: #888;
+}
+
+/* Door 2 — Stage curtain (parts to the sides) */
+.tile-style-2::before,
+.tile-style-2::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #d0d0d0;
+  transition: transform 0.3s ease-out, background 0.3s ease-out;
+  pointer-events: none;
+}
+.tile-style-2::before {
+  left: 50%;
+  transform-origin: center;
+}
+.tile-style-2::after {
+  left: 50%;
+  transform-origin: center;
+}
+.tile-style-2:hover::before,
+.tile-style-2:focus-visible::before {
+  transform: translateX(-40%);
+  background: #888;
+}
+.tile-style-2:hover::after,
+.tile-style-2:focus-visible::after {
+  transform: translateX(40%);
+  background: #888;
+}
+.tile-style-2:hover,
+.tile-style-2:focus-visible {
+  transform: scale(1.03);
+}
+
+/* Door 3 — Slide right (drawer-pull) */
+.tile-style-3::after {
+  /* vertical pull-edge on right */
+  content: '';
+  position: absolute;
+  top: 18%;
+  bottom: 18%;
+  right: 0.45rem;
+  width: 2px;
+  border-radius: 1px;
+  background: #d0d0d0;
+  transition: background 0.3s ease-out;
+}
+.tile-style-3 {
+  transform-origin: right center;
+}
+.tile-style-3:hover,
+.tile-style-3:focus-visible {
+  transform: translateX(8px) rotateY(-10deg);
+}
+.tile-style-3:hover::after,
+.tile-style-3:focus-visible::after {
+  background: #888;
+}
+
+/* Door 4 — Garage roll-up (slat hairlines, lifts upward) */
+.tile-style-4::before {
+  content: '';
+  position: absolute;
+  inset: 0.6rem;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 0.85rem,
+    rgba(0, 0, 0, 0.05) 0.85rem,
+    rgba(0, 0, 0, 0.05) 0.86rem
+  );
+  border-radius: 4px;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+.tile-style-4 {
+  transform-origin: top center;
+}
+.tile-style-4:hover,
+.tile-style-4:focus-visible {
+  transform: translateY(-6px) scale(1.02);
+}
+.tile-style-4:hover::before,
+.tile-style-4:focus-visible::before {
+  opacity: 0.4;
+}
+
+/* Door 5 — Trapdoor (top hinge, flips backward) */
+.tile-style-5::before {
+  /* hinge line at top */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: #d0d0d0;
+  transition: background 0.3s ease-out;
+}
+.tile-style-5 {
+  transform-origin: top center;
+}
+.tile-style-5:hover,
+.tile-style-5:focus-visible {
+  transform: rotateX(-18deg);
+}
+.tile-style-5:hover::before,
+.tile-style-5:focus-visible::before {
+  background: #888;
+}
+
+/* Door 6 — Vault wheel (right hinge with central circle) */
+.tile-style-6::after {
+  /* circular wheel in the center-right */
+  content: '';
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 1px solid #c8c8c8;
+  transform: translateY(-50%) rotate(0deg);
+  transition: transform 0.3s ease-out, border-color 0.3s ease-out;
+}
+.tile-style-6 {
+  transform-origin: right center;
+}
+.tile-style-6:hover,
+.tile-style-6:focus-visible {
+  transform: rotateY(20deg);
+}
+.tile-style-6:hover::after,
+.tile-style-6:focus-visible::after {
+  transform: translateY(-50%) rotate(180deg);
+  border-color: #555;
+}
+
+/* Reduce motion preference — respect users who opt out */
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .tile::before,
+  .tile::after {
+    transition: background 0.12s ease, border-color 0.12s ease;
+    transform: none !important;
+  }
+  .tile:hover,
+  .tile:focus-visible {
+    transform: none !important;
+  }
 }
 
 /* Typography for inner pages */
