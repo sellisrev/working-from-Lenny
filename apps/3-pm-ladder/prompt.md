@@ -50,12 +50,50 @@ The five-choice structure for each question is the same — what changes is the 
 The six question prompts per dimension (full answer banks to be authored against the corpus's ladder topics — first drafts below; flag and revise before locking):
 
 ### Scope (Q1-Q6)
-- Q1. Largest decision owned end-to-end in your most recent quarter.
-- Q2. Time horizon of your typical commitments.
-- Q3. Number of teams affected by your typical work.
-- Q4. Customer segment scope (a feature vs a segment vs the whole market).
-- Q5. Strategic-to-tactical mix in your week.
-- Q6. Org-level visibility of your work (who reviews it).
+
+Choices authored 2026-05-14. Anchors: `pm-career-ladders.md`, `becoming-senior-pm.md`, `pm-promotion.md`.
+
+**Q1. Largest decision you owned end-to-end in your most recent quarter.**
+- (1) A feature flag, a copy change, or a single UI component.
+- (2) A feature that shipped in one sprint, end-to-end.
+- (3) A multi-team initiative that spanned the whole quarter.
+- (4) A product line or platform direction that affected multiple teams.
+- (5) A bet that defines where the business is going in the next 12-18 months.
+
+**Q2. Time horizon of your typical commitments.**
+- (1) The current sprint. Two weeks out, at most.
+- (2) This quarter. You think about what ships in the next three months.
+- (3) Two or three quarters out. You carry strategy across planning seasons.
+- (4) Six to twelve months out. You anchor the roadmap conversation for your area.
+- (5) Twelve to eighteen months out. Your conviction shapes the company's long-range bets.
+
+**Q3. Number of teams affected by your typical work.**
+- (1) Your own team, or a small pod. One surface, minimal coordination.
+- (2) One or two teams. You coordinate occasionally with adjacent functions.
+- (3) Three or more teams. You own the cross-team outcome.
+- (4) An entire org area. Multiple squads, one direction.
+- (5) The whole product org. Your work sets the direction others orient around.
+
+**Q4. Customer segment scope (a feature, a segment, or the whole market).**
+- (1) One user flow or a narrow feature edge case.
+- (2) A coherent feature set that one user persona cares about.
+- (3) A customer segment or a recognized product surface.
+- (4) Multiple segments, or a platform layer all customers depend on.
+- (5) The market itself. Your work shapes how the company positions against competitors.
+
+**Q5. Strategic-to-tactical mix in your week.**
+- (1) Mostly tactical. Tickets, standups, and responding to questions.
+- (2) About 80% tactical, 20% looking ahead. You own the near-term roadmap.
+- (3) Roughly half and half. You're in planning conversations as often as in execution.
+- (4) More strategy than execution. You spend your week unblocking others more than shipping personally.
+- (5) Primarily strategic. Your week is shaped by where the org needs direction, not by the sprint board.
+
+**Q6. Org-level visibility of your work (who reviews it).**
+- (1) Your direct manager reviews your work before it ships.
+- (2) Your team lead, with occasional skip-level review of key artifacts.
+- (3) A director or VP reviews your roadmap before it goes to the broader team.
+- (4) Senior leadership has input into your area. C-level is occasionally in the loop.
+- (5) You present to execs and board-level stakeholders. Your work sets the reference point others are measured against.
 
 ### Ambiguity tolerance (Q7-Q12)
 - Q7. What you do when the goal isn't pre-defined.
