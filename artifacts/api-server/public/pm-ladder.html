@@ -133,12 +133,66 @@
         name: 'Scope',
         description: 'The size and time-horizon of the work you own end-to-end.',
         questions: [
-          'Largest decision you owned end-to-end in your most recent quarter.',
-          'Time horizon of your typical commitments.',
-          'Number of teams affected by your typical work.',
-          'Customer segment scope (a feature, a segment, or the whole market).',
-          'Strategic-to-tactical mix in your week.',
-          'Org-level visibility of your work (who reviews it).',
+          {
+            text: 'Largest decision you owned end-to-end in your most recent quarter.',
+            choices: [
+              'A feature flag, a copy change, or a single UI component.',
+              'A feature that shipped in one sprint, end-to-end.',
+              'A multi-team initiative that spanned the whole quarter.',
+              'A product line or platform direction that affected multiple teams.',
+              'A bet that defines where the business is going in the next 12-18 months.',
+            ],
+          },
+          {
+            text: 'Time horizon of your typical commitments.',
+            choices: [
+              'The current sprint. Two weeks out, at most.',
+              'This quarter. You think about what ships in the next three months.',
+              'Two or three quarters out. You carry strategy across planning seasons.',
+              'Six to twelve months out. You anchor the roadmap conversation for your area.',
+              'Twelve to eighteen months out. Your conviction shapes the company\'s long-range bets.',
+            ],
+          },
+          {
+            text: 'Number of teams affected by your typical work.',
+            choices: [
+              'Your own team, or a small pod. One surface, minimal coordination.',
+              'One or two teams. You coordinate occasionally with adjacent functions.',
+              'Three or more teams. You own the cross-team outcome.',
+              'An entire org area. Multiple squads, one direction.',
+              'The whole product org. Your work sets the direction others orient around.',
+            ],
+          },
+          {
+            text: 'Customer segment scope (a feature, a segment, or the whole market).',
+            choices: [
+              'One user flow or a narrow feature edge case.',
+              'A coherent feature set that one user persona cares about.',
+              'A customer segment or a recognized product surface.',
+              'Multiple segments, or a platform layer all customers depend on.',
+              'The market itself. Your work shapes how the company positions against competitors.',
+            ],
+          },
+          {
+            text: 'Strategic-to-tactical mix in your week.',
+            choices: [
+              'Mostly tactical. Tickets, standups, and responding to questions.',
+              'About 80% tactical, 20% looking ahead. You own the near-term roadmap.',
+              'Roughly half and half. You\'re in planning conversations as often as in execution.',
+              'More strategy than execution. You spend your week unblocking others more than shipping personally.',
+              'Primarily strategic. Your week is shaped by where the org needs direction, not by the sprint board.',
+            ],
+          },
+          {
+            text: 'Org-level visibility of your work (who reviews it).',
+            choices: [
+              'Your direct manager reviews your work before it ships.',
+              'Your team lead, with occasional skip-level review of key artifacts.',
+              'A director or VP reviews your roadmap before it goes to the broader team.',
+              'Senior leadership has input into your area. C-level is occasionally in the loop.',
+              'You present to execs and board-level stakeholders. Your work sets the reference point others are measured against.',
+            ],
+          },
         ],
       },
       {
@@ -151,7 +205,7 @@
           'How you handle conflicting requirements between two senior stakeholders.',
           'Reaction time to a leadership pivot.',
           "Comfort with shipping a product you're not 100% sure about.",
-          'How you frame "I don’t know" out loud.',
+          'How you frame "I don\'t know" out loud.',
         ],
       },
       {
@@ -222,7 +276,9 @@
         legend.textContent = '1 = APM, 2 = PM, 3 = Senior, 4 = Staff, 5 = Principal';
         details.appendChild(legend);
 
-        dim.questions.forEach(function(qText, qIdx) {
+        dim.questions.forEach(function(q, qIdx) {
+          const qText = typeof q === 'string' ? q : q.text;
+          const qChoices = (typeof q === 'object' && q.choices) ? q.choices : null;
           const qNum = dimIdx * 6 + qIdx + 1;
           const fieldName = dim.id + '-q' + (qIdx + 1);
 
@@ -242,26 +298,47 @@
           label.appendChild(txt);
           qDiv.appendChild(label);
 
-          const radios = document.createElement('div');
-          radios.className = 'ladder-radios';
-          radios.setAttribute('role', 'radiogroup');
-          radios.setAttribute('aria-label', 'Level for question ' + qNum);
-
-          for (let level = 1; level <= 5; level++) {
-            const radioLabel = document.createElement('label');
-            radioLabel.className = 'ladder-radio-label';
-            const input = document.createElement('input');
-            input.type = 'radio';
-            input.name = fieldName;
-            input.value = String(level);
-            const span = document.createElement('span');
-            span.textContent = level;
-            radioLabel.appendChild(input);
-            radioLabel.appendChild(span);
-            radios.appendChild(radioLabel);
+          if (qChoices) {
+            const choiceList = document.createElement('div');
+            choiceList.className = 'ladder-choice-list';
+            choiceList.setAttribute('role', 'radiogroup');
+            choiceList.setAttribute('aria-label', 'Answer for question ' + qNum);
+            qChoices.forEach(function(choiceText, choiceIdx) {
+              const level = choiceIdx + 1;
+              const choiceLabel = document.createElement('label');
+              choiceLabel.className = 'ladder-choice-item';
+              const input = document.createElement('input');
+              input.type = 'radio';
+              input.name = fieldName;
+              input.value = String(level);
+              const span = document.createElement('span');
+              span.textContent = choiceText;
+              choiceLabel.appendChild(input);
+              choiceLabel.appendChild(span);
+              choiceList.appendChild(choiceLabel);
+            });
+            qDiv.appendChild(choiceList);
+          } else {
+            const radios = document.createElement('div');
+            radios.className = 'ladder-radios';
+            radios.setAttribute('role', 'radiogroup');
+            radios.setAttribute('aria-label', 'Level for question ' + qNum);
+            for (let level = 1; level <= 5; level++) {
+              const radioLabel = document.createElement('label');
+              radioLabel.className = 'ladder-radio-label';
+              const input = document.createElement('input');
+              input.type = 'radio';
+              input.name = fieldName;
+              input.value = String(level);
+              const span = document.createElement('span');
+              span.textContent = level;
+              radioLabel.appendChild(input);
+              radioLabel.appendChild(span);
+              radios.appendChild(radioLabel);
+            }
+            qDiv.appendChild(radios);
           }
 
-          qDiv.appendChild(radios);
           details.appendChild(qDiv);
         });
 
@@ -439,8 +516,8 @@
         '   widest gap. For each: what to do, why it matters at the target\n' +
         '   level, what the dropoff looks like if I skip it.\n' +
         '3. One sentence on the dimensions I am already at or above target.\n\n' +
-        'Voice: direct, no corporate softening, no em dashes, no "delve" or\n' +
-        '"unpack" or "in today’s fast-paced". Owner-of-the-tool voice: a\n' +
+        'Voice: direct, no corporate softening, no em dashes, no “delve” or\n' +
+        '“unpack” or “in today’s fast-paced”. Owner-of-the-tool voice: a\n' +
         'candid coach who has seen this pattern before. 350-450 words total.';
 
       if (calibrationOn && managerReview) {
