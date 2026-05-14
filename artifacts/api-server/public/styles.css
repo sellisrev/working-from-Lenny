@@ -185,7 +185,7 @@ main {
    left for right-hinge / right-slide, bottom for top-hinge).
    ================================================================ */
 
-/* ─── Door 1: Red painted residential — LEFT-HINGE SWING ──────── */
+/* ─── Door 1: Red painted residential — LEFT-HINGE SWING ──────────── */
 .tile-style-1 {
   background: linear-gradient(135deg, #1a0f06, #2c1c10);
 }
@@ -503,7 +503,7 @@ main {
   color: #fbe8be;  /* WCAG AAA on #1a140a frame */
 }
 
-/* ─── Door 6: Heavy vault door (dusty red) ────────────────────── */
+/* ─── Door 6: Heavy vault door (dusty red) ────────────────── */
 .tile-style-6 {
   background: linear-gradient(135deg, #0e0e10, #1d1d24);
 }
@@ -947,7 +947,12 @@ footer .sep {
   margin-top: 0.25rem;
   font-size: 0.875rem;
   color: #555;
-  /* Extension point: exemplar quote and Read more link go here */
+}
+
+.pitfalls-pick-quote {
+  margin: 0.25rem 0 0;
+  font-style: italic;
+  line-height: 1.5;
 }
 
 /* Action buttons */

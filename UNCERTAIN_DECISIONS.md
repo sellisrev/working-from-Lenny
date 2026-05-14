@@ -24,6 +24,8 @@
 
 *(Routine appends a one-line summary here at the end of each run.)*
 
+- 2026-05-14T10:33Z: Authored 10 PM Pitfalls exemplar quotes (pitfalls 1-10), wired into pitfalls.html via PITFALL_QUOTES + .pitfalls-pick-quote, added CSS rule, updated prompt.md spec; next item: pitfalls 11-20 exemplar quotes (batch 2)
+
 ---
 
 ## Decisions log

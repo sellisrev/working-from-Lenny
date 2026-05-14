@@ -62,16 +62,16 @@
       <div class="pitfalls-description">
 
         <h2>What this app does for you</h2>
-        <p>Twenty common pitfalls that show up in product work, distilled from the corpus's pitfall and bad-PM-behavior themes. You rate each as always, sometimes, or never, and the app gives you the three highest-leverage to fix this quarter, each with a short corpus-anchored example. Built for the PM who would rather be told the uncomfortable thing now than learn it from a retro six months from now, or the colleague trying to figure out whether what they're seeing has a name.</p>
+        <p>Twenty common pitfalls that show up in product work, distilled from the corpus’s pitfall and bad-PM-behavior themes. You rate each as always, sometimes, or never, and the app gives you the three highest-leverage to fix this quarter, each with a short corpus-anchored example. Built for the PM who would rather be told the uncomfortable thing now than learn it from a retro six months from now, or the colleague trying to figure out whether what they’re seeing has a name.</p>
 
         <h2>How it works</h2>
-        <p>The twenty pitfalls are fixed and locked. Scoring is deterministic: each "always" counts double, each "sometimes" counts once, and the top three picks are weighted by how much each pitfall compounds across the org (some hurt only the PM, some take the whole team down a quarter). The personalized narration runs through Gemini Flash on the web; the score and picks themselves don't need a model. There's a free-tier ceiling on the narration — if it's hit, the score and picks still come through and the "fuller reading in Claude" button takes you the rest of the way.</p>
+        <p>The twenty pitfalls are fixed and locked. Scoring is deterministic: each “always” counts double, each “sometimes” counts once, and the top three picks are weighted by how much each pitfall compounds across the org (some hurt only the PM, some take the whole team down a quarter). The personalized narration runs through Gemini Flash on the web; the score and picks themselves don’t need a model. There’s a free-tier ceiling on the narration — if it’s hit, the score and picks still come through and the “fuller reading in Claude” button takes you the rest of the way.</p>
 
         <h2>Foundation</h2>
-        <p>Built mostly from Lenny Rachitsky's corpus, including Claire Vo's <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire's AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
+        <p>Built mostly from Lenny Rachitsky’s corpus, including Claire Vo’s <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire’s AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
         <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
         <div class="callout">
-          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <img src="/lenny-logo.png" class="attribution-logo" alt="Lenny's Newsletter logo"><a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny's Newsletter by Lenny Rachitsky</a>, <img src="/howiai-logo.png" class="attribution-logo" alt="How I AI logo"><a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <img src="/lenny-logo.png" class="attribution-logo" alt="Lenny's Newsletter logo"><a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny’s Newsletter by Lenny Rachitsky</a>, <img src="/howiai-logo.png" class="attribution-logo" alt="How I AI logo"><a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
         </div>
 
       </div>
@@ -104,21 +104,36 @@
       { id: 4,  text: "Conflating roadmap with strategy", leverage: 3 },
       { id: 5,  text: "Stakeholder-pleasing over bet-defending", leverage: 3 },
       { id: 6,  text: "Not measuring shipped features after launch", leverage: 3 },
-      { id: 7,  text: "OKRs as activity lists (\u201cship X\u201d instead of \u201cY users adopt X\u201d)", leverage: 3 },
+      { id: 7,  text: "OKRs as activity lists (“ship X” instead of “Y users adopt X”)", leverage: 3 },
       { id: 8,  text: "Spending time on the roadmap when the unanswered question is the bet", leverage: 3 },
-      { id: 9,  text: "Theatre standups \u2014 status ritual, no real coordination", leverage: 2 },
+      { id: 9,  text: "Theatre standups — status ritual, no real coordination", leverage: 2 },
       { id: 10, text: "Treating internal stakeholders as customers", leverage: 2 },
-      { id: 11, text: "Letting \u201cdata-driven\u201d replace a hard judgment call", leverage: 2 },
+      { id: 11, text: "Letting “data-driven” replace a hard judgment call", leverage: 2 },
       { id: 12, text: "Confusing consensus with alignment", leverage: 2 },
-      { id: 13, text: "Avoiding the hard \u201cno\u201d", leverage: 2 },
+      { id: 13, text: "Avoiding the hard “no”", leverage: 2 },
       { id: 14, text: "Over-indexing on the loudest customer complaint", leverage: 2 },
       { id: 15, text: "Velocity as a goal rather than a side effect", leverage: 2 },
-      { id: 16, text: "Skipping the \u201cwhy\u201d in every spec", leverage: 2 },
+      { id: 16, text: "Skipping the “why” in every spec", leverage: 2 },
       { id: 17, text: "Not noticing when politics shift around your bet", leverage: 2 },
       { id: 18, text: "Hiding from the post-mortem when something flops", leverage: 2 },
       { id: 19, text: "Hoarding credit from engineers and designers", leverage: 2 },
       { id: 20, text: "Confusing being busy with being useful", leverage: 1 },
     ];
+
+    // Exemplar quotes anchored in corpus topic files. Batch 1 (pitfalls 1-10): authored 2026-05-14.
+    // Batch 2 (pitfalls 11-20): pending next run.
+    const PITFALL_QUOTES = {
+      1:  "If you can’t defend every call in that spec without reading the AI output back at people, you don’t own the spec. You’re a copy editor.",
+      2:  "“Prompts may make headlines, but evals quietly decide whether your product thrives or dies.” No eval set means you’re shipping by gut feel at scale. (Aman Khan, Lenny’s Newsletter)",
+      3:  "Top 1% PMs quote specific customers in conversations. If your last paying-customer call was more than 30 days ago, you’re building from memory.",
+      4:  "Ravi Mehta: every roadmap item needs to connect back through goals, strategy, and vision. If yours don’t, you don’t have a strategy. You have a backlog.",
+      5:  "The Feature Factory: the roadmap is reactive to the loudest stakeholder, not driven by a hypothesis about user value. The team sees it, even when the PM doesn’t.",
+      6:  "Shipping without measuring is how you end up with a product full of features nobody uses. The PM who built it is the only one with the context to diagnose it.",
+      7:  "“Ship the redesign” is not a key result. A key result measures an outcome users experience. “Ship X” means you’ve already given up on knowing whether X worked.",
+      8:  "If the real question is “should we be building this at all,” a polished roadmap won’t answer it. That document is covering for a decision you haven’t made yet.",
+      9:  "The Coordinator in real time: the standup becomes a status broadcast, not a coordination tool. Engineers answer “what did you do yesterday,” then return to their desks unchanged.",
+      10: "When the answer to “why are we building this?” is a stakeholder’s name, not a user problem, you’ve confused internal approval for product-market fit.",
+    };
 
     function getAnswerValue(val) {
       if (val === 'always') return 2;
@@ -240,7 +255,7 @@
 
       const header = document.getElementById('pitfalls-picks-header');
       if (allNever) {
-        header.textContent = 'Either you\u2019re in the top 1% or you\u2019re being kind to yourself. Try again being a little more honest.';
+        header.textContent = 'Either you’re in the top 1% or you’re being kind to yourself. Try again being a little more honest.';
       } else {
         header.textContent = 'Your three highest-leverage to fix this quarter:';
       }
@@ -257,8 +272,14 @@
 
         const extras = document.createElement('div');
         extras.className = 'pitfalls-pick-extras';
-        // Extension point: exemplar quote goes here
-        // Extension point: Read more link goes here
+        const quote = PITFALL_QUOTES[p.id];
+        if (quote) {
+          const quoteEl = document.createElement('p');
+          quoteEl.className = 'pitfalls-pick-quote';
+          quoteEl.textContent = quote;
+          extras.appendChild(quoteEl);
+        }
+        // Extension point: Read more link goes here (Phase 1)
 
         li.appendChild(textSpan);
         li.appendChild(extras);
@@ -302,14 +323,14 @@
         '1. ' + picks[0].text + '\n' +
         '2. ' + picks[1].text + '\n' +
         '3. ' + picks[2].text + '\n\n' +
-        'For each, please pull from Lenny Rachitsky\u2019s interview corpus (especially the\n' +
+        'For each, please pull from Lenny Rachitsky’s interview corpus (especially the\n' +
         'pm-pitfalls and spotting-bad-pm-behaviors themes) and give me:\n' +
         '- a one-paragraph diagnosis of why this pitfall compounds for someone in\n' +
         '  my shoes,\n' +
         '- two concrete behaviors to start practicing this quarter, and\n' +
         '- one canonical example from the corpus of a PM who fell into this pitfall\n' +
         '  and what it cost them.\n\n' +
-        'Keep it honest. Don\u2019t soften it.'
+        'Keep it honest. Don’t soften it.'
       );
     }
 

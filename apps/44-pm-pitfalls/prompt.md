@@ -85,6 +85,25 @@ Your three highest-leverage to fix this quarter:
 
 Exemplar quotes are pre-written per pitfall (one short corpus-anchored line each). They are deterministic. The LLM narration adds personalization on top.
 
+## Exemplar quotes — batch 1 (pitfalls 1–10, authored 2026-05-14)
+
+| # | Pitfall | Quote | Corpus anchor |
+|---|---|---|---|
+| 1 | AI writes the spec | "If you can't defend every call in that spec without reading the AI output back at people, you don't own the spec. You're a copy editor." | `pm-pitfalls.md`, `ai-pm-skills.md` |
+| 2 | Shipping AI features without an eval set | '"Prompts may make headlines, but evals quietly decide whether your product thrives or dies." No eval set means you're shipping by gut feel at scale. (Aman Khan, Lenny's Newsletter)' | `evals-for-ai-products.md` |
+| 3 | No paying-customer conversation | "Top 1% PMs quote specific customers in conversations. If your last paying-customer call was more than 30 days ago, you're building from memory." | `top-1-percent-pm.md` |
+| 4 | Conflating roadmap with strategy | "Ravi Mehta: every roadmap item needs to connect back through goals, strategy, and vision. If yours don't, you don't have a strategy. You have a backlog." | `product-strategy.md` |
+| 5 | Stakeholder-pleasing over bet-defending | "The Feature Factory: the roadmap is reactive to the loudest stakeholder, not driven by a hypothesis about user value. The team sees it, even when the PM doesn't." | `spotting-bad-pm-behaviors.md`, `defending-big-bets.md` |
+| 6 | Not measuring shipped features | "Shipping without measuring is how you end up with a product full of features nobody uses. The PM who built it is the only one with the context to diagnose it." | `pm-pitfalls.md` |
+| 7 | OKRs as activity lists | '"Ship the redesign" is not a key result. A key result measures an outcome users experience. "Ship X" means you've already given up on knowing whether X worked.' | `okrs.md` |
+| 8 | Roadmap over unanswered bet | "If the real question is 'should we be building this at all,' a polished roadmap won't answer it. That document is covering for a decision you haven't made yet." | `defending-big-bets.md` |
+| 9 | Theatre standups | "The Coordinator in real time: the standup becomes a status broadcast, not a coordination tool. Engineers answer 'what did you do yesterday,' then return to their desks unchanged." | `pm-pitfalls.md`, `spotting-bad-pm-behaviors.md` |
+| 10 | Internal stakeholders as customers | "When the answer to 'why are we building this?' is a stakeholder's name, not a user problem, you've confused internal approval for product-market fit." | `spotting-bad-pm-behaviors.md` |
+
+## Exemplar quotes — batch 2 (pitfalls 11–20)
+
+*Pending next autonomous run.*
+
 ## Phase 0 URL-trick handoff
 
 For users who want a fuller reading, the page offers a "fuller reading in Claude" button that opens `claude.ai/new?q=<encoded>` with:
