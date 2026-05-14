@@ -26,6 +26,7 @@
 
 - 2026-05-14T10:33Z: Authored 10 PM Pitfalls exemplar quotes (pitfalls 1-10), wired into pitfalls.html via PITFALL_QUOTES + .pitfalls-pick-quote, added CSS rule, updated prompt.md spec; next item: pitfalls 11-20 exemplar quotes (batch 2)
 - 2026-05-14T16:33Z: Authored 10 PM Pitfalls exemplar quotes (pitfalls 11-20, batch 2), wired into pitfalls.html and updated prompt.md spec; all 20 pitfall quotes complete; next item: #3 PM Ladder 150 answer choices (batch 1: first dimension)
+- 2026-05-14T22:33Z: Authored 30 anchored Scope choices for #3 PM Ladder (batch 1 of 5, Q1-Q6), wired into pm-ladder.html and prompt.md spec; CSS added for .ladder-choice-list/.ladder-choice-item; next item: #3 PM Ladder Ambiguity dimension (Q7-Q12, batch 2 of 5)
 
 ---
 
