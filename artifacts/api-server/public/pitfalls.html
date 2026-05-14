@@ -71,7 +71,7 @@
         <p>Built mostly from Lenny Rachitsky’s corpus, including Claire Vo’s <em>How I AI</em> show as a counterweight. A lot of the earlier interviews captured advice from before AI started reshaping product work, and Claire’s AI focus helps catch what is no longer as accurate, or even downright an antipattern at this point.</p>
         <p>The synthesis the apps draw from (recurring patterns, frameworks, archetypes) is reviewed and refreshed at least once a month. No promise of weekly. The date at the top of each app is the last time its underlying material was refreshed.</p>
         <div class="callout">
-          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <img src="/lenny-logo.png" class="attribution-logo" alt="Lenny's Newsletter logo"><a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny’s Newsletter by Lenny Rachitsky</a>, <img src="/howiai-logo.png" class="attribution-logo" alt="How I AI logo"><a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
+          Not endorsed by or affiliated with Lenny Rachitsky or Claire Vo. Built as a small way to give back to the community that grew up around their work. Original sources: <img src="/lenny-logo.png" class="attribution-logo" alt="Lenny’s Newsletter logo"><a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">Lenny’s Newsletter by Lenny Rachitsky</a>, <img src="/howiai-logo.png" class="attribution-logo" alt="How I AI logo"><a href="https://www.lennysnewsletter.com/s/how-i-ai" target="_blank" rel="noopener">How I AI with Claire Vo</a>.
         </div>
 
       </div>
@@ -121,7 +121,7 @@
     ];
 
     // Exemplar quotes anchored in corpus topic files. Batch 1 (pitfalls 1-10): authored 2026-05-14.
-    // Batch 2 (pitfalls 11-20): pending next run.
+    // Batch 2 (pitfalls 11-20): authored 2026-05-14.
     const PITFALL_QUOTES = {
       1:  "If you can’t defend every call in that spec without reading the AI output back at people, you don’t own the spec. You’re a copy editor.",
       2:  "“Prompts may make headlines, but evals quietly decide whether your product thrives or dies.” No eval set means you’re shipping by gut feel at scale. (Aman Khan, Lenny’s Newsletter)",
@@ -133,6 +133,16 @@
       8:  "If the real question is “should we be building this at all,” a polished roadmap won’t answer it. That document is covering for a decision you haven’t made yet.",
       9:  "The Coordinator in real time: the standup becomes a status broadcast, not a coordination tool. Engineers answer “what did you do yesterday,” then return to their desks unchanged.",
       10: "When the answer to “why are we building this?” is a stakeholder’s name, not a user problem, you’ve confused internal approval for product-market fit.",
+      11: "Data can inform the call without making it. Saying ‘the data says X’ is often a way of avoiding the harder sentence: ‘I think X is right and here’s why.’",
+      12: "Alignment means the team can execute the direction even if they’d have chosen differently. Consensus means they’d all have picked it. Waiting for consensus before calling something decided is the ‘avoiding decisions’ pattern. Everyone feels the call is theirs because the PM never made it.",
+      13: "Yes-by-default is the most expensive habit in tech. Every yes commits future capacity. The bill comes due in the quarter where you can’t do the one thing that actually matters. (Lenny, Saying No, 2021)",
+      14: "The loudest complaint is a signal, not a mandate. The customer who tracked you down in Slack is one data point. Weekly story-based interviews across a diverse set of users is what separates signal from noise.",
+      15: "Velocity is a side effect of a team that knows what to build and is empowered to build it well. When it becomes the goal itself, you get faster delivery of the wrong things. Lenny’s Core 4: optimizing throughput alone produces feature factories without business value.",
+      16: "The Coordinator on paper: the spec tells everyone who does what by when. When you ask ‘why are we building this?’ it has no answer. That’s not a spec. It’s a project plan with delusions of strategy.",
+      17: "The kill signal rarely arrives as a formal cancellation. It’s the exec sponsor going quiet, the resource conversations getting vague, the next planning cycle starting without your bet on the agenda. If you didn’t notice, that’s the pitfall.",
+      18: "Owns outcomes is the cleanest test. Running the post-mortem as a blame-diffusion exercise, or skipping it entirely, signals to everyone who wrote code that the next risky bet is on them if it fails.",
+      19: "Camille Fournier’s first engineer-side complaint: hoarding credit. Engineers remember. Designers remember. The PM who presents the team’s work as their own is borrowing against trust they’ll need when something goes wrong.",
+      20: "Top 1% PMs don’t confuse activity with progress, per Ian McAllister. The full calendar isn’t output. What shipped? What did you learn this week? Two questions that matter.",
     };
 
     function getAnswerValue(val) {

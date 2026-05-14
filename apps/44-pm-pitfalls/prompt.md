@@ -100,9 +100,20 @@ Exemplar quotes are pre-written per pitfall (one short corpus-anchored line each
 | 9 | Theatre standups | "The Coordinator in real time: the standup becomes a status broadcast, not a coordination tool. Engineers answer 'what did you do yesterday,' then return to their desks unchanged." | `pm-pitfalls.md`, `spotting-bad-pm-behaviors.md` |
 | 10 | Internal stakeholders as customers | "When the answer to 'why are we building this?' is a stakeholder's name, not a user problem, you've confused internal approval for product-market fit." | `spotting-bad-pm-behaviors.md` |
 
-## Exemplar quotes — batch 2 (pitfalls 11–20)
+## Exemplar quotes — batch 2 (pitfalls 11–20, authored 2026-05-14)
 
-*Pending next autonomous run.*
+| # | Pitfall | Quote | Corpus anchor |
+|---|---|---|---|
+| 11 | Data-driven replaces judgment | "Data can inform the call without making it. Saying 'the data says X' is often a way of avoiding the harder sentence: 'I think X is right and here's why.'" | `pm-pitfalls.md` (avoiding-decisions pattern) |
+| 12 | Consensus confused with alignment | "Alignment means the team can execute the direction even if they'd have chosen differently. Consensus means they'd all have picked it. Waiting for consensus before calling something decided is the 'avoiding decisions' pattern. Everyone feels the call is theirs because the PM never made it." | `spotting-bad-pm-behaviors.md` |
+| 13 | Avoiding the hard no | "Yes-by-default is the most expensive habit in tech. Every yes commits future capacity. The bill comes due in the quarter where you can't do the one thing that actually matters. (Lenny, Saying No, 2021)" | `saying-no.md` |
+| 14 | Over-indexing on loudest complaint | "The loudest complaint is a signal, not a mandate. The customer who tracked you down in Slack is one data point. Weekly story-based interviews across a diverse set of users is what separates signal from noise." | `continuous-discovery.md` (anchor substitution: `customer-research.md` does not exist) |
+| 15 | Velocity as goal | "Velocity is a side effect of a team that knows what to build and is empowered to build it well. When it becomes the goal itself, you get faster delivery of the wrong things. Lenny's Core 4: optimizing throughput alone produces feature factories without business value." | `velocity-core4.md` (anchor substitution: `process-vs-outcomes.md` does not exist) |
+| 16 | Skipping the why in specs | "The Coordinator on paper: the spec tells everyone who does what by when. When you ask 'why are we building this?' it has no answer. That's not a spec. It's a project plan with delusions of strategy." | `pm-pitfalls.md` |
+| 17 | Politics shift around bet | "The kill signal rarely arrives as a formal cancellation. It's the exec sponsor going quiet, the resource conversations getting vague, the next planning cycle starting without your bet on the agenda. If you didn't notice, that's the pitfall." | `defending-big-bets.md` (spec listed `bet-defending.md`; correct filename is `defending-big-bets.md`) |
+| 18 | Hiding from the post-mortem | "Owns outcomes is the cleanest test. Running the post-mortem as a blame-diffusion exercise, or skipping it entirely, signals to everyone who wrote code that the next risky bet is on them if it fails." | `top-1-percent-pm.md`, `spotting-bad-pm-behaviors.md` |
+| 19 | Hoarding credit | "Camille Fournier's first engineer-side complaint: hoarding credit. Engineers remember. Designers remember. The PM who presents the team's work as their own is borrowing against trust they'll need when something goes wrong." | `spotting-bad-pm-behaviors.md` (Fournier 2024) |
+| 20 | Busy vs useful | "Top 1% PMs don't confuse activity with progress, per Ian McAllister. The full calendar isn't output. What shipped? What did you learn this week? Two questions that matter." | `top-1-percent-pm.md` (McAllister 2022) |
 
 ## Phase 0 URL-trick handoff
 

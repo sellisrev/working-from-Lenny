@@ -25,6 +25,7 @@
 *(Routine appends a one-line summary here at the end of each run.)*
 
 - 2026-05-14T10:33Z: Authored 10 PM Pitfalls exemplar quotes (pitfalls 1-10), wired into pitfalls.html via PITFALL_QUOTES + .pitfalls-pick-quote, added CSS rule, updated prompt.md spec; next item: pitfalls 11-20 exemplar quotes (batch 2)
+- 2026-05-14T16:33Z: Authored 10 PM Pitfalls exemplar quotes (pitfalls 11-20, batch 2), wired into pitfalls.html and updated prompt.md spec; all 20 pitfall quotes complete; next item: #3 PM Ladder 150 answer choices (batch 1: first dimension)
 
 ---
 
@@ -36,3 +37,8 @@
 *  *`**Why:** <best-judgement rationale>`*
 *  *`**Verify with owner:** <specific question>`*
 *  *)*
+
+### 2026-05-14 16:33 UTC — #44 PM Pitfalls anchor substitutions (pitfalls 14 and 15)
+**Decision:** Used `continuous-discovery.md` as anchor for pitfall 14 ("Over-indexing on the loudest customer complaint") and `velocity-core4.md` for pitfall 15 ("Velocity as a goal rather than a side effect"). The spec table listed `customer-research.md` and `process-vs-outcomes.md` respectively but neither file exists in `knowledge/topics/`.
+**Why:** Both substitutes are the closest real corpus file to the intended topic. Teresa Torres's continuous discovery content in `continuous-discovery.md` directly covers the "story-based interviews over loudest-complaint" point. The Core 4 framing in `velocity-core4.md` explicitly addresses velocity-as-metric-vs-goal.
+**Verify with owner:** Should `customer-research.md` and `process-vs-outcomes.md` be created as new topic synthesis files, or do the substituted anchors adequately cover those pitfalls?
