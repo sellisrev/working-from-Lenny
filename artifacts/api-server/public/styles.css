@@ -1598,6 +1598,39 @@ footer .sep {
   resize: vertical;
 }
 
+.ladder-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.3rem;
+}
+
+.ladder-choice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #444;
+  padding: 0.35rem 0.5rem;
+  border-radius: 3px;
+  transition: background 0.1s ease;
+  line-height: 1.45;
+}
+
+.ladder-choice-item:hover {
+  background: #f5f5f5;
+}
+
+.ladder-choice-item input[type="radio"] {
+  cursor: pointer;
+  accent-color: #1a1a1a;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
 .ladder-effective {
   font-size: 1.25rem;
   font-weight: 600;
