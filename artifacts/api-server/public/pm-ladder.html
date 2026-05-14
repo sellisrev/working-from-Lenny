@@ -200,12 +200,66 @@
         name: 'Ambiguity tolerance',
         description: "Comfort and competence when the goal isn't pre-defined.",
         questions: [
-          "What you do when the goal isn't pre-defined.",
-          'Default response when data is missing.',
-          'How you handle conflicting requirements between two senior stakeholders.',
-          'Reaction time to a leadership pivot.',
-          "Comfort with shipping a product you're not 100% sure about.",
-          'How you frame "I don\'t know" out loud.',
+          {
+            text: "What you do when the goal isn't pre-defined.",
+            choices: [
+              'You wait for your manager to clarify the goal before starting.',
+              'You draft a rough problem statement and get your manager\'s sign-off before moving.',
+              'You define the goal yourself, write it up, and socialize it until stakeholders align.',
+              'You set the problem definition for a large surface and make it the team\'s north star across multiple squads.',
+              'You define the problem space others work within. When the org doesn\'t know what it\'s optimizing for, that\'s your question to answer.',
+            ],
+          },
+          {
+            text: 'Default response when data is missing.',
+            choices: [
+              'You wait for data. You feel blocked making calls without numbers.',
+              'You make the call but hedge heavily and flag the gap upward.',
+              'You state your confidence level, name the assumption you\'re making, decide, and schedule a review.',
+              'You apply a reversibility test, sequence the decision, and commission the missing data in parallel.',
+              'You structure the sequence of bets so the easiest ones generate the data the harder ones need.',
+            ],
+          },
+          {
+            text: 'How you handle conflicting requirements between two senior stakeholders.',
+            choices: [
+              'You escalate to your manager. Not sure how to proceed without their call.',
+              'You try to find a middle path that satisfies both. It often ends up serving neither.',
+              'You write a one-pager surfacing the tradeoffs and ask the stakeholders to decide together.',
+              'You mediate the conflict directly. It rarely needs to escalate; you anchor on the shared goal.',
+              'You mostly prevent these conflicts. The strategy is clear enough upstream that they rarely reach the team.',
+            ],
+          },
+          {
+            text: 'Reaction time to a leadership pivot.',
+            choices: [
+              'You need significant re-explanation before the team can move. The disruption is visible.',
+              'It takes a sprint or two to reorient. The team can tell there was a direction change.',
+              'Within a week, you have a revised plan that integrates the pivot. The team is moving again.',
+              'You had a contingency sketch ready. The team barely notices the turn.',
+              'You helped shape the pivot. Your read of the market fed the leadership conversation. The team is already moving before the announcement.',
+            ],
+          },
+          {
+            text: "Comfort with shipping a product you're not 100% sure about.",
+            choices: [
+              'You wait for more research or more sign-offs before shipping with meaningful uncertainty.',
+              'You ship when directed to, but flag the uncertainty upward. You don\'t fully own the risk.',
+              'You set kill criteria and a rollback plan before shipping. Success metrics are defined up front.',
+              'You distinguish reversible from irreversible risk, ship fast on Type-2 decisions, and explain the logic to the team.',
+              'You define what "good enough to ship" means for the current product stage. Teams use your framework.',
+            ],
+          },
+          {
+            text: 'How you frame "I don\'t know" out loud.',
+            choices: [
+              'You avoid saying it directly. You stay quiet or deflect when you don\'t have the answer.',
+              'You say it, but it sounds apologetic and you don\'t follow it with structure.',
+              'You say "I don\'t know yet" and follow it with what you\'re doing to find out, and by when.',
+              'You separate what can be found out from what has to be decided under uncertainty, and use that to frame the next step.',
+              'You make it safe for everyone to say what they don\'t know. Decision logs and pre-mortems are team norms because of you.',
+            ],
+          },
         ],
       },
       {

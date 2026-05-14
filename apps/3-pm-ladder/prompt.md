@@ -96,12 +96,50 @@ Choices authored 2026-05-14. Anchors: `pm-career-ladders.md`, `becoming-senior-p
 - (5) You present to execs and board-level stakeholders. Your work sets the reference point others are measured against.
 
 ### Ambiguity tolerance (Q7-Q12)
-- Q7. What you do when the goal isn't pre-defined.
-- Q8. Default response when data is missing.
-- Q9. How you handle conflicting requirements between two senior stakeholders.
-- Q10. Reaction time to a leadership pivot.
-- Q11. Comfort with shipping a product you're not 100% sure about.
-- Q12. How you frame "I don't know" out loud.
+
+Choices authored 2026-05-14. Anchors: `pm-career-ladders.md`, `becoming-senior-pm.md`, `decision-making-frameworks.md`, `saying-no.md`, `top-1-percent-pm.md`.
+
+**Q7. What you do when the goal isn't pre-defined.**
+- (1) You wait for your manager to clarify the goal before starting.
+- (2) You draft a rough problem statement and get your manager's sign-off before moving.
+- (3) You define the goal yourself, write it up, and socialize it until stakeholders align.
+- (4) You set the problem definition for a large surface and make it the team's north star across multiple squads.
+- (5) You define the problem space others work within. When the org doesn't know what it's optimizing for, that's your question to answer.
+
+**Q8. Default response when data is missing.**
+- (1) You wait for data. You feel blocked making calls without numbers.
+- (2) You make the call but hedge heavily and flag the gap upward.
+- (3) You state your confidence level, name the assumption you're making, decide, and schedule a review.
+- (4) You apply a reversibility test, sequence the decision, and commission the missing data in parallel.
+- (5) You structure the sequence of bets so the easiest ones generate the data the harder ones need.
+
+**Q9. How you handle conflicting requirements between two senior stakeholders.**
+- (1) You escalate to your manager. Not sure how to proceed without their call.
+- (2) You try to find a middle path that satisfies both. It often ends up serving neither.
+- (3) You write a one-pager surfacing the tradeoffs and ask the stakeholders to decide together.
+- (4) You mediate the conflict directly. It rarely needs to escalate; you anchor on the shared goal.
+- (5) You mostly prevent these conflicts. The strategy is clear enough upstream that they rarely reach the team.
+
+**Q10. Reaction time to a leadership pivot.**
+- (1) You need significant re-explanation before the team can move. The disruption is visible.
+- (2) It takes a sprint or two to reorient. The team can tell there was a direction change.
+- (3) Within a week, you have a revised plan that integrates the pivot. The team is moving again.
+- (4) You had a contingency sketch ready. The team barely notices the turn.
+- (5) You helped shape the pivot. Your read of the market fed the leadership conversation. The team is already moving before the announcement.
+
+**Q11. Comfort with shipping a product you're not 100% sure about.**
+- (1) You wait for more research or more sign-offs before shipping with meaningful uncertainty.
+- (2) You ship when directed to, but flag the uncertainty upward. You don't fully own the risk.
+- (3) You set kill criteria and a rollback plan before shipping. Success metrics are defined up front.
+- (4) You distinguish reversible from irreversible risk, ship fast on Type-2 decisions, and explain the logic to the team.
+- (5) You define what "good enough to ship" means for the current product stage. Teams use your framework.
+
+**Q12. How you frame "I don't know" out loud.**
+- (1) You avoid saying it directly. You stay quiet or deflect when you don't have the answer.
+- (2) You say it, but it sounds apologetic and you don't follow it with structure.
+- (3) You say "I don't know yet" and follow it with what you're doing to find out, and by when.
+- (4) You separate what can be found out from what has to be decided under uncertainty, and use that to frame the next step.
+- (5) You make it safe for everyone to say what they don't know. Decision logs and pre-mortems are team norms because of you.
 
 ### Influence (Q13-Q18)
 - Q13. How you handle disagreement with engineering leadership.
