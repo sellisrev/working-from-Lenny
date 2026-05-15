@@ -401,12 +401,66 @@
         name: 'Craft',
         description: 'Depth of skill in the trade itself.',
         questions: [
-          'Quality of your written artifacts (specs, decision docs).',
-          'Customer-research depth (frequency and shape).',
-          'Data fluency (what you can run yourself vs ask for).',
-          'Design-quality literacy (can you red-line a design).',
-          'Engineering-system literacy (can you read a service map).',
-          'AI and eval literacy (do you ship AI features with an eval set).',
+          {
+            text: 'Quality of your written artifacts (specs, decision docs).',
+            choices: [
+              'You write specs when asked. Format varies; you\'re still learning what belongs in one.',
+              'You follow a template and cover the required sections. The doc works for your immediate team.',
+              'Your specs are problem-first, have explicit success criteria and non-goals, and are short enough to be read. Stakeholders rarely ask what a doc is trying to accomplish.',
+              'Your artifacts are the reference point other teams use for their own planning. You rarely have to explain a document you wrote.',
+              'Your authoring discipline shapes how the team writes. When someone asks how to structure a decision doc, they use yours as the example.',
+            ],
+          },
+          {
+            text: 'Customer-research depth (frequency and shape).',
+            choices: [
+              'You read support tickets and aggregate feedback surveys. You haven\'t run your own customer interviews recently.',
+              'You run interviews for major features. You tend to ask customers what they want, not what they\'ve done.',
+              'You run story-based interviews on a regular cadence — past behavior, not hypotheticals. Findings feed into your next planning cycle.',
+              'Discovery is a team cadence, not just your personal practice. Engineers and designers are in the room. You synthesize and bring findings into roadmap decisions.',
+              'Your discovery process is what the team uses. How you interview and synthesize is how the org does it. Your methods are the default, not just your own habit.',
+            ],
+          },
+          {
+            text: 'Data fluency (what you can run yourself vs ask for).',
+            choices: [
+              'You read dashboards and ask the data team for queries. You can\'t analyze data independently.',
+              'You can filter and pivot dashboards. You know which metric to look at; the data team builds the analysis you need.',
+              'You write basic SQL, build cohort cuts, and set up experiments with reasonable success criteria. You don\'t need the data team to walk you through the setup.',
+              'You and the data team co-author experiments. You frame hypotheses clearly, understand confound risk, and can push back on a misread A/B result.',
+              'Your data fluency sets the team\'s analytical standard. You\'re the PM others come to for experiment design, and your metric definitions are the ones the team runs on.',
+            ],
+          },
+          {
+            text: 'Design-quality literacy (can you red-line a design).',
+            choices: [
+              'You can tell when something looks off, but you can\'t name what\'s wrong or say how to fix it.',
+              'You give flow-level feedback: missing states, confusing labels, wrong behavior. Not craft-level feedback.',
+              'You review designs against the user need and give feedback a designer can act on. You hold back from specifying pixels; you name the problem, not the solution.',
+              'Your design reviews raise the quality bar. Designers find your feedback specific and directionally useful. You prototype quickly when you need to communicate intent.',
+              'Product coherence at the system level is partly your responsibility. You can name what erodes it and say no when something ships that doesn\'t fit. Designers treat your taste as a useful signal.',
+            ],
+          },
+          {
+            text: 'Engineering-system literacy (can you read a service map).',
+            choices: [
+              'You know what the product does but not how the systems under it work.',
+              'You know the rough architecture of your area and can discuss technical trade-offs in general terms.',
+              'You can read a service diagram, ask useful questions about latency and failure modes, and size build costs on roadmap items without needing engineering to do it for you.',
+              'Engineers include you in architecture discussions where the decision affects the product. You catch cross-system implications before they become scope creep.',
+              'You\'ve shipped production features or built real prototypes against system constraints. Engineers treat you as a technical peer on product-adjacent decisions.',
+            ],
+          },
+          {
+            text: 'AI and eval literacy (do you ship AI features with an eval set).',
+            choices: [
+              'You use AI as a consumer. You haven\'t shipped an AI feature or written an eval.',
+              'You\'ve shipped AI features but relied on spot checks and vibe testing to gauge quality. Evals aren\'t yet part of how you ship.',
+              'You can read traces, identify failure modes, and contribute to defining eval criteria. You don\'t ship AI features on vibe alone.',
+              'Your team has an eval suite that exists before each AI launch. You built the failure-mode taxonomy from real traces, and the team updates it as the model changes.',
+              'Your eval methodology is the standard the org uses. Other teams reference how you built yours. The pass-rate trend on your AI features is a documented artifact reviewed at every major milestone.',
+            ],
+          },
         ],
       },
     ];

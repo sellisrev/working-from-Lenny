@@ -234,12 +234,50 @@ Choices authored 2026-05-15. Anchors: `decision-making-frameworks.md` (reversibi
 - (5) Your team's default calibration on speed vs quality is part of how you run the product. New team members learn the frame from how you model it, not from a document.
 
 ### Craft (Q25-Q30)
-- Q25. Quality of your written artifacts (specs, decision docs).
-- Q26. Customer-research depth (frequency and shape).
-- Q27. Data fluency (what you can run yourself vs ask for).
-- Q28. Design-quality literacy (can you red-line a design).
-- Q29. Engineering-system literacy (can you read a service map).
-- Q30. AI / eval literacy — the new craft (do you ship AI features with an eval set).
+
+Choices authored 2026-05-15. Anchors: `prds-and-1-pagers.md`, `continuous-discovery.md`, `working-with-pms-as-data.md`, `product-design-craft.md`, `working-with-pms-as-designer.md`, `working-with-pms-as-engineer.md`, `evals-for-ai-products.md`, `ai-pm-skills.md`.
+
+**Q25. Quality of your written artifacts (specs, decision docs).**
+- (1) You write specs when asked. Format varies; you're still learning what belongs in one.
+- (2) You follow a template and cover the required sections. The doc works for your immediate team.
+- (3) Your specs are problem-first, have explicit success criteria and non-goals, and are short enough to be read. Stakeholders rarely ask what a doc is trying to accomplish.
+- (4) Your artifacts are the reference point other teams use for their own planning. You rarely have to explain a document you wrote.
+- (5) Your authoring discipline shapes how the team writes. When someone asks how to structure a decision doc, they use yours as the example.
+
+**Q26. Customer-research depth (frequency and shape).**
+- (1) You read support tickets and aggregate feedback surveys. You haven't run your own customer interviews recently.
+- (2) You run interviews for major features. You tend to ask customers what they want, not what they've done.
+- (3) You run story-based interviews on a regular cadence — past behavior, not hypotheticals. Findings feed into your next planning cycle.
+- (4) Discovery is a team cadence, not just your personal practice. Engineers and designers are in the room. You synthesize and bring findings into roadmap decisions.
+- (5) Your discovery process is what the team uses. How you interview and synthesize is how the org does it. Your methods are the default, not just your own habit.
+
+**Q27. Data fluency (what you can run yourself vs ask for).**
+- (1) You read dashboards and ask the data team for queries. You can't analyze data independently.
+- (2) You can filter and pivot dashboards. You know which metric to look at; the data team builds the analysis you need.
+- (3) You write basic SQL, build cohort cuts, and set up experiments with reasonable success criteria. You don't need the data team to walk you through the setup.
+- (4) You and the data team co-author experiments. You frame hypotheses clearly, understand confound risk, and can push back on a misread A/B result.
+- (5) Your data fluency sets the team's analytical standard. You're the PM others come to for experiment design, and your metric definitions are the ones the team runs on.
+
+**Q28. Design-quality literacy (can you red-line a design).**
+- (1) You can tell when something looks off, but you can't name what's wrong or say how to fix it.
+- (2) You give flow-level feedback: missing states, confusing labels, wrong behavior. Not craft-level feedback.
+- (3) You review designs against the user need and give feedback a designer can act on. You hold back from specifying pixels; you name the problem, not the solution.
+- (4) Your design reviews raise the quality bar. Designers find your feedback specific and directionally useful. You prototype quickly when you need to communicate intent.
+- (5) Product coherence at the system level is partly your responsibility. You can name what erodes it and say no when something ships that doesn't fit. Designers treat your taste as a useful signal.
+
+**Q29. Engineering-system literacy (can you read a service map).**
+- (1) You know what the product does but not how the systems under it work.
+- (2) You know the rough architecture of your area and can discuss technical trade-offs in general terms.
+- (3) You can read a service diagram, ask useful questions about latency and failure modes, and size build costs on roadmap items without needing engineering to do it for you.
+- (4) Engineers include you in architecture discussions where the decision affects the product. You catch cross-system implications before they become scope creep.
+- (5) You've shipped production features or built real prototypes against system constraints. Engineers treat you as a technical peer on product-adjacent decisions.
+
+**Q30. AI and eval literacy (do you ship AI features with an eval set).**
+- (1) You use AI as a consumer. You haven't shipped an AI feature or written an eval.
+- (2) You've shipped AI features but relied on spot checks and vibe testing to gauge quality. Evals aren't yet part of how you ship.
+- (3) You can read traces, identify failure modes, and contribute to defining eval criteria. You don't ship AI features on vibe alone.
+- (4) Your team has an eval suite that exists before each AI launch. You built the failure-mode taxonomy from real traces, and the team updates it as the model changes.
+- (5) Your eval methodology is the standard the org uses. Other teams reference how you built yours. The pass-rate trend on your AI features is a documented artifact reviewed at every major milestone.
 
 ## Scoring (deterministic)
 
