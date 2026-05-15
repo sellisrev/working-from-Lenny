@@ -267,12 +267,66 @@
         name: 'Influence',
         description: "Ability to move people who don't report to you.",
         questions: [
-          'How you handle disagreement with engineering leadership.',
-          'How exec stakeholders engage with your work (and at what cadence).',
-          'Cross-functional pull (does design, GTM, and data come to you proactively).',
-          'Mentorship reach (how many PMs you have ongoing coaching relationships with).',
-          'External visibility (talks, writing, hiring panels).',
-          'How you frame proposals (which audience do you build for).',
+          {
+            text: 'How you handle disagreement with engineering leadership.',
+            choices: [
+              'You escalate to your manager. You\'re not confident taking disagreements directly to engineering leadership.',
+              'You raise your concern once. If it doesn\'t land, you defer and move on.',
+              'You make the case directly: data, reasoning, and a specific ask. You know when the argument is settled.',
+              'Engineering leads treat your perspective as input before finalizing direction. Disagreements rarely escalate; trust does the work.',
+              'Engineering leadership seeks your read proactively. When you push back, it shapes the outcome.',
+            ],
+          },
+          {
+            text: 'How exec stakeholders engage with your work (and at what cadence).',
+            choices: [
+              'Execs don\'t engage with your work directly. Your manager relays context when it matters.',
+              'An exec occasionally shows up to a review. It\'s not a regular pattern.',
+              'A director or VP reviews your roadmap quarterly and provides input before it goes to the broader team.',
+              'You have a standing exec forum for your area. C-level is in the loop on material decisions.',
+              'You present to C-level and board-level stakeholders on a regular cadence. Your work anchors what others bring to those rooms.',
+            ],
+          },
+          {
+            text: 'Cross-functional pull (does design, GTM, and data come to you proactively).',
+            choices: [
+              'Cross-functional partners wait for you to kick things off. They don\'t seek your input unless you ask.',
+              'An occasional proactive reach from one partner, usually for a handoff, not a planning conversation.',
+              'Design and engineering come to you proactively on direction. GTM occasionally loops you in early.',
+              'Multiple functions treat you as the first call on strategic decisions. You\'re in their planning cadences without needing to push.',
+              'Functions use your frame before starting their own planning. Your judgment is load-bearing across the org.',
+            ],
+          },
+          {
+            text: 'Mentorship reach (how many PMs you have ongoing coaching relationships with).',
+            choices: [
+              'None yet. You\'re still building the skills you\'d coach others on.',
+              'One informal relationship — someone who reaches out occasionally for advice.',
+              'One or two ongoing relationships with more junior PMs. Regular check-ins, structured feedback, or shared artifacts.',
+              'Three or more active coaching relationships. You\'ve seen PMs you coached get promoted.',
+              'You set the craft standard for the PM function. You coach the coaches and your development model shapes how junior PMs are grown in your org.',
+            ],
+          },
+          {
+            text: 'External visibility (talks, writing, hiring panels).',
+            choices: [
+              'No external footprint. Your work is fully internal.',
+              'One or two external moments — a conference talk, a post that traveled outside the company. Not a deliberate pattern.',
+              'You\'ve spoken at one or two external venues, published publicly, or served on hiring advisory panels. People outside your company know your name.',
+              'Recognized by PM peers outside your company. Invited to podcast appearances, external events, or advisory roles on a recurring basis.',
+              'A reference point in the field. Your writing, talks, or frameworks are cited by others. You shape how PMs outside your company think about craft.',
+            ],
+          },
+          {
+            text: 'How you frame proposals (which audience do you build for).',
+            choices: [
+              'You write for your manager. The proposal\'s job is to get sign-off from one person.',
+              'You write for your immediate team and stakeholders. Your engineer and designer can follow the reasoning.',
+              'You write for multiple audiences in one doc. Engineering leads and business stakeholders each get the signal they need from the same artifact.',
+              'You write for senior leaders who don\'t have the product context. Strategic linkage is explicit; a VP can share it upward without translation.',
+              'Your proposals don\'t need translation at any level. You write at company scope by default; functional teams use your framing as their working context.',
+            ],
+          },
         ],
       },
       {

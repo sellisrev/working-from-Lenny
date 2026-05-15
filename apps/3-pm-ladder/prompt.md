@@ -142,12 +142,50 @@ Choices authored 2026-05-14. Anchors: `pm-career-ladders.md`, `becoming-senior-p
 - (5) You make it safe for everyone to say what they don't know. Decision logs and pre-mortems are team norms because of you.
 
 ### Influence (Q13-Q18)
-- Q13. How you handle disagreement with engineering leadership.
-- Q14. How exec stakeholders engage with your work (and at what cadence).
-- Q15. Cross-functional pull (does design / GTM / data come to you proactively).
-- Q16. Mentorship reach (how many PMs do you have ongoing coaching relationships with).
-- Q17. External visibility (talks, writing, hiring panels).
-- Q18. How you frame proposals (which audience do you build for).
+
+Choices authored 2026-05-15. Anchors: `pm-influence.md`, `pm-career-ladders.md`, `managing-up.md`, `coaching-product-people.md`, `public-speaking.md`, `communicating-tradeoffs.md`.
+
+**Q13. How you handle disagreement with engineering leadership.**
+- (1) You escalate to your manager. You're not confident taking disagreements directly to engineering leadership.
+- (2) You raise your concern once. If it doesn't land, you defer and move on.
+- (3) You make the case directly: data, reasoning, and a specific ask. You know when the argument is settled.
+- (4) Engineering leads treat your perspective as input before finalizing direction. Disagreements rarely escalate; trust does the work.
+- (5) Engineering leadership seeks your read proactively. When you push back, it shapes the outcome.
+
+**Q14. How exec stakeholders engage with your work (and at what cadence).**
+- (1) Execs don't engage with your work directly. Your manager relays context when it matters.
+- (2) An exec occasionally shows up to a review. It's not a regular pattern.
+- (3) A director or VP reviews your roadmap quarterly and provides input before it goes to the broader team.
+- (4) You have a standing exec forum for your area. C-level is in the loop on material decisions.
+- (5) You present to C-level and board-level stakeholders on a regular cadence. Your work anchors what others bring to those rooms.
+
+**Q15. Cross-functional pull (does design, GTM, and data come to you proactively).**
+- (1) Cross-functional partners wait for you to kick things off. They don't seek your input unless you ask.
+- (2) An occasional proactive reach from one partner, usually for a handoff, not a planning conversation.
+- (3) Design and engineering come to you proactively on direction. GTM occasionally loops you in early.
+- (4) Multiple functions treat you as the first call on strategic decisions. You're in their planning cadences without needing to push.
+- (5) Functions use your frame before starting their own planning. Your judgment is load-bearing across the org.
+
+**Q16. Mentorship reach (how many PMs you have ongoing coaching relationships with).**
+- (1) None yet. You're still building the skills you'd coach others on.
+- (2) One informal relationship — someone who reaches out occasionally for advice.
+- (3) One or two ongoing relationships with more junior PMs. Regular check-ins, structured feedback, or shared artifacts.
+- (4) Three or more active coaching relationships. You've seen PMs you coached get promoted.
+- (5) You set the craft standard for the PM function. You coach the coaches and your development model shapes how junior PMs are grown in your org.
+
+**Q17. External visibility (talks, writing, hiring panels).**
+- (1) No external footprint. Your work is fully internal.
+- (2) One or two external moments — a conference talk, a post that traveled outside the company. Not a deliberate pattern.
+- (3) You've spoken at one or two external venues, published publicly, or served on hiring advisory panels. People outside your company know your name.
+- (4) Recognized by PM peers outside your company. Invited to podcast appearances, external events, or advisory roles on a recurring basis.
+- (5) A reference point in the field. Your writing, talks, or frameworks are cited by others. You shape how PMs outside your company think about craft.
+
+**Q18. How you frame proposals (which audience do you build for).**
+- (1) You write for your manager. The proposal's job is to get sign-off from one person.
+- (2) You write for your immediate team and stakeholders. Your engineer and designer can follow the reasoning.
+- (3) You write for multiple audiences in one doc. Engineering leads and business stakeholders each get the signal they need from the same artifact.
+- (4) You write for senior leaders who don't have the product context. Strategic linkage is explicit; a VP can share it upward without translation.
+- (5) Your proposals don't need translation at any level. You write at company scope by default; functional teams use your framing as their working context.
 
 ### Judgment (Q19-Q24)
 - Q19. How you make trade-offs under time pressure.
