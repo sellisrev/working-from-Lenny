@@ -18,6 +18,11 @@
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .horoscope-reading-body { margin: 1.5rem 0 0.5rem; }
+    .horoscope-reading-body p { margin: 0 0 0.75rem; line-height: 1.65; }
+    .horoscope-reading-topic { font-size: 0.875rem; color: #555; border-left: 3px solid #ccc; padding: 0.6rem 1rem; background: #f7f7f7; margin: 0; }
+  </style>
 </head>
 <body>
 
@@ -45,9 +50,10 @@
         <p class="horoscope-archetype-virtue" id="horoscope-archetype-virtue"></p>
         <p class="horoscope-archetype-pitfall" id="horoscope-archetype-pitfall"></p>
 
-        <div class="horoscope-reading-placeholder">
+        <div class="horoscope-reading-placeholder" id="horoscope-reading-placeholder">
           <p>The deterministic daily reading (aspect, prediction, nudge) will compose here once the corpus content is authored. For now, the full reading is available on demand from Claude.</p>
         </div>
+        <div class="horoscope-reading-body" id="horoscope-reading-body" style="display:none"></div>
 
         <div class="horoscope-actions">
           <button type="button" class="horoscope-btn" id="horoscope-change-btn">← change archetype</button>
@@ -96,6 +102,113 @@
   </footer>
 
   <script>
+    // ───────────────────────────────────────────────────────────
+    // Deterministic reading content — authored per archetype.
+    // Archetypes without authored content show the placeholder.
+    // ───────────────────────────────────────────────────────────
+    var HOROSCOPE_DATA = {
+      1: {
+        predictions: [
+          "A stakeholder will ask you to soften the bet. Don't.",
+          "Today's data point looks like a refutation. It is not.",
+          "Someone with more title than insight will second-guess your prioritization. Smile.",
+          "The 80 percent will earn you the right to keep going on the 20 percent. Ship something this week.",
+          "Leadership will ask what success looks like. Have a one-sentence answer ready.",
+          "You will be tempted to call a meeting before you've written down your case. Write it down first.",
+          "A peer will drop their own bet. Watch what kills it and make sure your kill criteria are different.",
+          "The request to 'just put it on ice for a quarter' is almost never temporary. Say that out loud.",
+          "Today is a good day to get one customer on record saying they'd pay for this.",
+          "Someone will notice the bet has been in the roadmap for six months. Have the receipts ready.",
+          "Your most important meeting is the one you haven't scheduled yet — with the senior ally who needs to hear this.",
+          "You'll be tempted to say no to something to show you can make hard calls. Only do it if you mean it.",
+          "The kill criteria you set in January will be tested today. Know where they are.",
+          "A well-timed small win can buy another month on the bet. Find one.",
+          "A deck that shows progress beats a deck that shows vision. Update the metrics slide.",
+          "The cargo-cult dissent trap: you'll see a chance to say no and wonder if it'll make you look decisive. Only a real no counts.",
+          "Customer signal you didn't collect last week is leverage you don't have this week.",
+          "The exec who sponsored this bet will be in a different fight today. That's normal. Don't panic.",
+          "You will have a five-minute window before the next planning cycle to make your case. Start now.",
+          "The team needs to hear why the bet still holds. Say it once, clearly, and mean it.",
+          "Stack-ranking your bet against its alternatives is not a sign of weakness. It is your strongest argument.",
+          "An incremental win shipped this week is worth more to the bet's survival than any memo.",
+          "Someone on the team is quietly losing faith. Find out who and why before the review.",
+          "Today's early data will look like noise. So will tomorrow's. That's the bet.",
+          "Leadership will ask for an update you're not ready to give. Be ready to give it anyway.",
+          "Your cover-fire wins are not unrelated to the bet. Describe them that way.",
+          "A VP will suggest a pivot. Your job is to know whether that's signal or pattern-matching.",
+          "The hardest no you'll say today will be to a request that sounds exactly like what the bet needs.",
+          "You are not defending the bet. You are building the case for the bet to defend itself.",
+          "Today the bet looks fragile. Tomorrow it looks the same. This is what bets feel like."
+        ],
+        nudges: [
+          "Write the bet down in one sentence and keep it on your second monitor.",
+          "Schedule a 15-minute walk after the review. You'll need it.",
+          "Pre-read your one-pager out loud before sending it.",
+          "Name one incremental win you can ship this week that is not the bet. Ship it.",
+          "Send your senior ally a one-sentence update on the bet before the end of today.",
+          "Pull up the kill criteria. If none of them have been hit, write that down and save it.",
+          "Find one customer who'd pay for this and ask if you can quote them at the next review.",
+          "Stack-rank the bet against one alternative right now. Write the result down.",
+          "Before the planning meeting, write the three things you'd be giving up to kill this bet.",
+          "Say no to one thing today that has nothing to do with the bet. Practice the muscle.",
+          "Update the artifact you're most likely to show in a review. Small delta, visible progress.",
+          "Look at the roadmap and find one thing that's not the bet. Ship that first this week.",
+          "Ask someone who doesn't work on the bet to explain what it is. Fix whatever they get wrong.",
+          "Block 30 minutes on Friday to review whether your cover-fire numbers are strong enough.",
+          "Write down the most likely kill argument against the bet. Now write the counter. Save both.",
+          "Text one customer you haven't talked to in a month. No agenda. Just signal-gathering.",
+          "Before you say no to something today, make sure it's a real no and not a performance.",
+          "Send a one-paragraph status to your sponsor this week. Not a deck. One paragraph.",
+          "Find the one person who is most skeptical of the bet. Have a coffee. Listen first.",
+          "Put the bet's current kill criteria in writing and share with one other person. Accountability beats conviction."
+        ],
+        aspects: {
+          2:  "the Theatre Director squares your table today — meetings run long and the win condition slips off the agenda",
+          3:  "the Cornered Resource trines your position — two moats reinforce each other; name yours before someone else defines it for you",
+          4:  "the Pivot-Hanged opposes your stance — someone's indecision will read as caution; don't absorb it",
+          5:  "the Customer-Adjacent trines your corner — fresh customer signal is in play today; treat it as evidence, not as permission to redirect",
+          6:  "the Founder-Mode Returnee squares your bet — the person with the original vision is forming opinions; your one-sentence case needs to be ready before they start talking",
+          7:  "the Stakeholder-Pleaser conjuncts your table — the room stays calm longer than it should; find the one person willing to tell you what they actually think",
+          8:  "the Top-1-Percent trines your conviction — high-bar day; spend it on the thing that matters most, not on the noise",
+          9:  "the Saying-No opposes your corner — two people in this meeting know what they think; make sure one of them says it out loud, and that one is you",
+          10: "the Eval-Forward squares your clock — one more gate before the cover-fire win ships; negotiate the minimum viable check",
+          11: "the Strategy-Skeptic trines your case — a gap in the strategy gets spotted today; let it happen, then fill it with the sentence you already have",
+          12: "the Empathy-Tourist squares your evidence — two user calls get cited in the meeting; verify whether anyone changed anything based on them"
+        },
+        topics: ['defending-big-bets', 'top-1-percent-pm', 'evaluating-product-bets', 'getting-buy-in', 'pm-influence']
+      }
+    };
+
+    function wflHash(str) {
+      var h = 5381;
+      for (var i = 0; i < str.length; i++) {
+        h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+      }
+      return h;
+    }
+
+    function composeReading(archetype, dateStr) {
+      var data = HOROSCOPE_DATA[archetype.id];
+      if (!data) return null;
+      var aspectKeys = Object.keys(data.aspects).map(Number);
+      var partnerIdx = wflHash(dateStr + '::' + archetype.id) % aspectKeys.length;
+      var partnerId = aspectKeys[partnerIdx];
+      var aspect = data.aspects[partnerId];
+      var predIdx = wflHash(dateStr + '::' + archetype.id + '::p') % data.predictions.length;
+      var nudgeIdx = wflHash(dateStr + '::' + archetype.id + '::n') % data.nudges.length;
+      var topicIdx = wflHash(dateStr + '::' + archetype.id + '::t') % data.topics.length;
+      return {
+        aspect: aspect,
+        prediction: data.predictions[predIdx],
+        nudge: data.nudges[nudgeIdx],
+        topic: data.topics[topicIdx]
+      };
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     // ───────────────────────────────────────────────────────────
     // Twelve archetypes (locked, verbatim from apps/53-pm-horoscope/prompt.md)
     // ───────────────────────────────────────────────────────────
@@ -196,6 +309,22 @@
       // Wire up share button
       const shareBtn = document.getElementById('horoscope-share-btn');
       shareBtn.onclick = function() { handleShare(a.id); };
+
+      // Compose deterministic reading if authored content exists for this archetype
+      const readingEl = document.getElementById('horoscope-reading-body');
+      const placeholderEl = document.getElementById('horoscope-reading-placeholder');
+      const composed = composeReading(a, isoToday());
+      if (composed) {
+        const text = 'Today, ' + composed.aspect + '. ' + composed.prediction + ' ' + composed.nudge + '.';
+        readingEl.innerHTML =
+          '<p class="horoscope-reading-text">' + escHtml(text) + '</p>' +
+          '<p class="horoscope-reading-topic">Lucky topic: <strong>' + escHtml(composed.topic) + '</strong></p>';
+        readingEl.style.display = '';
+        placeholderEl.style.display = 'none';
+      } else {
+        readingEl.style.display = 'none';
+        placeholderEl.style.display = '';
+      }
 
       document.getElementById('horoscope-picker').classList.remove('visible');
       document.getElementById('horoscope-reading').classList.add('visible');

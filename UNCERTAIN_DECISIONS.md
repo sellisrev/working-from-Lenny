@@ -31,6 +31,7 @@
 - 2026-05-15T10:33Z: Authored 30 anchored Influence choices for #3 PM Ladder (batch 3 of 5, Q13-Q18), wired into pm-ladder.html and updated prompt.md spec; next item: #3 PM Ladder Judgment dimension (Q19-Q24, batch 4 of 5)
 - 2026-05-15T16:33Z: Authored 30 anchored Judgment choices for #3 PM Ladder (batch 4 of 5, Q19-Q24), wired into pm-ladder.html and updated prompt.md spec; next item: #3 PM Ladder Craft dimension (Q25-Q30, batch 5 of 5)
 - 2026-05-15T22:33Z: Authored 30 anchored Craft choices for #3 PM Ladder (batch 5 of 5, Q25-Q30), completing all 150 choices across 5 dimensions; next item: #53 PM Horoscope (archetype quiz + 132 aspect-pair lines, batch 1)
+- 2026-05-16T04:33Z: Cross-checked all 12 archetype corpus anchors (8 substitutions logged), authored 30 predictions + 20 nudges + 11 aspect lines for archetype 1 (The Bet-Defender), wired deterministic reading engine into horoscope.html (live for archetype 1, placeholder for 2-12); next item: #53 PM Horoscope archetype 2 (The Theatre Director) predictions + nudges + aspect lines
 
 ---
 
@@ -42,6 +43,16 @@
 *  *`**Why:** <best-judgement rationale>`*
 *  *`**Verify with owner:** <specific question>`*
 *  *)*
+
+### 2026-05-15 22:33 UTC — #53 PM Horoscope anchor substitutions (all 12 archetypes cross-checked)
+**Decision:** Original spec listed several topic files that do not exist in `knowledge/topics/`. Substituted with nearest real files: `bet-defending.md` → `defending-big-bets.md`; `process-vs-outcomes.md` → `velocity-core4.md`; `7-powers.md` → `seven-powers.md`; `pivot-stories.md` → `pivots-art.md`; `customer-research.md` → `continuous-discovery.md`; `jtbd.md` → `jobs-to-be-done.md`; "AI eval coverage topics" → `evals-for-ai-products.md`; "Rumelt-related topics" → `good-strategy-rumelt.md`.
+**Why:** All substitutes are the closest real corpus file covering the intended subject matter. Cross-check verified all substitutes are present in `knowledge/topics/`.
+**Verify with owner:** Should `customer-research.md`, `process-vs-outcomes.md`, `pivot-stories.md`, `bet-defending.md`, and `jtbd.md` be created as new topic synthesis files, or do the substituted anchors adequately cover each archetype's framing?
+
+### 2026-05-15 22:33 UTC — #53 PM Horoscope lucky-topic-file display (no hyperlink in Phase 0)
+**Decision:** The spec says the lucky topic file should link to "the matching corpus page on the site (or to the GitHub raw file for the skills-library audience)." The site has no corpus page viewer and the repo is private. For Phase 0, displaying the topic filename as plain bold text with a "Lucky topic:" label.
+**Why:** No public URL to link to yet. Linking to GitHub raw would require the repo to be public or the user to be logged into GitHub. Plain text is better than a broken or auth-gated link.
+**Verify with owner:** When should the topic link actually become a hyperlink? Options: (a) after the repo goes public (GitHub raw), (b) when a corpus viewer page is built on the site, (c) link to the Lenny Newsletter post the topic was sourced from.
 
 ### 2026-05-14 16:33 UTC — #44 PM Pitfalls anchor substitutions (pitfalls 14 and 15)
 **Decision:** Used `continuous-discovery.md` as anchor for pitfall 14 ("Over-indexing on the loudest customer complaint") and `velocity-core4.md` for pitfall 15 ("Velocity as a goal rather than a side effect"). The spec table listed `customer-research.md` and `process-vs-outcomes.md` respectively but neither file exists in `knowledge/topics/`.
