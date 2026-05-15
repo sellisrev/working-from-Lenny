@@ -30,6 +30,7 @@
 - 2026-05-15T04:33Z: Authored 30 anchored Ambiguity tolerance choices for #3 PM Ladder (batch 2 of 5, Q7-Q12), wired into pm-ladder.html and updated prompt.md spec; next item: #3 PM Ladder Influence dimension (Q13-Q18, batch 3 of 5)
 - 2026-05-15T10:33Z: Authored 30 anchored Influence choices for #3 PM Ladder (batch 3 of 5, Q13-Q18), wired into pm-ladder.html and updated prompt.md spec; next item: #3 PM Ladder Judgment dimension (Q19-Q24, batch 4 of 5)
 - 2026-05-15T16:33Z: Authored 30 anchored Judgment choices for #3 PM Ladder (batch 4 of 5, Q19-Q24), wired into pm-ladder.html and updated prompt.md spec; next item: #3 PM Ladder Craft dimension (Q25-Q30, batch 5 of 5)
+- 2026-05-15T22:33Z: Authored 30 anchored Craft choices for #3 PM Ladder (batch 5 of 5, Q25-Q30), completing all 150 choices across 5 dimensions; next item: #53 PM Horoscope (archetype quiz + 132 aspect-pair lines, batch 1)
 
 ---
 
