@@ -334,12 +334,66 @@
         name: 'Judgment',
         description: 'Quality of decisions made under incomplete information.',
         questions: [
-          'How you make trade-offs under time pressure.',
-          'Calibration on your bets (do you track confidence at the time of decision).',
-          'How you handle a failed launch.',
-          'Reaction to a clear signal that disconfirms your strategy.',
-          'Stop-doing list quality (what you cut last quarter and why).',
-          'Speed-vs-quality discernment (which one was wrong in your last 90 days).',
+          {
+            text: 'How you make trade-offs under time pressure.',
+            choices: [
+              'You default to the safe option or delay the call. Picking wrong feels riskier than not deciding.',
+              'You escalate to your manager before moving. A hard call needs sign-off before you commit.',
+              'You apply the reversibility test: fast on Type-2 decisions, slower on Type-1. You decide and log the reasoning.',
+              'Your team has a shared framework for categorizing decisions. When pressure hits, the call usually doesn\'t need you in the room.',
+              'The upstream strategy is clear enough that genuine trade-off calls are rare. When they do come, the framework is already there.',
+            ],
+          },
+          {
+            text: 'Calibration on your bets (do you track confidence at the time of decision).',
+            choices: [
+              'You don\'t formally track confidence. You learn by watching what worked.',
+              'You have a rough memory of how confident you were, but nothing written down.',
+              'You log key decisions and your confidence level when you make them. You review the log quarterly and look for patterns.',
+              'Every significant bet has defined kill criteria before it launches. You revisit the criteria at each major milestone.',
+              'Your decision log is a team artifact. Others calibrate their judgment against yours over time; the log is a reference, not a personal exercise.',
+            ],
+          },
+          {
+            text: 'How you handle a failed launch.',
+            choices: [
+              'You focus on what went wrong in the build or the spec. Failure is a technical problem to fix.',
+              'You run a retrospective, document the learnings, and move on. The team\'s culture around failure is whatever it was before.',
+              'You separate the decision from the outcome. You document what you knew, what you assumed, and where the reasoning broke down, and share it openly.',
+              'The launch review process is designed for failure to be visible and safe to name. The post-mortem template exists before the launch does.',
+              'Kill criteria are defined before the bet launches. When you stop something, the reasoning is already documented and the team expected the possibility.',
+            ],
+          },
+          {
+            text: 'Reaction to a clear signal that disconfirms your strategy.',
+            choices: [
+              'You surface it to your manager. You\'re not sure if it changes the direction; someone senior should weigh in.',
+              'You note it but attribute it to timing or execution. The strategy probably still holds.',
+              'You revisit the key assumptions explicitly. You document what the signal means for the bet and decide whether to hold, adjust, or stop.',
+              'You convene the right people within days. You don\'t let the signal age. The team re-examines the bet with the new data in the room.',
+              'You pre-defined how to weight this class of signal before the bet launched. The stop criteria are already documented; the signal triggers the review process.',
+            ],
+          },
+          {
+            text: 'Stop-doing list quality (what you cut last quarter and why).',
+            choices: [
+              'You don\'t have a stop-doing list. Your work is what gets assigned to you.',
+              'Some things got deprioritized last quarter, but it was mostly sprint constraints, not a deliberate call.',
+              'You cut at least one initiative last quarter with a rationale you could articulate to stakeholders. The team knew it was a decision, not just a reprioritization.',
+              'Your stop-doing list is deliberate and visible. You can name what you killed and why, in terms of strategy, not capacity.',
+              'Your cuts are the most important decisions you make each quarter. When you stop something, the org reads it. The reasoning is public and shapes how others prioritize.',
+            ],
+          },
+          {
+            text: 'Speed-vs-quality discernment (which call was wrong in your last 90 days).',
+            choices: [
+              'You can\'t easily name a specific instance where you explicitly traded speed for quality or vice versa.',
+              'You know in retrospect you either moved too slow or shipped something too rough, but you\'re not sure which pattern is the problem.',
+              'You can name a specific call from the last 90 days where you made an explicit speed-vs-quality tradeoff, and you know whether the call was right.',
+              'Your team has a shared frame for which calls are "go fast" vs "slow down and get it right." You built the model; they use it.',
+              'Your team\'s default calibration on speed vs quality is part of how you run the product. New team members learn the frame from how you model it, not from a document.',
+            ],
+          },
         ],
       },
       {

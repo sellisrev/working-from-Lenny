@@ -188,12 +188,50 @@ Choices authored 2026-05-15. Anchors: `pm-influence.md`, `pm-career-ladders.md`,
 - (5) Your proposals don't need translation at any level. You write at company scope by default; functional teams use your framing as their working context.
 
 ### Judgment (Q19-Q24)
-- Q19. How you make trade-offs under time pressure.
-- Q20. Calibration on your bets (do you track confidence at the time of decision).
-- Q21. How you handle a failed launch.
-- Q22. Reaction to a clear signal that disconfirms your strategy.
-- Q23. Stop-doing list quality (what you cut last quarter and why).
-- Q24. Speed-vs-quality discernment (which one was wrong in your last 90 days).
+
+Choices authored 2026-05-15. Anchors: `decision-making-frameworks.md` (reversibility test, Annie Duke kill criteria, decision logging), `evaluating-product-bets.md` (kill criteria up front, pre-mortem), `pivots-art.md` (signal-driven pivots, speed), `saying-no.md` (strategic cuts), `prioritization-frameworks.md` (cut don't just sequence), `top-1-percent-pm.md` (crisp judgment, bias to action, owns outcomes).
+
+**Q19. How you make trade-offs under time pressure.**
+- (1) You default to the safe option or delay the call. Picking wrong feels riskier than not deciding.
+- (2) You escalate to your manager before moving. A hard call needs sign-off before you commit.
+- (3) You apply the reversibility test: fast on Type-2 decisions, slower on Type-1. You decide and log the reasoning.
+- (4) Your team has a shared framework for categorizing decisions. When pressure hits, the call usually doesn't need you in the room.
+- (5) The upstream strategy is clear enough that genuine trade-off calls are rare. When they do come, the framework is already there.
+
+**Q20. Calibration on your bets (do you track confidence at the time of decision).**
+- (1) You don't formally track confidence. You learn by watching what worked.
+- (2) You have a rough memory of how confident you were, but nothing written down.
+- (3) You log key decisions and your confidence level when you make them. You review the log quarterly and look for patterns.
+- (4) Every significant bet has defined kill criteria before it launches. You revisit the criteria at each major milestone.
+- (5) Your decision log is a team artifact. Others calibrate their judgment against yours over time; the log is a reference, not a personal exercise.
+
+**Q21. How you handle a failed launch.**
+- (1) You focus on what went wrong in the build or the spec. Failure is a technical problem to fix.
+- (2) You run a retrospective, document the learnings, and move on. The team's culture around failure is whatever it was before.
+- (3) You separate the decision from the outcome. You document what you knew, what you assumed, and where the reasoning broke down, and share it openly.
+- (4) The launch review process is designed for failure to be visible and safe to name. The post-mortem template exists before the launch does.
+- (5) Kill criteria are defined before the bet launches. When you stop something, the reasoning is already documented and the team expected the possibility.
+
+**Q22. Reaction to a clear signal that disconfirms your strategy.**
+- (1) You surface it to your manager. You're not sure if it changes the direction; someone senior should weigh in.
+- (2) You note it but attribute it to timing or execution. The strategy probably still holds.
+- (3) You revisit the key assumptions explicitly. You document what the signal means for the bet and decide whether to hold, adjust, or stop.
+- (4) You convene the right people within days. You don't let the signal age. The team re-examines the bet with the new data in the room.
+- (5) You pre-defined how to weight this class of signal before the bet launched. The stop criteria are already documented; the signal triggers the review process.
+
+**Q23. Stop-doing list quality (what you cut last quarter and why).**
+- (1) You don't have a stop-doing list. Your work is what gets assigned to you.
+- (2) Some things got deprioritized last quarter, but it was mostly sprint constraints, not a deliberate call.
+- (3) You cut at least one initiative last quarter with a rationale you could articulate to stakeholders. The team knew it was a decision, not just a reprioritization.
+- (4) Your stop-doing list is deliberate and visible. You can name what you killed and why, in terms of strategy, not capacity.
+- (5) Your cuts are the most important decisions you make each quarter. When you stop something, the org reads it. The reasoning is public and shapes how others prioritize.
+
+**Q24. Speed-vs-quality discernment (which call was wrong in your last 90 days).**
+- (1) You can't easily name a specific instance where you explicitly traded speed for quality or vice versa.
+- (2) You know in retrospect you either moved too slow or shipped something too rough, but you're not sure which pattern is the problem.
+- (3) You can name a specific call from the last 90 days where you made an explicit speed-vs-quality tradeoff, and you know whether the call was right.
+- (4) Your team has a shared frame for which calls are "go fast" vs "slow down and get it right." You built the model; they use it.
+- (5) Your team's default calibration on speed vs quality is part of how you run the product. New team members learn the frame from how you model it, not from a document.
 
 ### Craft (Q25-Q30)
 - Q25. Quality of your written artifacts (specs, decision docs).
