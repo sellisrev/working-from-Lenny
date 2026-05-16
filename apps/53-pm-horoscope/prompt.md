@@ -19,7 +19,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 1 | The Bet-Defender | `defending-big-bets.md`, `top-1-percent-pm.md` | Holds the line on a bet under exec pressure | Cargo-cult dissent — saying no to look smart | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 2 | The Theatre Director | `pm-pitfalls.md`, `velocity-core4.md` | Runs the ritual well | Standups as performance art, no real coordination | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 3 | The Cornered Resource | `seven-powers.md` | Has a real moat | Mistakes "I'm the only one who knows" for a moat | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | placeholder |
+| 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | placeholder |
 | 6 | The Founder-Mode Returnee | `founder-mode.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | placeholder |
 | 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | placeholder |
@@ -253,6 +253,79 @@ Topic files (rotated daily): `seven-powers`, `product-strategy`, `evaluating-pro
 - vs #10 Eval-Forward: "the Eval-Forward squares your advantage; rigorous testing of moat durability is in play today, so welcome it because the moat either survives or you've found the gap"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your position; non-strategy gets called out today, and your real moat benefits from the cleanup because the gaps become easier to see"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist squares your moat; someone mistakes a customer relationship for a structural advantage today, so verify whether it's actually exclusive or just friendly"
+
+### Archetype 4 — The Pivot-Hanged
+
+Corpus anchors: `pivots-art.md`
+
+Topic files (rotated daily): `pivots-art`, `evaluating-product-bets`, `defending-big-bets`, `product-market-fit`, `decision-making-frameworks`
+
+**Predictions (30):**
+1. The signal that says pivot has been in your data for two weeks. You already know.
+2. Someone will ask if you're still committed to the direction. You won't have a clean answer. That is the answer.
+3. The new direction was visible in the old data three months ago. Name it.
+4. A half-pivot is not a strategy. It is a slow drain.
+5. The team is watching you deliberate. They've already picked a side.
+6. Today's customer call will confirm what you already suspect. Let it.
+7. Someone will suggest running both directions for another sprint. That's not a test. That's a delay.
+8. The moment you commit, speed becomes your advantage. The moment before, it's a liability.
+9. You've been holding two directions because both feel risky. That's not balance. That's a stall.
+10. The team member who left last month knew. Find out what they saw.
+11. A smart investor will read your deliberation as confusion. Make sure the public story is clean.
+12. The adjacent opportunity you dismissed at the start is back. Treat it as data, not as a sign.
+13. Someone will say you need more data before deciding. Ask what data would actually change the call.
+14. A team member has been quietly building for the new direction without being asked. Notice it.
+15. Pivot fatigue is real. Decide once and mean it. The team's patience is not infinite.
+16. The inflection you bet on has shifted. That's a market fact, not a failure.
+17. Write down the three signals that would tell you the old direction is done. At least one is already true.
+18. The option you're keeping just in case is not an option. It's a hedge. Name that.
+19. Waiting has a cost that compounds. The exit from the current direction won't be cheaper in three months.
+20. You'll hear 'we're not ready to pivot' today. Ask whether ready is a state or a habit.
+21. The thing you're calling a refinement is a pivot that hasn't been named yet. Name it.
+22. Be honest with yourself first. The team needs the honest version, not the positioned version.
+23. The customer who churned last quarter left a note. Read it.
+24. Someone on the team is building for where you're going next. Let them.
+25. A good pivot keeps something from the old direction. List what stays before you touch what changes.
+26. 'Just one more quarter' has already been said once. Check whether it should be said again.
+27. Today's board update will require you to say where you're going. Make sure the description is true.
+28. The new direction and the old direction are not equally risky right now. Do the math.
+29. A competitor shipped something today that makes the current direction harder to win. That is signal.
+30. The decision you've been postponing has a cost that compounds. Do the math before tomorrow.
+
+**Nudges (20):**
+1. Write down the three signals that would tell you the old direction is done. Check whether any are already true.
+2. Ask one team member: "do you think we should change direction?" Listen without defending.
+3. Pull the last three churned customer notes. Read them for the pattern, not the exceptions.
+4. List what the team keeps if you change direction. That's the minimum to retain. Write it down.
+5. Write the one-sentence description of the new direction. If you can't do it in one sentence, you don't have one yet.
+6. Set a decision date for the direction question. Not a review date. A decision date.
+7. Ask your lead engineer: "what are we actually building right now?" The answer tells you if the team has already decided.
+8. Pull up the last board update. Count how many times you described the direction as "evolving."
+9. Find the team member who has been quietly building for the new direction. Tell them you see it.
+10. Write the cost of six more months in the current direction. Compare it to the cost of cutting now.
+11. Ask an investor or advisor: "does our direction story still make sense?" Listen to what they don't say.
+12. Find the signal the market gave you three months ago that you put aside. Look at it again.
+13. Schedule a conversation with your team lead about direction this week. Not a presentation. A real conversation.
+14. Write what you'd tell a new hire on day one about where you're going. If it's not currently true, fix it.
+15. Before the next all-hands, decide what's in and what's out. The team handles honesty better than ambiguity.
+16. The half-pivot option on the table: write why it's easier than the full one. Then decide if easier is better.
+17. Find the customer who has stayed longest. Ask what they'd need to stay through a direction change.
+18. Block one hour today to think about the direction. No documents, no meetings. Just thinking.
+19. Name the one outside voice whose opinion on this would carry real weight. Call them this week.
+20. Before the end of the week, write the decision. Not the deliberation. The decision.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender opposes your indecision — their conviction about a specific direction puts pressure on the decision you've been deferring"
+- vs #2 Theatre Director: "the Theatre Director trines your deliberation — the ceremonies run on schedule while the pivot decision stalls; notice what the ritual is covering"
+- vs #3 Cornered Resource: "the Cornered Resource opposes your thinking — their structural advantage is either the reason to stay or the thing you'd have to abandon; figure out which before the next planning meeting"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent conjuncts your decision — the customer signal they bring today is the cleanest read you'll get on whether the direction is right; treat it as evidence"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your timing — the person with the original vision is back in the room with opinions; know your position before they announce theirs"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser trines your stall — the room stays calm and nobody pressures you to decide today; that calm is the danger"
+- vs #8 Top-1-Percent: "the Top-1-Percent opposes your hesitation — they'd have decided by now, and you know it; use that as the prompt"
+- vs #9 Saying-No: "the Saying-No conjuncts your edge — their clean no is what you've been calling a maybe; watch how they do it"
+- vs #10 Eval-Forward: "the Eval-Forward squares your window — one more measurement before commitment is offered today; check whether it's a real gate or a delay you agreed to"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your decision point — they'll name the gap in the current direction today, and it may be the reason you've been deferring"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist squares your signal — a user story gets cited as evidence for or against the change; verify whether the underlying interview changed anyone's mind"
 
 ---
 
