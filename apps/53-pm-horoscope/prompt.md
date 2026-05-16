@@ -17,7 +17,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | # | Archetype | Corpus anchor (verified) | Virtue | Pitfall | Content status |
 |---|---|---|---|---|---|
 | 1 | The Bet-Defender | `defending-big-bets.md`, `top-1-percent-pm.md` | Holds the line on a bet under exec pressure | Cargo-cult dissent — saying no to look smart | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 2 | The Theatre Director | `pm-pitfalls.md`, `velocity-core4.md` | Runs the ritual well | Standups as performance art, no real coordination | placeholder |
+| 2 | The Theatre Director | `pm-pitfalls.md`, `velocity-core4.md` | Runs the ritual well | Standups as performance art, no real coordination | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 3 | The Cornered Resource | `seven-powers.md` | Has a real moat | Mistakes "I'm the only one who knows" for a moat | placeholder |
 | 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | placeholder |
 | 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | placeholder |
@@ -107,6 +107,79 @@ Topic files (rotated daily): `defending-big-bets`, `top-1-percent-pm`, `evaluati
 - vs #10 Eval-Forward: "the Eval-Forward squares your clock — one more gate before the cover-fire win ships; negotiate the minimum viable check"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your case — a gap in the strategy gets spotted today; let it happen, then fill it with the sentence you already have"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist squares your evidence — two user calls get cited in the meeting; verify whether anyone changed anything based on them"
+
+### Archetype 2 — The Theatre Director
+
+Corpus anchors: `pm-pitfalls.md`, `velocity-core4.md`
+
+Topic files (rotated daily): `pm-pitfalls`, `velocity-core4`, `spotting-bad-pm-behaviors`, `ship-like-startup`, `prds-and-1-pagers`
+
+**Predictions (30):**
+1. The standup runs exactly on time today. Nothing else runs on time.
+2. Someone will say "let's take that offline" to avoid having the real conversation in the room.
+3. A blocker will be mentioned in standup and forgotten by lunch.
+4. Someone will show up to the planning meeting not knowing the goal for the sprint.
+5. You'll run the retro. The same things as last retro will come up. Nothing will change.
+6. A decision that should have been made on Tuesday will surface in the Friday demo instead.
+7. The throughput numbers look good. Ask what shipped and you'll like the answer less.
+8. Someone will ask where the ticket is. The ticket exists. The work doesn't.
+9. The ritual runs fine. The product is still stuck.
+10. Someone's "status: in review" is going to turn into "status: still in review" by end of week.
+11. Today's standup will have the same three agenda items it had on Monday.
+12. The ceremony ends well. The coordination starts after the ceremony ends.
+13. An engineer will solve a dependency problem you didn't know existed, because nobody said it at standup.
+14. The sprint goal is technically achievable. It is not actually what the team is building.
+15. The meeting will go smoothly. The outcome you needed from it will go unmet.
+16. Someone will loop you in on a decision that got made without the meeting. Good. That's how decisions work.
+17. Ask one team member what this sprint is for. The answer will tell you whether the ritual is landing.
+18. Today's velocity metric looks great. The wrong things are getting done fast.
+19. The PRD exists. The team is building a different thing.
+20. The ticket count is up. The customer-facing impact is unclear.
+21. A status update will substitute for a hard conversation today.
+22. The meeting ran on time. The point was missed.
+23. You will run a great standup and one person will leave it more confused than before.
+24. A dependency the retro surfaced two weeks ago is still blocking something. Find it.
+25. Someone has been waiting three days for a decision. The ceremony didn't catch it.
+26. The planning went well. The sprint is over-committed. Both can be true.
+27. A low-quality deliverable will sail through the ceremony without a flag. Stop it before the demo.
+28. Today's update to leadership will obscure the actual problem. Fix the actual problem instead.
+29. Your ceremonies are the most consistent thing about the team. Use that as a forcing function, not a trophy.
+30. The blocker that matters isn't in the tracker. It's in someone's head. Ask.
+
+**Nudges (20):**
+1. Pull up your blocker list. Pick one. Make one call or send one message to unblock it.
+2. Ask one person on the team today what's actually stopping them. Not in standup, after.
+3. After the next standup, write down the one thing you should have said that nobody said.
+4. Check whether last sprint's retro actions were followed up on. One minute.
+5. Pick one ceremony this week and end it five minutes early by making the decision in the room.
+6. Send the team the sprint goal in one sentence before lunch. If you can't write it in one sentence, the goal is unclear.
+7. Look at your ticket board and find one "in review" item that has been there for more than two days.
+8. Ask the engineer you talk to least what's hard right now. Listen without solving.
+9. Write down what you think the team's top blocker is. Ask one other person. Compare answers.
+10. Before the next planning session, read the last retro notes. Act on one thing.
+11. Find the decision that's been "pending sync" for more than a week. Make it now.
+12. Ask your design partner: "did the standup catch anything useful this week?" The answer is diagnostic.
+13. Look at what shipped last sprint. Write down whether it moved the metric you care about.
+14. Cancel one meeting this week and write the decision in a doc instead.
+15. Take the sprint goal and ask: if we ship all of this, what changes for the customer? If no answer, reconsider the sprint.
+16. Check in with one engineer outside of standup. Just a "how are things?" The ritual doesn't see everything.
+17. Send a one-paragraph async update instead of scheduling a sync. See if the decision happens faster.
+18. Before the weekly status update, ask: what is the one thing leadership needs to hear that I'm not saying?
+19. Write down the coordination that actually happened this week outside the ceremonies.
+20. Review sprint velocity from last quarter. Are you going faster? On what?
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender opposes your agenda today; conviction about a specific win condition puts pressure on whether the meeting is about the right thing"
+- vs #3 Cornered Resource: "the Cornered Resource squares your standup; the person who holds the key context isn't saying it in the room, so ask before the meeting ends"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged trines your rhythm; the ceremony runs while the big decision stays stuck, and that's today's unspoken agenda item"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent conjuncts your table; someone brings actual customer context to the ceremony today, so let it shift the agenda instead of filing it away"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your ritual; a senior presence in the room changes the dynamics, so run the meeting for the decision, not for the room"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser trines your ceremony; the meeting goes well, everyone leaves satisfied, and nothing hard got resolved, so notice that before the next one"
+- vs #8 Top-1-Percent: "the Top-1-Percent opposes your cadence; the high-bar instinct pushes back on the ritual, and the question is whether they say it out loud"
+- vs #9 Saying-No: "the Saying-No squares your agenda; a no that should have ended a project three weeks ago gets raised during the ceremony today, so let it land"
+- vs #10 Eval-Forward: "the Eval-Forward conjuncts your gate; a process requirement gets added to the workflow today, so make sure it produces an outcome, not just a checkbox"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your retrospective; the gap between the sprint and the strategy gets named today, so use it to recalibrate, not to assign blame"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist squares your meeting; someone brings a user story to the standup today, so test whether it changes the plan or just fills the time"
 
 ---
 
