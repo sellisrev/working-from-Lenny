@@ -35,6 +35,7 @@
 - 2026-05-16T10:33Z: Authored 30 predictions + 20 nudges + 11 aspect lines for archetype 2 (The Theatre Director), wired into horoscope.html HOROSCOPE_DATA and updated prompt.md spec; next item: #53 PM Horoscope archetype 3 (The Cornered Resource) predictions + nudges + aspect lines
 - 2026-05-16T16:33Z: Authored 30 predictions + 20 nudges + 11 aspect lines for archetype 3 (The Cornered Resource) anchored in seven-powers.md (Helmer benefit+barrier framing), wired into horoscope.html HOROSCOPE_DATA and updated prompt.md spec; next item: #53 PM Horoscope archetype 4 (The Pivot-Hanged) predictions + nudges + aspect lines
 - 2026-05-16T22:33Z: Authored 30 predictions + 20 nudges + 11 aspect lines for archetype 4 (The Pivot-Hanged) anchored in pivots-art.md (signal-before-panic, speed-after-commitment, half-pivot-as-drain, be-honest-first), wired into horoscope.html HOROSCOPE_DATA and updated prompt.md spec; next item: #53 PM Horoscope archetype 5 (The Customer-Adjacent) predictions + nudges + aspect lines
+- 2026-05-16T10:33Z: Authored 30 predictions + 20 nudges + 11 aspect lines for archetype 5 (The Customer-Adjacent) anchored in continuous-discovery.md (story-based interviewing, workaround discovery, Mom Test layer) and jobs-to-be-done.md (switch interview, job hiring framing, forces model), wired into horoscope.html HOROSCOPE_DATA and updated prompt.md spec; next item: #53 PM Horoscope archetype 6 (The Founder-Mode Returnee) predictions + nudges + aspect lines
 
 ---
 

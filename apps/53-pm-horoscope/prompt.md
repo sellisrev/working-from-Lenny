@@ -20,7 +20,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 2 | The Theatre Director | `pm-pitfalls.md`, `velocity-core4.md` | Runs the ritual well | Standups as performance art, no real coordination | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 3 | The Cornered Resource | `seven-powers.md` | Has a real moat | Mistakes "I'm the only one who knows" for a moat | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | placeholder |
+| 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 6 | The Founder-Mode Returnee | `founder-mode.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | placeholder |
 | 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | placeholder |
 | 8 | The Top-1-Percent | `top-1-percent-pm.md` | Rare quality bar | Martyrdom and burnout, can't trust the team | placeholder |
@@ -326,6 +326,79 @@ Topic files (rotated daily): `pivots-art`, `evaluating-product-bets`, `defending
 - vs #10 Eval-Forward: "the Eval-Forward squares your window — one more measurement before commitment is offered today; check whether it's a real gate or a delay you agreed to"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your decision point — they'll name the gap in the current direction today, and it may be the reason you've been deferring"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist squares your signal — a user story gets cited as evidence for or against the change; verify whether the underlying interview changed anyone's mind"
+
+### Archetype 5 — The Customer-Adjacent
+
+Corpus anchors: `continuous-discovery.md`, `jobs-to-be-done.md`
+
+Topic files (rotated daily): `continuous-discovery`, `jobs-to-be-done`, `opportunity-solution-tree`, `product-sense`, `evaluating-product-bets`
+
+**Predictions (30):**
+1. The Slack quote from the sales call is not a customer interview. You know this.
+2. Someone will forward you a support ticket and call it customer signal. It's one data point. Don't build on it.
+3. You have three customer calls on the calendar. Two will reschedule. Run the one that doesn't.
+4. Today's interview will surface a workaround you had no idea existed. That's the data.
+5. A stakeholder will ask "what are customers saying?" If you haven't talked to one this week, the honest answer is embarrassing.
+6. You'll be tempted to ask "would you use this?" Don't. Ask what they did last time they needed to do that thing.
+7. The customer who seems happiest is the one with the lowest expectations. Check the churned account instead.
+8. Someone will send you a NPS export and call it customer research. The responses are hypothetical. The interviews aren't.
+9. Your product intuition is only as fresh as your last real conversation. When was the last one?
+10. Today a paying customer will tell you something that makes your roadmap look wrong. Let it.
+11. The job the customer is hiring your product for is probably not the job you described in the last strategy doc.
+12. Someone will say "we already know what customers want." Ask when they last ran a story-based interview.
+13. A customer insight that lives in someone's head is not an insight. Write it down with the name, date, and exact quote.
+14. The workaround the customer built is the product you should be making. Find it before a competitor does.
+15. Today's interview will be derailed by a customer who wants to tell you about a competitor. Let them. Listen.
+16. The sales team's notes are not discovery. They are a starting point for discovery. Know the difference.
+17. Someone will propose a feature. Ask: have we heard a specific customer describe the problem this solves? If not, it's a guess.
+18. The customer's answer to "would you pay for this?" is almost always yes. Ask whether they'd switch away from what they use now.
+19. Today is a good day to run a story-based interview instead of reading the analytics.
+20. A customer who says they'd love something is being polite. A customer who describes a broken workaround is giving you product direction.
+21. The job is not "use your product." The job is the thing they're trying to accomplish before they even thought of you.
+22. You have data on what customers click. You don't have data on why. That's what the interview is for.
+23. Someone will conflate customer proximity with customer knowledge. Being close to the account team is not the same thing.
+24. The switch interview question that matters: what made them finally do it? The answer is the actual job.
+25. Today's discovery synthesis is overdue. The interview notes in the doc are not the synthesis.
+26. A customer will describe a competitor doing something you thought was a differentiator. Don't dismiss it.
+27. The feature request you got three times from sales is a symptom. The job is upstream. Find it.
+28. You'll feel pressure to validate the roadmap in the interview. The interview isn't for that.
+29. The customer didn't hire your product because of the feature list. They hired it for one specific job in one specific moment. Do you know which one?
+30. Today your customer calls are the most important meetings on your calendar. Everything else is coordination. This is the signal.
+
+**Nudges (20):**
+1. Schedule one customer interview this week. Not a check-in. A story-based interview about what they were doing before they found your product.
+2. Before your next customer call, write three "tell me about the last time..." questions. Use those, not "would you use this?"
+3. Send one interview recording to an engineer on your team. Ask them to listen for the workaround the customer describes.
+4. Write down the job your product is hired for in one sentence. Then check whether the last three customer interviews support that sentence.
+5. Dig up the notes from your last three discovery interviews. Look for the pattern you filed away and forgot about.
+6. Find the support ticket that's been open the longest. Call the customer who filed it. Ask what they were actually trying to do.
+7. Ask a churned customer for 15 minutes. Ask what they were doing before your product and what they're doing now. Both answers are the real story.
+8. Pull up the last feature request from sales. Write the JTBD version: what job is the customer hiring this feature for?
+9. Before the next sprint planning, attach at least one real customer quote (with context) to each priority item. If you can't, the priority isn't grounded.
+10. Write down the last five things you heard from customers. Note whether you heard them in an interview or from a second-hand source.
+11. Ask one customer: "what were you doing before you had this?" The answer is the workaround you need to beat.
+12. Block 30 minutes on Friday to synthesize this week's interviews. Not just notes. Patterns, contradictions, surprises.
+13. Find one thing a customer said last month that you haven't acted on. Decide whether to act or explicitly decide not to.
+14. Invite an engineer to your next customer interview. The patterns they spot will inform their work longer than any PRD.
+15. Before you write the next spec, write the customer quote that justifies it. If you don't have one, go get one.
+16. Map the customer's old process before your product existed. That map tells you what jobs they hired you for and what jobs you haven't solved yet.
+17. Ask one internal stakeholder: "what do you think the customer's biggest complaint is?" Then ask one customer the same question. Compare.
+18. Find three customers who use your product in a way you didn't design for. That's a job you didn't know you'd been hired for.
+19. Run a Mom Test audit on your last interview notes. Count how many questions were hypothetical. Replace them for the next interview.
+20. Write the forces that pushed the customer away from their old solution and pulled them to yours. If you can't name both, the job is still unclear.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender trines your research today; the customer signal you're sitting on is the strongest argument they have, so hand it over before the review"
+- vs #2 Theatre Director: "the Theatre Director conjuncts your calendar; a ceremony will crowd out the customer interview you were going to run, so protect the slot before the day fills up"
+- vs #3 Cornered Resource: "the Cornered Resource conjuncts your access; the customer data you hold and their structural advantage are aligned today, so make sure both are visible to the same room"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged conjuncts your signal; the customer evidence you have right now is the cleanest read on which direction to go, and they're waiting for it"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your interview notes; the person re-engaging with product has strong opinions about customers today, so ground the conversation in a real quote before it turns into intuition"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser trines your room; the meeting stays calm today, but the customer insight you're sitting on is the one thing that would make it productive"
+- vs #8 Top-1-Percent: "the Top-1-Percent trines your practice; the high-bar instinct aligns with weekly discovery today, so use it to push the team toward more interviews, not fewer"
+- vs #9 Saying-No: "the Saying-No squares your signal; a no that needs to be said today is justified by customer evidence you already have, so cite the interview, not the intuition"
+- vs #10 Eval-Forward: "the Eval-Forward trines your data; the rigor they apply to evals maps well to interview synthesis today, so a joint working session would be unusually productive"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your discovery; someone will challenge whether the customer interviews are connected to the strategy, and the honest answer is to build that connection right now"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist opposes your practice; both did customer research this week, but one of you changed the plan based on it, and today you'll find out which one"
 
 ---
 
