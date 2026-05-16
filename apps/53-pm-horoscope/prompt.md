@@ -18,7 +18,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 |---|---|---|---|---|---|
 | 1 | The Bet-Defender | `defending-big-bets.md`, `top-1-percent-pm.md` | Holds the line on a bet under exec pressure | Cargo-cult dissent — saying no to look smart | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 2 | The Theatre Director | `pm-pitfalls.md`, `velocity-core4.md` | Runs the ritual well | Standups as performance art, no real coordination | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 3 | The Cornered Resource | `seven-powers.md` | Has a real moat | Mistakes "I'm the only one who knows" for a moat | placeholder |
+| 3 | The Cornered Resource | `seven-powers.md` | Has a real moat | Mistakes "I'm the only one who knows" for a moat | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | placeholder |
 | 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | placeholder |
 | 6 | The Founder-Mode Returnee | `founder-mode.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | placeholder |
@@ -180,6 +180,79 @@ Topic files (rotated daily): `pm-pitfalls`, `velocity-core4`, `spotting-bad-pm-b
 - vs #10 Eval-Forward: "the Eval-Forward conjuncts your gate; a process requirement gets added to the workflow today, so make sure it produces an outcome, not just a checkbox"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your retrospective; the gap between the sprint and the strategy gets named today, so use it to recalibrate, not to assign blame"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist squares your meeting; someone brings a user story to the standup today, so test whether it changes the plan or just fills the time"
+
+### Archetype 3 — The Cornered Resource
+
+Corpus anchors: `seven-powers.md`
+
+Topic files (rotated daily): `seven-powers`, `product-strategy`, `evaluating-product-bets`, `distribution-as-moat`, `good-strategy-rumelt`
+
+**Predictions (30):**
+1. Someone will describe your competitive advantage in a meeting today. Listen for what they get wrong.
+2. A competitor will say they have the same capability. Ask them to show you the barrier, not just the benefit.
+3. The thing your team calls the moat may be living in one person's head. That's a key-person risk.
+4. Leadership will ask what's defensible. Have the two-sentence answer ready before the meeting starts.
+5. A new hire will ask why the competitor can't just copy this. Your answer will tell you whether the moat is real.
+6. The most valuable access you have is the part nobody has documented. Fix that today.
+7. Someone will conflate switching costs with genuine exclusivity. Those are different powers.
+8. Today's competitive scan will show a threat to the barrier, not just the benefit. Know which one it is.
+9. The process that makes you fast is the moat, not the output. Protect it accordingly.
+10. A stakeholder will ask for a competitive slide. Make sure it names the structural barrier, not just the capability.
+11. You'll be tempted to keep the critical context in your head. That feels like security. It's the opposite.
+12. The moat narrows when the person who holds the context isn't in the room.
+13. Someone will overstate the durable advantage in a pitch. Accurate is more defensible than impressive.
+14. A partnership agreement is a cornered resource until the renewal date. Check when it expires.
+15. The exclusive access that feels permanent has conditions attached. Find them.
+16. Today someone will describe "we're the best at X" as the moat. Better is not a barrier.
+17. You have the context. The question is whether the product captures it or whether it's just you.
+18. A competitor will announce they've hired someone from your team. Check what that person knew.
+19. Today is a good day to verify the moat still exists. Markets change. So do barriers.
+20. The thing competitors can't copy is the process, not the output. Make sure the team knows which it is.
+21. Someone will ask what would happen if your top person left. The honest answer is the moat test.
+22. A key relationship that feels like a moat is fragile if it's relational rather than contractual.
+23. Leadership will say "what's stopping them from building this?" Your answer needs to be specific.
+24. Today you'll hear "we have all the advantages." Nobody has all seven. Name the one real one.
+25. The competitor who is closest to matching you is two steps behind on the barrier. Widen it.
+26. Someone on the team doesn't understand why what they're building is hard to replicate. Tell them.
+27. The moat you have today had a build time. Protecting it means accounting for that time in every roadmap conversation.
+28. Today's planning conversation will test whether the team is building toward the moat or away from it.
+29. You know something the market doesn't yet. The question is how long that stays true.
+30. The exclusive access is an asset. Undocumented exclusive access is a liability.
+
+**Nudges (20):**
+1. Write the moat in one sentence: benefit, barrier, and why competitors can't cross it. If you need more than one sentence, it's not clear yet.
+2. Find the piece of critical context that lives only in your head. Put it in a doc before end of day.
+3. Run the Helmer test: is your advantage a benefit, a barrier, or both? Name which one is weaker.
+4. Pull up the last competitive review. Has the moat narrowed or widened since then?
+5. Ask your team what they think your biggest competitive advantage is. Compare to what you think.
+6. Name the thing that would take a competitor 18 months to replicate. That's what to protect.
+7. Check whether your exclusive access is contractual, relational, or technical. Each has a different shelf life.
+8. Schedule 30 minutes to map every piece of undocumented knowledge that only one person holds.
+9. Ask someone new to the company: "why do customers not go with the competitor?" The answer is diagnostic.
+10. Write one paragraph on why your exclusive access won't expire in 12 months. If you can't, that's the problem.
+11. Find one process your team runs that competitors can't replicate just by hiring your people away.
+12. If the key advantage is a person, make a plan to institutionalize it into the product or the process.
+13. Verify that the thing you call your moat actually prevents customers from switching, not just slows it.
+14. Before the next strategy review, name the one power you actually have. Not all seven.
+15. Ask one customer why they didn't switch to a competitor. That answer is the real moat map.
+16. Write the sentence that explains your competitive advantage for someone who has never heard of you.
+17. Check the contract or agreement that underlies your most important exclusive relationship. Note the renewal date.
+18. Find the person on the team who holds the most undocumented context. Buy them lunch.
+19. Look at what the closest competitor has shipped in the last 90 days. Are they closer to your barrier?
+20. Before the board meeting, confirm that the moat you're claiming matches what the data actually supports.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender trines your moat; conviction and structural exclusivity reinforce each other today, and the combined case is stronger than either alone"
+- vs #2 Theatre Director: "the Theatre Director squares your context; the ceremony runs but the constraint you hold never surfaces in the room, so say it before the meeting ends"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged opposes your position; indecision about direction threatens to route around the moat you've built, so name the structural advantage before the pivot conversation happens"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent conjuncts your access; the customer knowledge they hold and the exclusive access you have are converging today, so make sure one informs the other"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your moat; the person with the original product vision is forming opinions, and your documented advantage needs to be visible before they start redesigning around it"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser trines your position; the calm room buys space for moat-building, but make sure the calm isn't covering a competitive threat that nobody wants to name"
+- vs #8 Top-1-Percent: "the Top-1-Percent conjuncts your standard; a high bar on defensibility is in play today, so welcome the scrutiny and let it sharpen the moat case rather than avoiding it"
+- vs #9 Saying-No: "the Saying-No opposes your exclusivity; a firm no in the pipeline today may protect or threaten what you have, so figure out which before the decision gets made"
+- vs #10 Eval-Forward: "the Eval-Forward squares your advantage; rigorous testing of moat durability is in play today, so welcome it because the moat either survives or you've found the gap"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your position; non-strategy gets called out today, and your real moat benefits from the cleanup because the gaps become easier to see"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist squares your moat; someone mistakes a customer relationship for a structural advantage today, so verify whether it's actually exclusive or just friendly"
 
 ---
 
