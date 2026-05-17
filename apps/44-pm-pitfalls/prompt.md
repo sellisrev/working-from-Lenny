@@ -20,21 +20,21 @@ Build note: anchors below are best-effort guesses against the corpus. Before loc
 |---|---|---|---|
 | 1 | Letting AI write the spec without owning the judgment behind it | `pm-pitfalls.md`, AI-eval-coverage topic | 3 |
 | 2 | Shipping AI features without an eval set | AI-eval-coverage topic | 3 |
-| 3 | No paying-customer conversation in the last 30 days | `customer-research.md` | 3 |
-| 4 | Conflating roadmap with strategy | `strategy.md`, Rumelt-related topics | 3 |
-| 5 | Stakeholder-pleasing over bet-defending | `pm-pitfalls.md`, `bet-defending.md` | 3 |
+| 3 | No paying-customer conversation in the last 30 days | `continuous-discovery.md` | 3 |
+| 4 | Conflating roadmap with strategy | `product-strategy.md`, `good-strategy-rumelt.md` | 3 |
+| 5 | Stakeholder-pleasing over bet-defending | `pm-pitfalls.md`, `defending-big-bets.md` | 3 |
 | 6 | Not measuring shipped features after launch | `pm-pitfalls.md` | 3 |
-| 7 | OKRs as activity lists ("ship X" instead of "Y users adopt X") | `okrs.md` (or closest) | 3 |
-| 8 | Spending time on the roadmap when the unanswered question is the bet | `bet-defending.md` | 3 |
-| 9 | Theatre standups — status ritual, no real coordination | `pm-pitfalls.md`, `process-vs-outcomes.md` | 2 |
-| 10 | Treating internal stakeholders as customers | `customer-research.md` | 2 |
+| 7 | OKRs as activity lists ("ship X" instead of "Y users adopt X") | `okrs.md` | 3 |
+| 8 | Spending time on the roadmap when the unanswered question is the bet | `defending-big-bets.md` | 3 |
+| 9 | Theatre standups — status ritual, no real coordination | `pm-pitfalls.md`, `velocity-core4.md` | 2 |
+| 10 | Treating internal stakeholders as customers | `continuous-discovery.md` | 2 |
 | 11 | Letting "data-driven" replace a hard judgment call | `pm-pitfalls.md` | 2 |
 | 12 | Confusing consensus with alignment | `spotting-bad-pm-behaviors.md` | 2 |
 | 13 | Avoiding the hard "no" | `saying-no.md` | 2 |
-| 14 | Over-indexing on the loudest customer complaint | `customer-research.md` | 2 |
-| 15 | Velocity as a goal rather than a side effect | `process-vs-outcomes.md` | 2 |
+| 14 | Over-indexing on the loudest customer complaint | `continuous-discovery.md` | 2 |
+| 15 | Velocity as a goal rather than a side effect | `velocity-core4.md` | 2 |
 | 16 | Skipping the "why" in every spec | `pm-pitfalls.md` | 2 |
-| 17 | Not noticing when politics shift around your bet | `bet-defending.md` | 2 |
+| 17 | Not noticing when politics shift around your bet | `defending-big-bets.md` | 2 |
 | 18 | Hiding from the post-mortem when something flops | `spotting-bad-pm-behaviors.md` | 2 |
 | 19 | Hoarding credit from engineers and designers | `spotting-bad-pm-behaviors.md` | 2 |
 | 20 | Confusing being busy with being useful | `top-1-percent-pm.md` | 1 |
