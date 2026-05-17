@@ -168,10 +168,10 @@ Be direct. Don't soften it.
 
 Items the every-2h routine can pick up (Phase 1 content authoring):
 
-- [ ] Author 8–12 "doc-type classifier" exemplars per category (strategy / roadmap / PRD / mixed) for the deterministic router. Drawn from `knowledge/topics/` corpus excerpts where strategy vs roadmap drift is named.
-- [ ] Author ~30 anchor-quote candidates across the four passes, so the LLM can pull from a vetted pool when corpus chunks are sparse.
-- [ ] Cross-check the four-pass anchor files exist in `knowledge/topics/` (`good-strategy-rumelt.md`, `defending-big-bets.md`, etc.). Substitute and log to `UNCERTAIN_DECISIONS.md` if any are missing.
-- [ ] Draft 5–10 sample strategy paragraphs (synthetic, anonymized) covering each `doc_type` category, for golden-set evals once inference is wired.
+- [x] Author 8–12 "doc-type classifier" exemplars per category (strategy / roadmap / PRD / mixed) for the deterministic router. Drawn from `knowledge/topics/` corpus excerpts where strategy vs roadmap drift is named. → 10 exemplars in `authoring.md` (s-01, s-02, r-01, r-02, p-01, p-02, m-01, m-02, m-03).
+- [x] Author ~30 anchor-quote candidates across the four passes, so the LLM can pull from a vetted pool when corpus chunks are sparse. → 30 vetted quotes in `authoring.md`, 7-8 per pass.
+- [x] Cross-check the four-pass anchor files exist in `knowledge/topics/` (`good-strategy-rumelt.md`, `defending-big-bets.md`, etc.). Substitute and log to `UNCERTAIN_DECISIONS.md` if any are missing. → Two missing: `competitive-positioning.md` → `positioning.md`; `business-model-evolution.md` → `seven-powers.md`. Logged.
+- [x] Draft 5–10 sample strategy paragraphs (synthetic, anonymized) covering each `doc_type` category, for golden-set evals once inference is wired. → 8 golden-set paragraphs (2 per doc_type) with expected critique profiles in `authoring.md`.
 
 ## Phase 2 MCP App spec
 
