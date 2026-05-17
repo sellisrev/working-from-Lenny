@@ -218,11 +218,11 @@ Same. No em dashes. Candid. The OKR space is full of platitudes — the critique
 
 ## Autonomous-routine backlog
 
-- [ ] Author 4 worked KR-critique examples per test (16 total), spanning the pass / fail / borderline space, drawn from real OKR patterns in `okrs.md` and `pm-pitfalls.md`.
-- [ ] Author 6 "before/after" rewrite exemplars — bad KR + corrected KR + anchor quote.
-- [ ] Cross-check that `okrs.md`, `goal-setting.md`, `cross-functional-collaboration.md`, and `metrics-for-pms.md` exist in `knowledge/topics/`. Substitute and log if missing.
-- [ ] Author 2 sample OKR sets per stance (orthodox-best, skeptical-best, hybrid-mixed) for golden-set evals.
-- [ ] Verify the corpus actually surfaces the skeptical-OKR view named in 2b. If the corpus is one-sided, document the gap and let the LLM lean on more general framing.
+- [x] Author 4 worked KR-critique examples per test (16 total), spanning the pass / fail / borderline space, drawn from real OKR patterns in `okrs.md` and `pm-pitfalls.md`. → 16 examples (4 per test) in `authoring.md`.
+- [x] Author 6 "before/after" rewrite exemplars — bad KR + corrected KR + anchor quote. → 6 exemplars (ba-01 through ba-06) in `authoring.md`.
+- [x] Cross-check that `okrs.md`, `goal-setting.md`, `cross-functional-collaboration.md`, and `metrics-for-pms.md` exist in `knowledge/topics/`. → `okrs.md` present; 3 missing: `goal-setting.md` → `okrs.md` (covers goal-setting); `cross-functional-collaboration.md` → `getting-buy-in.md`; `metrics-for-pms.md` → `north-star-metric.md`. Logged to UNCERTAIN_DECISIONS.md.
+- [x] Author 2 sample OKR sets per stance (orthodox-best, skeptical-best, hybrid-mixed) for golden-set evals. → 2 sets per stance (6 total: orthodox-good/bad, skeptical-good/bad, hybrid-mixed-01/02) in `authoring.md`.
+- [x] Verify the corpus actually surfaces the skeptical-OKR view named in 2b. → Confirmed: `okrs.md` explicitly covers "OKRs as theater," "cascaded OKRs produce reactive teams," "When NOT to use OKRs." Corpus is not one-sided; skeptical-stance prompts can draw directly on it.
 
 ## Phase 2 MCP App spec
 

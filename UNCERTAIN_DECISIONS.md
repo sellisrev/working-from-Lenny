@@ -51,6 +51,11 @@
 *  *`**Verify with owner:** <specific question>`*
 *  *)*
 
+### 2026-05-17 — #24 OKR Critique anchor substitutions
+**Decision:** Three of four referenced anchor files are missing from `knowledge/topics/`. Substituted: `goal-setting.md` → `okrs.md` (topic slug is "OKRs and goal-setting," covers goal-setting comprehensively); `cross-functional-collaboration.md` → `getting-buy-in.md` (closest file covering cross-functional alignment, shared ownership, and stakeholder agreement); `metrics-for-pms.md` → `north-star-metric.md` (covers measurable metric selection criteria and the "active not aggregate" framing used in Test 2).
+**Why:** All three substitutes are the nearest real corpus file for the intended subject. `okrs.md` is effectively `goal-setting.md` under a different name. `getting-buy-in.md` covers the "does another team have to do something they can't be made to do?" question in Test 3. `north-star-metric.md` provides the measurability criteria used in Test 2.
+**Verify with owner:** Should `goal-setting.md`, `cross-functional-collaboration.md`, and `metrics-for-pms.md` be created as new synthesis files? `cross-functional-collaboration.md` in particular is referenced across multiple apps and might be worth creating as a standalone file synthesizing `getting-buy-in.md`, `communicating-tradeoffs.md`, `reorgs-and-org-design.md`, and related content.
+
 ### 2026-05-15 22:33 UTC — #53 PM Horoscope anchor substitutions (all 12 archetypes cross-checked)
 **Decision:** Original spec listed several topic files that do not exist in `knowledge/topics/`. Substituted with nearest real files: `bet-defending.md` → `defending-big-bets.md`; `process-vs-outcomes.md` → `velocity-core4.md`; `7-powers.md` → `seven-powers.md`; `pivot-stories.md` → `pivots-art.md`; `customer-research.md` → `continuous-discovery.md`; `jtbd.md` → `jobs-to-be-done.md`; "AI eval coverage topics" → `evals-for-ai-products.md`; "Rumelt-related topics" → `good-strategy-rumelt.md`.
 **Why:** All substitutes are the closest real corpus file covering the intended subject matter. Cross-check verified all substitutes are present in `knowledge/topics/`.
