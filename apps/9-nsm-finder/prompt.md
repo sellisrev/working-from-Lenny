@@ -159,11 +159,11 @@ Same as #2. No em dashes, no AI-writing tells, candid.
 
 ## Autonomous-routine backlog
 
-- [ ] Author 3 worked candidate examples per business shape (6 shapes × 3 = 18 candidates total) for the few-shot pattern.
-- [ ] Author 5–10 dashboard-audit exemplars showing metric_name → verdict mapping. Include obvious vanity (page views), partial (signups without retention), and gold (cohort revenue).
-- [ ] Cross-check that `north-star-metric.md`, `activation-metric.md`, and `growth-loops.md` exist in `knowledge/topics/`. Substitute and log if missing.
-- [ ] Verify Sean Ellis, Hila Qu, Andrew Chen corpus presence; substitute named voices to actual corpus authors if not present.
-- [ ] Draft 6–8 synthetic business descriptions (one per business shape) for golden-set evals.
+- [x] Author 3 worked candidate examples per business shape (6 shapes × 3 = 18 candidates total) for the few-shot pattern. → 18 candidates with Pass 1 + Pass 2 critique content in `authoring.md`.
+- [x] Author 5–10 dashboard-audit exemplars showing metric_name → verdict mapping. Include obvious vanity (page views), partial (signups without retention), and gold (cohort revenue). → 10 exemplars in `authoring.md`.
+- [x] Cross-check that `north-star-metric.md`, `activation-metric.md`, and `growth-loops.md` exist in `knowledge/topics/`. → All three confirmed present; no substitutions needed.
+- [x] Verify Sean Ellis, Hila Qu, Andrew Chen corpus presence; substitute named voices to actual corpus authors if not present. → All three confirmed in corpus (Ellis: growth-loops.md + product-led-growth.md; Qu: product-led-marketing.md + bottom-up-saas.md; Chen: growth-loops.md). No substitutions needed.
+- [x] Draft 6–8 synthetic business descriptions (one per business shape) for golden-set evals. → 6 descriptions (one per shape) with expected NSM candidates and likely weak-NSM traps in `authoring.md`.
 
 ## Phase 2 MCP App spec
 
