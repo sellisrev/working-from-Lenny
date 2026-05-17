@@ -24,10 +24,10 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 6 | The Founder-Mode Returnee | `founder-mode.md`, `pm-influence.md`, `decision-making-frameworks.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 8 | The Top-1-Percent | `top-1-percent-pm.md`, `becoming-senior-pm.md`, `pm-influence.md`, `product-sense.md`, `decision-making-frameworks.md` | Rare quality bar | Martyrdom and burnout, can't trust the team | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 9 | The Saying-No | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes | placeholder |
-| 10 | The Eval-Forward | `evals-for-ai-products.md`, `pm-pitfalls.md` | Rigorous about AI feature evals | Blocks shipping with infinite eval requirements | placeholder |
-| 11 | The Strategy-Skeptic | `good-strategy-rumelt.md`, `product-strategy.md` | Spots non-strategy | Diagnoses without proposing alternatives | placeholder |
-| 12 | The Empathy-Tourist | `continuous-discovery.md`, `spotting-bad-pm-behaviors.md` | Does occasional user calls | Treats them as performance, doesn't change behavior | placeholder |
+| 9 | The Saying-No | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
+| 10 | The Eval-Forward | `evals-for-ai-products.md`, `pm-pitfalls.md` | Rigorous about AI feature evals | Blocks shipping with infinite eval requirements | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
+| 11 | The Strategy-Skeptic | `good-strategy-rumelt.md`, `product-strategy.md` | Spots non-strategy | Diagnoses without proposing alternatives | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
+| 12 | The Empathy-Tourist | `continuous-discovery.md`, `spotting-bad-pm-behaviors.md` | Does occasional user calls | Treats them as performance, doesn't change behavior | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 
 Anchor notes (2026-05-15 cross-check): original spec referenced several non-existent topic files. Substitutions made: `bet-defending.md` → `defending-big-bets.md`, `process-vs-outcomes.md` → `velocity-core4.md`, `7-powers.md` → `seven-powers.md`, `pivot-stories.md` → `pivots-art.md`, `customer-research.md` → `continuous-discovery.md`, `jtbd.md` → `jobs-to-be-done.md`, "AI eval coverage topics" → `evals-for-ai-products.md`, "Rumelt-related topics" → `good-strategy-rumelt.md`. All substitutes verified present in `knowledge/topics/`.
 
@@ -618,6 +618,298 @@ Topic files (rotated daily): `top-1-percent-pm`, `becoming-senior-pm`, `pm-influ
 - vs #10 Eval-Forward: "the Eval-Forward trines your bar — their rigor on evals is the kind of deliberate quality instinct you trust; check whether the threshold is serving the user or becoming the decision itself"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your bias — they'll identify what doesn't connect to strategy today with precision; ask for their alternative before you supply your own"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist opposes your practice — they did a customer call this week; the question is whether anything changed in the next decision they made; that's the only metric that matters"
+
+### Archetype 9 — The Saying-No
+
+Corpus anchors: `saying-no.md`
+
+Topic files (rotated daily): `saying-no`, `prioritization-frameworks`, `communicating-tradeoffs`, `getting-buy-in`, `pm-influence`
+
+**Predictions (30):**
+1. Someone will ask you to add something to the list. Your no is the most honest thing you'll say today.
+2. A stakeholder will call the ask small. Run the math on what small takes, anyway.
+3. The yes you're tempted to give this morning has a rationale problem. Write the rationale first.
+4. Someone will accept your no with more grace than you expected. This is what leading with the reason does.
+5. Two competing requests arrive today. Only one aligns with the strategy; that is not a hard call.
+6. The stakeholder who has never heard no from you before is about to. Have the reason ready before you send the message.
+7. An ask that sounds urgent is rarely as urgent as described. Confirm the actual deadline before you decide.
+8. Someone loops in your manager hoping to reverse the no. Your original rationale holds. State it again without apology.
+9. Every yes today is a hidden no to something on the list. Make that explicit before you agree.
+10. A request comes in from sales. The right answer is not automatic.
+11. Today's soft no, "let me look into it," is a debt you'll pay in a harder conversation later.
+12. The word "just" before an ask is a tell. Nothing that starts with "just" is ever just that.
+13. You said yes to something last week you should have said no to. Today is a good day to correct the record.
+14. Someone will say "I thought we agreed." Check whether you agreed or whether you deferred.
+15. The no you're rehearsing needs the rationale in the first sentence, not the third.
+16. Someone on the team is relieved when you say no. They weren't going to say it.
+17. A thoughtful no earns more trust than a reflexive yes. The stakeholder already knows this.
+18. The ask that sounds like a favor is a commitment. Name what it is before you respond.
+19. The right no today is one sentence with a reason, not a hedge.
+20. Two stakeholders are both expecting a yes on incompatible asks. Only one of those is possible.
+21. Someone will push back on your no. The rationale doesn't change because they're unhappy.
+22. The pattern across your last five yeses will tell you what the team thinks your strategy is.
+23. An exec will ask for a quick dashboard. The right answer depends on whether it's diagnostic or decorative.
+24. Today's no protects someone else from having to say it next month.
+25. The request has been on the list twice before. The answer is the same as it was both times.
+26. Someone frames the ask as a customer need. Ask for the specific customer and the specific interview.
+27. Your no will feel uncomfortable to say and comfortable in a week. That ratio is a guide.
+28. The hedge you're about to send is a no that doesn't know it's a no yet.
+29. The ask you're considering is real. So is the capacity it costs. Make both visible before you decide.
+30. Being known for thoughtful no's means your yes lands differently. That's the point.
+
+**Nudges (20):**
+1. Before your next response to a stakeholder ask, write the one-sentence rationale. Then lead with it.
+2. Review the last five things you said yes to. Name the strategic goal each one serves.
+3. Find the thing you said "let me look into it" to last week. Close it today with a real answer.
+4. Write the three things the team must ship this quarter. Everything else is a candidate for no.
+5. Before the next planning sync, identify the one ask you plan to decline. Prepare the rationale.
+6. Find the request that's been "under consideration" for three weeks. Make the call.
+7. Send one no today with a rationale. Note whether the stakeholder asks a follow-up or accepts it.
+8. Count how many open maybes you're carrying. Each one is a conversation you owe.
+9. Before you say "let me check on that," decide whether you already know the answer.
+10. Find the stakeholder who has never heard no from you. Check whether that's by design or avoidance.
+11. Write the cost of the last yes that shouldn't have been: capacity, queue, delay.
+12. Practice the one-sentence no: "We're not doing this in Q3 because [reason]." No softer version.
+13. Check the roadmap for items no one would fight for. Each one is a yes that should have been a no.
+14. Before the next exec ask, check whether you'd say the same thing to all four execs who sent similar requests. Consistency is the test.
+15. Ask your engineering lead what's been pushed back because other asks jumped the queue.
+16. For each request you deferred this week, set a decision date, not a review date.
+17. Find the one stakeholder who respects your no's most. Ask them what makes a no land well.
+18. Write the rationale for a no you need to give this week. Share it with one colleague before you send it.
+19. Before today's planning meeting, write the single thing that cannot move. Everything else is negotiable.
+20. At the end of the day, note how many times you gave a real answer and how many times you deferred. The ratio is diagnostic.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender trines your line today; their conviction on the bet and your no on everything else are pointing at the same thing, so name the shared rationale before someone else frames it as resistance"
+- vs #2 Theatre Director: "the Theatre Director conjuncts your agenda; the ceremony is where your no should have landed two weeks ago, so say it in the room this time rather than after the meeting"
+- vs #3 Cornered Resource: "the Cornered Resource trines your position; protecting the moat and protecting the roadmap are the same argument today, and your no has structural backing if you use it"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged squares your clarity; their maybe and your no are incompatible today, so your clean close is the thing that unsticks the decision"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent conjuncts your rationale; the interview evidence they're holding is the strongest reason for your no, so ask for it before you send the message"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your no; a senior voice is adding weight to an ask you've been ready to decline, and the rationale needs to land before the pressure builds"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser opposes your instinct; two different default responses to the same ask are in the room today, so make sure yours is the one that gets heard"
+- vs #8 Top-1-Percent: "the Top-1-Percent conjuncts your conviction today; their high-bar instinct and your firm no are aligned, so check that you're not together blocking something that actually belongs on the list"
+- vs #10 Eval-Forward: "the Eval-Forward squares your pace; their gate and your no are both slowing the sprint today, so align on which one matters more before the team decides for you"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your case; the diagnosis they're naming today gives your no a structural rationale it didn't have before the meeting"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist squares your close; a customer call gets cited as the reason to keep the ask open, so verify whether the interview actually supports that before you let it change your answer"
+
+### Archetype 10 — The Eval-Forward
+
+Corpus anchors: `evals-for-ai-products.md`, `pm-pitfalls.md`
+
+Topic files (rotated daily): `evals-for-ai-products`, `pm-pitfalls`, `prompt-engineering`, `ai-product-lifecycle`, `ai-pm-skills`
+
+**Predictions (30):**
+1. Someone will want to ship today because the output looks good. Ask when they last read traces.
+2. The eval suite you haven't updated in six weeks is measuring the wrong thing. Check what it's missing.
+3. A PM who vibe-checks three outputs and calls it quality assessment is about to make a call you'll have to undo.
+4. Today's AI feature is one trace-read away from a failure mode nobody has named yet.
+5. Someone will propose an LLM judge before any human has read the outputs. That's backwards.
+6. The block you're holding is real. Make sure the ask is specific: which failure mode, what threshold.
+7. An engineer will ask what "good" looks like. The eval criteria is where that answer lives, not in the PRD.
+8. The vibe check from last week is not the signal you need today. Open the observability tool.
+9. You have three failure-mode categories that need promoting to structured criteria. Do one today.
+10. A stakeholder will say the output is "close enough." Ask close enough to what, exactly.
+11. The eval pass-rate trend from the last 90 days tells you more about this feature than the demo did.
+12. Someone will try to automate the quality check before the open-coding pass is done. Slow it down.
+13. The first upstream failure in the trace is the one to fix. The others are downstream of it.
+14. Today the product quality question and the eval question are the same question.
+15. An exec will ask about quality. "It looks good in testing" is not an answer for a generative product.
+16. The eval that runs on 20 examples is telling you something. The one that runs on 200 is telling you more.
+17. You'll be asked to approve shipping before the last eval run completes. Know your minimum viable check.
+18. A failure mode you saw in last week's traces is about to appear in production. You knew it was there.
+19. Someone will say "we can fix it post-launch." Ask whether this is a reversible or irreversible failure mode.
+20. The criteria you're holding are real. The question is whether all of them are blockers or whether some are nice-to-haves.
+21. Today's trace is more useful than today's meeting. Make sure you know which one you're prioritizing.
+22. An engineer needs the eval criteria before they can finalize the implementation. Write them today.
+23. The LLM judge score looks good. Ask whether it has domain context or whether it's pattern-matching on plausibility.
+24. Someone will propose shipping to a small percentage first. That's fine if you're watching the traces.
+25. The open-coding session you've been putting off is now the blocker. Schedule it today.
+26. A product that ships with no eval baseline has no way to know if it got better or worse after the next change.
+27. Someone mistakes a good demo for a good eval. They're different products of different work.
+28. The hardest part of building evals is the first ten traces. The system gets faster after that.
+29. Your most important quality question isn't on the scorecard. It's in the free-form notes from last week's open-coding pass.
+30. The feature that ships with a baseline eval is the feature you can confidently improve. The one that ships without is a guess.
+
+**Nudges (20):**
+1. Open your observability tool and read five traces today. Not to look for problems, just to read them.
+2. Write free-form notes on the first wrong thing you see in each trace. One note per trace. Move on.
+3. Cluster this week's trace notes into three to five failure-mode categories. Name each one.
+4. Promote the top two failure-mode categories into structured eval criteria. Write the criteria, not just the category name.
+5. Find the eval suite that hasn't been updated in the last four sprints. Check whether the failure modes have changed.
+6. Before you propose an LLM judge for anything, verify that human-labeled examples exist for calibration.
+7. Write the one-sentence version of what "good" means for the feature you're shipping next. Then make it a criterion.
+8. Ask the engineer: "what would a bad output look like for this feature?" Their answer belongs in the eval spec.
+9. Check the pass-rate trend from the last 90 days. If it's flat, the evals may not be measuring the right thing.
+10. Run a spot-check on ten traces with a domain expert. Note the first thing they flag as wrong.
+11. Before the next review, identify which eval criteria are true blockers and which are nice-to-haves. The team needs to know which is which.
+12. Find the eval that's been running set-and-forget for six months. Rerun the open-coding pass.
+13. Ask your team: "if this feature regresses next sprint, how would we know?" The answer is whether you have an eval.
+14. Write the failure mode that scares you most for this feature. If you don't have an eval criterion for it, write one.
+15. Block two hours this week for an open-coding session on last month's production traces.
+16. Before you add an eval requirement to the shipping gate, check whether it's a blocker or a preference.
+17. Find the one place where the LLM judge and human raters most often disagree. That's the gap in the judge's domain context.
+18. Send one trace to a domain expert and ask them to annotate the first thing they'd fix. That annotation is worth five rubric lines.
+19. Review the criteria you blocked a ship on last time. Check whether the threshold was right in retrospect.
+20. Write a one-paragraph summary of the current eval suite for the next planning meeting. If you can't explain it in a paragraph, the team can't use it.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender squares your gate today; their conviction says ship and your eval says not yet, so name the specific criterion that's blocking and negotiate it rather than just holding the line"
+- vs #2 Theatre Director: "the Theatre Director conjuncts your process; a quality gate gets added to the workflow today, so make sure it produces a failure-mode list and not just a sign-off ceremony"
+- vs #3 Cornered Resource: "the Cornered Resource trines your rigor; the moat they're protecting is durability-tested by your evals today, so share the pass-rate trend before the competitive review"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged conjuncts your gate; one more eval pass before commitment is on the table today, so make sure it's resolving real uncertainty and not just extending the delay"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent trines your evidence; interview synthesis and trace analysis are converging on the same failure mode today, so connecting them makes both stronger"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your timeline; the returning instinct says ship faster and your eval work says the quality gap is real, so show the specific failure mode, not just the process"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser trines your gate; a few yeses come off the table today because the evals don't support them, so let the rigor do the closing"
+- vs #8 Top-1-Percent: "the Top-1-Percent trines your standard; two high-quality instincts in the room today, so use the eval results to give their quality intuition a traceable foundation"
+- vs #9 Saying-No: "the Saying-No squares your pace today; two different gates in the sprint and the team needs to know which one is the real blocker, so be specific about what you're holding and why"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your scope; they'll question whether eval rigor belongs in the planning conversation today, so show the link between failure-mode categories and shipping risk, not just the methodology"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist squares your evidence; a user call gets cited alongside the eval results today, so check whether they're pointing at the same failure mode or different ones"
+
+### Archetype 11 — The Strategy-Skeptic
+
+Corpus anchors: `good-strategy-rumelt.md`, `product-strategy.md`
+
+Topic files (rotated daily): `good-strategy-rumelt`, `product-strategy`, `evaluating-product-bets`, `assessing-product-strategy-as-board`, `seven-powers`
+
+**Predictions (30):**
+1. The strategy doc in today's review does not have a diagnosis. It starts with a goal.
+2. Someone will say "our strategy is to be the best at X." That's not a strategy.
+3. A roadmap item will come up that nobody can connect to a goal. The strategy review missed it.
+4. A guiding policy that sounds directional but makes no trade-off is the doc's tell. Find it.
+5. Someone will show a slide with four equally weighted priorities. Rumelt called this out decades ago. It still happens.
+6. The "coherent action" question is the hardest one to answer in today's strategy review. Name it.
+7. Someone will use the word "innovative" without a specific structural barrier in mind. Ask which power it corresponds to.
+8. The diagnosis in the strategy deck is vague. That's where the rest of the strategy comes unstuck.
+9. You can spot the fluff in the first two pages. Your job today is not just to name it but to replace it.
+10. A strategy built on "we're better at X" needs a power behind it. Better is not a power.
+11. The deck describes the market opportunity. It doesn't describe what will prevent a competitor from taking it. That's the gap.
+12. Someone will say "our strategy is customer-centricity." Ask what they're not doing as a result.
+13. The team is building something that made sense under the old diagnosis. The diagnosis has shifted.
+14. Today's planning will produce a roadmap that doesn't connect to the strategy stack. Notice it.
+15. An aspirational statement masquerading as a diagnosis will anchor the whole conversation. Push for the real causal model.
+16. Someone has done the diagnosis. Nobody wrote the guiding policy. That's today's gap.
+17. The most useful thing you can do today is ask "what are we saying no to?" If nobody knows, there's no strategy.
+18. A competitor announcement will be framed as a threat. Ask whether it changes the diagnosis or just the anxiety level.
+19. The strategy review will generate a list of things to add. Your role today is to name what stays off.
+20. Someone will say "this is directional, not prescriptive." That's usually a way of deferring the real call.
+21. Today's strategy conversation needs someone to say the quiet part: the current approach doesn't have a structural barrier.
+22. A plan with six top priorities has zero. Name the one.
+23. The "winning aspiration" in the deck is actually a goal. Ask the Martin question: where will we play?
+24. The roadmap connects to goals. The goals don't connect to the strategy. That's the chain that breaks.
+25. Someone will argue that faster AI iteration has made strategy irrelevant. That's wrong. Faster cycles need clearer diagnosis, not less strategy.
+26. A coherent action is one that makes the others stronger. Find the roadmap item that does that. If you can't, that's the problem.
+27. The strategy has existed for 18 months. The market has moved. Check whether the diagnosis still holds.
+28. A startup will be cited as moving faster. Ask whether it has a structural advantage or just more urgency.
+29. Today is a good day to apply the Helmer screen: which power are you building? None is also an answer, and it's the honest one right now.
+30. The strategy deck is done. The diagnosis is clear. The policy is clear. The coherent actions are not. That's the last mile and the hardest one.
+
+**Nudges (20):**
+1. Read the strategy doc and underline every aspirational statement. Each one is a candidate for replacement with a specific claim.
+2. Write the diagnosis in one sentence: "We are in a situation where [X] because [Y]." If you can't, the strategy is unmoored.
+3. Apply the Rumelt kernel to the current strategy doc: find the diagnosis, guiding policy, and coherent actions. Name the weakest link.
+4. Ask: "what are we not doing because of this strategy?" If nobody can answer, there's no real guiding policy.
+5. Find the one thing in the roadmap that makes all other roadmap items more valuable. That's the coherent action to protect.
+6. Run the 7 Powers screen. Which power does the current strategy build toward? "Better" is not one of them.
+7. Write the competitor move that would most threaten the current strategy. Then check whether the strategy has an answer for it.
+8. Identify one slide in the strategy deck that could be removed without weakening the argument. Remove it.
+9. Apply Roger Martin's question two: "where will we play?" If the answer is everywhere, it's not a strategy.
+10. Ask your team: "what would we stop doing if we took this strategy seriously?" The answers are the real coherent actions.
+11. Find the diagnosis that was written 12 months ago. Check whether the market has moved enough to require a revision.
+12. Write a one-paragraph alternative to the current guiding policy. Not to replace it, but to force yourself to think about what else it could be.
+13. Ask one executive: "what would success look like in 24 months, specifically?" The answer tells you whether they and the strategy agree.
+14. Find the item in the strategy that everyone agreed to without debate. That's the one most likely to be fluff.
+15. Write the strategy in three sentences: diagnosis, guiding policy, three coherent actions. If it takes more, simplify first.
+16. Run the Helmer screen on the competitor you're most worried about. Name which power they're building. That is your actual strategic problem.
+17. Ask: "is what we're proposing a strategy or a list of goals?" If it's goals, write the strategy that connects them.
+18. Find the roadmap item nobody would fight to keep if they had to defend it against the strategy. That item is the tell.
+19. Write the guiding policy in terms of what you will NOT do. That version is usually more useful than the positive framing.
+20. At the end of today's strategy review, write one sentence describing the gap between what was said and what a good strategy requires. Share it with one person.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender trines your analysis today; the bet they're holding is either the coherent action the strategy needs or one that belongs under a different diagnosis, so test it before you challenge it"
+- vs #2 Theatre Director: "the Theatre Director squares your review; the retrospective surfaces a gap between the sprint and the strategy today, so use the ceremony data to ground the diagnosis rather than to assign blame"
+- vs #3 Cornered Resource: "the Cornered Resource trines your position; the moat they're protecting is one of seven powers, and you can name which one today, which is more useful than pointing out what it's not"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged conjuncts your analysis; the decision they're deferring hinges on a diagnosis you can provide today, so name the causal model before they make the wrong call"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent squares your analysis today; the interview synthesis they're holding is either informing the diagnosis or it's disconnected from the strategy, and that's the question worth asking in the room"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee trines your vantage; two people see the strategy from outside the current sprint today, so use that shared view to update the diagnosis before the team locks the quarter"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser squares your review; the roadmap they've assembled is about to face the Rumelt test today, so have the alternatives ready before you name the gaps"
+- vs #8 Top-1-Percent: "the Top-1-Percent squares your audit; they'll spot what doesn't connect to strategy before you say it out loud, so ask for their read before you give yours"
+- vs #9 Saying-No: "the Saying-No trines your case; the guiding policy you're naming today gives their no a structural rationale it didn't have before the meeting, so hand it to them"
+- vs #10 Eval-Forward: "the Eval-Forward squares your scope; the eval methodology is getting pulled into the strategy conversation today, so show how the failure-mode taxonomy connects to the strategic diagnosis, not just the feature"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist conjuncts your analysis today; a user research session gets cited in the strategy review, and the question is whether it's updating the diagnosis or filling airtime"
+
+### Archetype 12 — The Empathy-Tourist
+
+Corpus anchors: `continuous-discovery.md`, `spotting-bad-pm-behaviors.md`
+
+Topic files (rotated daily): `continuous-discovery`, `spotting-bad-pm-behaviors`, `jobs-to-be-done`, `product-sense`, `opportunity-solution-tree`
+
+**Predictions (30):**
+1. You ran three customer calls last week. Name one thing that changed because of them.
+2. Someone will ask what customers think. You have notes. The question is whether the notes changed anything.
+3. Today's interview is on the calendar. The question is whether you'll ask anything that could tell you you're wrong.
+4. A user insight from last month is still in your notes and hasn't touched the roadmap. That's the test.
+5. Someone will ask about customer evidence in the planning meeting. You have it. The question is whether you used it to decide or to justify.
+6. The interview you're about to run has hypothetical questions in it. Replace them before you dial.
+7. You've done more user research than anyone on the team. You've also changed the roadmap the least from it.
+8. A customer told you something uncomfortable last week. It's not in any spec.
+9. Today someone will quote a customer in a meeting. Ask whether that quote changed a decision or supported one already made.
+10. The pattern across your last five interviews is clear. It hasn't shown up in the sprint backlog yet.
+11. Research as performance has a tell: the interview notes are detailed and the product is unchanged.
+12. You will hear a workaround today that tells you what your product is actually used for. File it or act on it. Not both.
+13. A customer will tell you what they wish existed. The better question is what they're doing now in its absence.
+14. Today's calls are on the calendar. Deciding whether to run the call was the easy part.
+15. Someone will describe you as customer-obsessed. Ask them what you changed last quarter based on customer input.
+16. The insight that needs to reach the roadmap is sitting in a document no one else has read.
+17. A stakeholder will ask what customers want. You know. The question is whether you've told the team in a form that changes decisions.
+18. Research that doesn't move anything is a cost, not a practice.
+19. Today's customer call is an opportunity. Whether it counts depends on what you do with it.
+20. Someone on your team is making a decision right now that a call from last month could have informed. They don't know the insight exists.
+21. You have four months of interview notes. The synthesis is overdue.
+22. The product doesn't reflect what customers told you in January. That's not a market problem.
+23. Someone will suggest that you're more customer-connected than any PM they've worked with. The metric is not calls run; it's decisions changed.
+24. A finding you classified as an edge case is about to show up as the main case. Go back and check.
+25. The user story in today's planning is a real quote. It just doesn't have the context that would make it actionable.
+26. Today you'll have the chance to act on something a customer told you. Notice when the chance arrives.
+27. The strongest version of your customer research is the one that someone else reads and acts on. Write that version.
+28. A customer churned. You have their interview notes from four months ago. Read them.
+29. Your next customer call will teach you something. The question is whether you'll learn from it or file it.
+30. The gap between what you know about customers and what the product reflects is the most important number you're not tracking.
+
+**Nudges (20):**
+1. Open your interview notes from last month. Find one insight that hasn't touched the roadmap. Decide today: act or explicitly decline.
+2. Before your next customer call, write two questions that could tell you your current direction is wrong. Ask them.
+3. After your next customer call, write one sentence on the single most important thing you heard. Share it with one other person before end of day.
+4. Find the workaround a customer described in the last 60 days. Ask whether the product addresses it or whether a competitor will.
+5. Write the user story that would justify the top roadmap item. If you need to paraphrase rather than quote, go back to the interview notes.
+6. Count how many of your last ten customer calls led to a specific change in the spec, roadmap, or priority. That number is the practice's output.
+7. Ask one engineer to sit in on your next customer call. Brief them beforehand on what you're listening for.
+8. Before you report "customer feedback supports this direction," name the specific customer, what they said, and what changed as a result.
+9. Find the insight that's been sitting in your notes the longest without being shared. Synthesize it into one paragraph. Send it to the team.
+10. Rewrite the top three roadmap items as job-to-be-done sentences: "When [context], I want to [job], so I can [outcome]." Check whether the roadmap still makes sense.
+11. Run a Mom Test audit on your last interview guide. Count the hypothetical questions. Replace each one with a "tell me about the last time..." version.
+12. Find the customer quote you're most likely to use in the next planning meeting. Ask whether it's being used to decide or to illustrate a decision already made.
+13. Write a one-paragraph synthesis of this month's customer calls. If you can't write it in a paragraph, the synthesis isn't done.
+14. Schedule one customer call with someone who recently churned. Listen without a product pitch.
+15. Before the next sprint planning, pick one customer finding and trace it forward: what would the roadmap look like if you treated this finding as the primary constraint?
+16. Ask your team: "what's something we've learned from customers that surprised us?" If nobody can answer, the research isn't landing.
+17. Pull up your observation notes from the last three calls. Find the contradiction. That's the real finding.
+18. Write the question you're most afraid a customer will answer in a way that challenges the roadmap. Then ask it.
+19. Find one PM habit you've labeled as customer-connected but that no customer has explicitly validated. Test it.
+20. At the end of the week, list every customer insight that led to a change and every one that didn't. The ratio tells you whether you're doing research or performing it.
+
+**Aspect lines (vs each partner):**
+- vs #1 Bet-Defender: "the Bet-Defender squares your evidence today; the bet they're defending and the customer calls you've run are going to be compared in the same room, so check whether your interviews actually support or challenge the bet"
+- vs #2 Theatre Director: "the Theatre Director squares your call; a user story gets introduced in the ceremony today, so name whether it changed the plan or filled the agenda"
+- vs #3 Cornered Resource: "the Cornered Resource trines your access; the customer relationships you have are the raw material of the moat they're building, so check whether your interview notes contain any of the structural insight they need"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged squares your signal; a customer interview gets cited as evidence for or against the change today, so verify whether the quote was from a story-based interview or a leading question"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent opposes your practice; both of you ran customer calls this week, but one of you will walk into planning having changed something because of it, and that's the only distinction that counts"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee conjuncts your timing; both of you are doing user-facing work that could be performative, and the one who acts on what they heard first sets the standard for the week"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser conjuncts your pattern; two PMs keeping the room comfortable today, and both of you have customer evidence that could make it uncomfortable; the one who shares it first wins the week"
+- vs #8 Top-1-Percent: "the Top-1-Percent opposes your practice; they'll ask what changed based on the calls this week, and 'I learned a lot' is not the answer they're looking for"
+- vs #9 Saying-No: "the Saying-No squares your close; a customer call gets cited as the reason to keep the request open today, so check whether the interview actually supports that before you let it extend the decision"
+- vs #10 Eval-Forward: "the Eval-Forward trines your evidence; the trace analysis and the interview notes are pointing at the same failure mode today, and connecting them is worth one hour"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic conjuncts your analysis today; the research session you ran last week is about to get tested in the strategy review, so check whether it updates the diagnosis or just illustrates what you already believed"
 
 ---
 
