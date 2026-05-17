@@ -51,6 +51,11 @@
 *  *`**Verify with owner:** <specific question>`*
 *  *)*
 
+### 2026-05-17 — #47 Mission/Vision Alignment anchor substitutions
+**Decision:** Two of four referenced anchor files are missing. `mission-vision.md` → `mission-vision-strategy.md` (the actual filename in `knowledge/topics/`; covers the same content under the full stack name). `strategy-as-jargon.md` → `pm-pitfalls.md` (the spec explicitly anticipated this substitution). Also: `cross-functional-collaboration.md` (referenced in Pass 3 anchor) → `getting-buy-in.md`, consistent with the substitution logged for #24 OKR Critique.
+**Why:** `mission-vision-strategy.md` is clearly the intended file — the topic slug and display name match "Mission Vision Strategy Goals Roadmap chain." The spec's note "(Likely substitution: `strategy-as-jargon.md` may not exist)" confirmed the pattern before the cross-check ran.
+**Verify with owner:** Should `strategy-as-jargon.md` be created? It could synthesize the corporate-jargon and platitude patterns across `pm-pitfalls.md`, `good-strategy-rumelt.md` (fluff patterns), and any other relevant sources. It would be a useful standalone anchor for both #47 and the broader Phase 1 suite.
+
 ### 2026-05-17 — #24 OKR Critique anchor substitutions
 **Decision:** Three of four referenced anchor files are missing from `knowledge/topics/`. Substituted: `goal-setting.md` → `okrs.md` (topic slug is "OKRs and goal-setting," covers goal-setting comprehensively); `cross-functional-collaboration.md` → `getting-buy-in.md` (closest file covering cross-functional alignment, shared ownership, and stakeholder agreement); `metrics-for-pms.md` → `north-star-metric.md` (covers measurable metric selection criteria and the "active not aggregate" framing used in Test 2).
 **Why:** All three substitutes are the nearest real corpus file for the intended subject. `okrs.md` is effectively `goal-setting.md` under a different name. `getting-buy-in.md` covers the "does another team have to do something they can't be made to do?" question in Test 3. `north-star-metric.md` provides the measurability criteria used in Test 2.

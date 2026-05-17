@@ -184,11 +184,11 @@ Same. No em dashes. The platitude detector cannot itself be platitudinous; the r
 
 ## Autonomous-routine backlog
 
-- [ ] Author 8–10 "platitude → rewrite" pairs across mission, vision, strategy doc types. Each pair: verbatim platitude + the operationalized rewrite + corpus anchor.
-- [ ] Author 4 worked drift-map examples spanning the severity spectrum (none / low / med / high) so the LLM can pattern-match.
-- [ ] Cross-check that `mission-vision.md`, `good-strategy-rumelt.md`, `product-strategy.md`, and `strategy-as-jargon.md` exist in `knowledge/topics/`. Substitute and log if missing. (Likely substitution: `strategy-as-jargon.md` may not exist — fall back to `pm-pitfalls.md` for the corporate-jargon pattern.)
-- [ ] Author 3 synthetic mission/vision/strategy triples (one passing Rumelt cleanly, one borderline, one failing) for golden-set evals.
-- [ ] Author the "vague strategy" fallback copy with 3 specific suggestions for how to rewrite a vague strategy doc (e.g., "name a challenge in one sentence; name three bets; name one observable signal per bet").
+- [x] Author 8–10 "platitude → rewrite" pairs across mission, vision, strategy doc types. → 10 pairs (plat-m-01 through plat-s-04) spanning all three doc types with operationalized rewrites and corpus anchors in `authoring.md`.
+- [x] Author 4 worked drift-map examples spanning the severity spectrum (none / low / med / high) so the LLM can pattern-match. → 4 examples (drift-none-01, drift-low-01, drift-med-01, drift-high-01) with full three-pair analysis in `authoring.md`.
+- [x] Cross-check that `mission-vision.md`, `good-strategy-rumelt.md`, `product-strategy.md`, and `strategy-as-jargon.md` exist in `knowledge/topics/`. → `good-strategy-rumelt.md` and `product-strategy.md` confirmed present. `mission-vision.md` → `mission-vision-strategy.md` (actual filename); `strategy-as-jargon.md` → `pm-pitfalls.md` (as spec predicted). Also: `cross-functional-collaboration.md` (Pass 3) → `getting-buy-in.md`. Three substitutions logged to UNCERTAIN_DECISIONS.md.
+- [x] Author 3 synthetic mission/vision/strategy triples (one passing Rumelt cleanly, one borderline, one failing) for golden-set evals. → 3 triples (golden-mvs-01 through golden-mvs-03) with Rumelt verdicts in `authoring.md`.
+- [x] Author the "vague strategy" fallback copy with 3 specific suggestions for how to rewrite a vague strategy doc. → Fallback copy authored in `authoring.md` with three constraints: name the challenge, name three bets, name one 60-day signal per bet.
 
 ## Phase 2 MCP App spec
 
