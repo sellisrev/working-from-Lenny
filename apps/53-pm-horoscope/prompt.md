@@ -22,7 +22,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 6 | The Founder-Mode Returnee | `founder-mode.md`, `pm-influence.md`, `decision-making-frameworks.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | placeholder |
+| 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 8 | The Top-1-Percent | `top-1-percent-pm.md` | Rare quality bar | Martyrdom and burnout, can't trust the team | placeholder |
 | 9 | The Saying-No | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes | placeholder |
 | 10 | The Eval-Forward | `evals-for-ai-products.md`, `pm-pitfalls.md` | Rigorous about AI feature evals | Blocks shipping with infinite eval requirements | placeholder |
@@ -472,6 +472,79 @@ Topic files (rotated daily): `founder-mode`, `pm-influence`, `decision-making-fr
 - vs #10 Eval-Forward: "the Eval-Forward squares your pace; the rigor on the current feature looks slow from where you're standing, but ask what risk it's guarding before you set a deadline"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your vantage; they spot the strategy gap from inside and you see it from outside; that alignment is rare, so use it before the room moves on"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist conjuncts your timing; both of you are doing user work that risks being performative; the one who changes something based on the calls wins the week"
+
+### Archetype 7 — The Stakeholder-Pleaser
+
+Corpus anchors: `pm-pitfalls.md` (Feature Factory pattern), `saying-no.md`
+
+Topic files (rotated daily): `saying-no`, `pm-pitfalls`, `prioritization-frameworks`, `communicating-tradeoffs`, `getting-buy-in`
+
+**Predictions (30):**
+1. Someone will ask for something that doesn't fit the strategy. You'll say yes. Notice that.
+2. The room leaves satisfied. Ask what hard thing got decided.
+3. A stakeholder will frame the request as urgent. It probably isn't.
+4. Today's yes is tomorrow's missed commitment.
+5. Leadership will ask for a dashboard. Say yes if it's diagnostic. Not if it's decorative.
+6. Every yes commits future capacity. Today's feels free. It isn't.
+7. Someone will leave happy without giving anything up. That's the tell.
+8. The nodding in today's meeting is relief, not consensus. Find the difference.
+9. A polite yes has the same build cost as a strategic yes. The accounting is just slower.
+10. Someone will invoice you for the yes you gave two sprints ago. Pay attention.
+11. A stakeholder who always leaves your meetings happy has never heard the real tradeoff.
+12. Two teams want the same slot. The compromise that makes both 50% happy leaves neither better off.
+13. The calendar is full of syncs with people you said yes to. None of them are the strategy.
+14. Someone will ask you to take something off the roadmap to add the new request. Your answer shouldn't be automatic.
+15. The exec who got what they asked for last quarter is about to ask for something that conflicts with what the other exec got.
+16. A feature that keeps the room happy is not automatically a feature that moves the customer.
+17. Four competing priorities this quarter. They are not all getting done.
+18. A stakeholder will call the ask small. Small asks share the same queue as big ones.
+19. The yes you gave in planning has already been told to a customer by sales.
+20. Someone will ask if you can just squeeze it in. The honest answer is no.
+21. The calm room is a signal. Check whether it's the calm of alignment or the calm of everyone having given up.
+22. A team that never hears no ships everything except the thing that matters.
+23. Two things from last quarter's retro that you said yes to cost more than estimated. That's the pattern.
+24. The product is a list of everything you agreed to. Not a strategy.
+25. A stakeholder conflict landed on your desk. Your job is not to smooth it over. It's to decide.
+26. Today's yes is a promise with a due date. Know what it is.
+27. The most useful word in today's meeting is no. Prepare it before you walk in.
+28. A stakeholder who respects you will respect a reasoned no more than a reflexive yes.
+29. You have the data to say no to this request. Use it.
+30. The room is calm. That's your superpower and your trap. Today, let something be uncomfortable.
+
+**Nudges (20):**
+1. Write down everything you've said yes to this quarter. Beside each item, write whose strategic priority it actually is.
+2. Before you say yes today, ask: what comes off the list if this goes on?
+3. Find the ask that has been in the backlog the longest without moving. Decide if it still matters.
+4. Practice saying "let me think about where this fits" before answering. The pause is not a no. It's a real answer.
+5. Write the one thing the product must ship this quarter. Everything else is secondary.
+6. Send one stakeholder a no with a rationale this week. Note their reaction.
+7. Ask your team: what should we stop building? Their answers are the roadmap cleanup you've been deferring.
+8. For each request you agreed to last week, name the strategic goal it serves. If you can't name one, that's the answer.
+9. Pull up the roadmap. Find one item you added to keep someone happy that has no owner now. Remove it.
+10. Before the next stakeholder sync, prepare one sentence on why their top ask might not make the cut.
+11. The cost of yes is not just the build time. It's the focus, the queue, and the strategy's clarity. Write those three costs down.
+12. Find the one roadmap item nobody would fight for except to avoid conflict. Kill it.
+13. At the end of today, count how many times you said yes. That number is diagnostic.
+14. Before the next planning meeting, write down what you plan to say no to. Then say it.
+15. Ask your engineering lead: what keeps getting delayed because other asks jumped the queue?
+16. Find one feature that shipped because someone asked for it, not because you decided it belonged. Measure whether it moved the metric.
+17. Write the sentence that describes your top priority in one clause. If you can't, you don't have one.
+18. Find the request that has been under consideration for three sprints. Decide today.
+19. Write the rationale for your next no before the meeting starts. Lead with the rationale, not the rejection.
+20. The next time you feel the urge to smooth something over, name the tradeoff out loud first. Once is enough to start the habit.
+
+**Aspect lines (vs each partner archetype):**
+- vs #1 Bet-Defender: "the Bet-Defender opposes your table today — someone is willing to make an uncomfortable call; let them, and don't soften it before it lands"
+- vs #2 Theatre Director: "the Theatre Director trines your meeting — two PMs optimizing for smooth today; ask whether smooth is the same as productive before the next one starts"
+- vs #3 Cornered Resource: "the Cornered Resource squares your roadmap — they're guarding something structural, and your yes is crowding the queue; find out what's getting squeezed before the sprint locks"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged trines your stall — neither of you is deciding today; the question is which of you moves first"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent opposes your list — the customer evidence they brought doesn't support half the items you've agreed to; let it clean the roadmap"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee conjuncts your yes — a senior voice is adding weight to a request you've been soft-yes-ing; today is the day to give it a real answer"
+- vs #8 Top-1-Percent: "the Top-1-Percent opposes your reflex — the high-bar instinct finds your yes-pattern today; use their pushback to say the no you've been holding"
+- vs #9 Saying-No: "the Saying-No conjuncts your moment — the no you've been saving is ready to say; deliver it with the rationale, not the hedge"
+- vs #10 Eval-Forward: "the Eval-Forward trines your list — their rigor clears a few easy yeses off the table today; let it"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your roadmap — they'll name the items that don't connect to strategy; know which ones you're defending before they start"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist conjuncts your pattern — two PMs keeping the room comfortable today; the one who says no first wins the week"
 
 ---
 
