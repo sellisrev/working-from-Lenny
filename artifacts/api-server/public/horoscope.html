@@ -22,6 +22,13 @@
     .horoscope-reading-body { margin: 1.5rem 0 0.5rem; }
     .horoscope-reading-body p { margin: 0 0 0.75rem; line-height: 1.65; }
     .horoscope-reading-topic { font-size: 0.875rem; color: #555; border-left: 3px solid #ccc; padding: 0.6rem 1rem; background: #f7f7f7; margin: 0; }
+    .horoscope-link-btn { background: none; border: none; color: #1a56db; text-decoration: underline; cursor: pointer; padding: 0; font: inherit; }
+    .horoscope-quiz { margin-top: 1.5rem; }
+    .horoscope-quiz-question { margin-bottom: 1.75rem; }
+    .horoscope-quiz-q { font-weight: 600; margin: 0 0 0.75rem; }
+    .horoscope-quiz-options { list-style: none; margin: 0; padding: 0; }
+    .horoscope-quiz-option { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; line-height: 1.4; }
+    .horoscope-quiz-option input { margin-top: 0.2rem; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -39,8 +46,9 @@
 
       <!-- Block 1: Picker (if no archetype yet) -->
       <section class="horoscope-picker" id="horoscope-picker">
-        <p class="horoscope-picker-intro">Pick the archetype that fits you today. Twelve options, all drawn from real corpus patterns.</p>
+        <p class="horoscope-picker-intro">Pick the archetype that fits you today. Twelve options, all drawn from real corpus patterns. Or <button type="button" class="horoscope-link-btn" id="horoscope-quiz-btn">take the six-question quiz</button>.</p>
         <ul class="horoscope-archetype-grid" id="horoscope-archetype-grid"></ul>
+        <div class="horoscope-quiz" id="horoscope-quiz" style="display:none"></div>
       </section>
 
       <!-- Block 1: Reading (if archetype picked) -->
@@ -1000,6 +1008,66 @@
     const STORAGE_KEY = 'wfl-horoscope-archetype';
 
     // ───────────────────────────────────────────────────────────
+    // Six-question archetype quiz
+    // ───────────────────────────────────────────────────────────
+    var QUIZ_QUESTIONS = [
+      {
+        q: "When a senior stakeholder challenges your top roadmap priority, your first move is:",
+        options: [
+          { text: "Restate the rationale calmly — the kill criteria haven't been hit and the bet still holds.", archetype: 1 },
+          { text: "Ask what they'd need to see to feel better about it, then make sure they leave satisfied.", archetype: 7 },
+          { text: "Say you'll look into it and come back with a more complete answer.", archetype: 9 },
+          { text: "Make the call in the room — you've done the analysis and you know the answer.", archetype: 8 }
+        ]
+      },
+      {
+        q: "When a sprint ends, the thing you fixate on is:",
+        options: [
+          { text: "Whether the ceremonies ran on time and the team stayed coordinated.", archetype: 2 },
+          { text: "Whether you ran at least one real customer interview this week.", archetype: 5 },
+          { text: "Whether the work shipped connects to anything you could call a structural strategy.", archetype: 11 },
+          { text: "Whether the AI feature you shipped has a quality baseline anyone could actually measure.", archetype: 10 }
+        ]
+      },
+      {
+        q: "When someone asks about your team's competitive position, you answer with:",
+        options: [
+          { text: "The specific thing competitors would need 18 months to replicate — access, data, or process.", archetype: 3 },
+          { text: "What the original product vision intended and whether the team has drifted from it.", archetype: 6 },
+          { text: "The customer relationships you've built and what you've heard in recent calls.", archetype: 12 },
+          { text: "An honest read on where the current direction is strong and where you're still figuring it out.", archetype: 4 }
+        ]
+      },
+      {
+        q: "In a strategy review, the moment that most energizes you is:",
+        options: [
+          { text: "When someone makes a crisp argument for why a bet is still worth defending.", archetype: 1 },
+          { text: "When the room reaches consensus and people leave aligned.", archetype: 7 },
+          { text: "When someone names the specific barrier that makes the position hard to replicate.", archetype: 3 },
+          { text: "When someone finally says what the strategy is actually saying no to.", archetype: 11 }
+        ]
+      },
+      {
+        q: "Your relationship with customer research is best described as:",
+        options: [
+          { text: "You run the calls, take notes, file the findings — but most of it stays in the doc.", archetype: 12 },
+          { text: "You talk to paying customers every week and the roadmap shows it.", archetype: 5 },
+          { text: "You structure the process well and the team knows the ritual, but insights move slowly into the work.", archetype: 2 },
+          { text: "You've been away from it for a stretch and you're re-engaging now with strong intuitions.", archetype: 6 }
+        ]
+      },
+      {
+        q: "When a ship decision is in front of you and you're not sure, you:",
+        options: [
+          { text: "Ask for one more validation round — you need to know the failure modes before it's live.", archetype: 10 },
+          { text: "Make the call, note the uncertainty, and plan to measure it after launch.", archetype: 8 },
+          { text: "Hold the ship until the case for going is clearly stronger than the case for waiting.", archetype: 9 },
+          { text: "Table it and see if a week of data changes the picture.", archetype: 4 }
+        ]
+      }
+    ];
+
+    // ───────────────────────────────────────────────────────────
     // Build the picker grid
     // ───────────────────────────────────────────────────────────
     function buildPicker() {
@@ -1031,6 +1099,105 @@
         li.appendChild(btn);
         grid.appendChild(li);
       });
+    }
+
+    // ───────────────────────────────────────────────────────────
+    // Quiz: build, toggle, score
+    // ───────────────────────────────────────────────────────────
+    function buildQuiz() {
+      var container = document.getElementById('horoscope-quiz');
+      container.innerHTML = '';
+      var form = document.createElement('form');
+      form.id = 'horoscope-quiz-form';
+
+      QUIZ_QUESTIONS.forEach(function(q, qi) {
+        var block = document.createElement('div');
+        block.className = 'horoscope-quiz-question';
+
+        var qText = document.createElement('p');
+        qText.className = 'horoscope-quiz-q';
+        qText.textContent = (qi + 1) + '. ' + q.q;
+        block.appendChild(qText);
+
+        var optList = document.createElement('ul');
+        optList.className = 'horoscope-quiz-options';
+
+        q.options.forEach(function(opt) {
+          var li = document.createElement('li');
+          var label = document.createElement('label');
+          label.className = 'horoscope-quiz-option';
+
+          var radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'q' + qi;
+          radio.value = String(opt.archetype);
+          radio.required = true;
+
+          label.appendChild(radio);
+          label.appendChild(document.createTextNode(' ' + opt.text));
+          li.appendChild(label);
+          optList.appendChild(li);
+        });
+
+        block.appendChild(optList);
+        form.appendChild(block);
+      });
+
+      var actions = document.createElement('div');
+      actions.style.marginTop = '0.5rem';
+
+      var submitBtn = document.createElement('button');
+      submitBtn.type = 'submit';
+      submitBtn.className = 'horoscope-btn horoscope-btn-primary';
+      submitBtn.textContent = 'find my archetype';
+      actions.appendChild(submitBtn);
+
+      var backBtn = document.createElement('button');
+      backBtn.type = 'button';
+      backBtn.className = 'horoscope-link-btn';
+      backBtn.style.marginLeft = '1.25rem';
+      backBtn.textContent = 'back to picker';
+      backBtn.addEventListener('click', showGrid);
+      actions.appendChild(backBtn);
+
+      form.appendChild(actions);
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        scoreQuiz();
+      });
+
+      container.appendChild(form);
+    }
+
+    function showQuiz() {
+      document.getElementById('horoscope-archetype-grid').style.display = 'none';
+      document.getElementById('horoscope-quiz').style.display = '';
+    }
+
+    function showGrid() {
+      document.getElementById('horoscope-quiz').style.display = 'none';
+      document.getElementById('horoscope-archetype-grid').style.display = '';
+    }
+
+    function scoreQuiz() {
+      var scores = {};
+      ARCHETYPES.forEach(function(a) { scores[a.id] = 0; });
+      QUIZ_QUESTIONS.forEach(function(q, qi) {
+        var checked = document.querySelector('input[name="q' + qi + '"]:checked');
+        if (checked) {
+          var id = parseInt(checked.value, 10);
+          scores[id] = (scores[id] || 0) + 1;
+        }
+      });
+      var winnerId = 1, maxScore = -1;
+      Object.keys(scores).forEach(function(id) {
+        if (scores[id] > maxScore) {
+          maxScore = scores[id];
+          winnerId = parseInt(id, 10);
+        }
+      });
+      pickArchetype(winnerId);
     }
 
     // ───────────────────────────────────────────────────────────
@@ -1183,6 +1350,8 @@
     // Init
     // ───────────────────────────────────────────────────────────
     buildPicker();
+    buildQuiz();
+    document.getElementById('horoscope-quiz-btn').addEventListener('click', showQuiz);
 
     // Allow ?archetype=N&date=YYYY-MM-DD in the URL (shared links)
     function parseUrlArchetype() {
