@@ -23,7 +23,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 6 | The Founder-Mode Returnee | `founder-mode.md`, `pm-influence.md`, `decision-making-frameworks.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 8 | The Top-1-Percent | `top-1-percent-pm.md` | Rare quality bar | Martyrdom and burnout, can't trust the team | placeholder |
+| 8 | The Top-1-Percent | `top-1-percent-pm.md`, `becoming-senior-pm.md`, `pm-influence.md`, `product-sense.md`, `decision-making-frameworks.md` | Rare quality bar | Martyrdom and burnout, can't trust the team | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 9 | The Saying-No | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes | placeholder |
 | 10 | The Eval-Forward | `evals-for-ai-products.md`, `pm-pitfalls.md` | Rigorous about AI feature evals | Blocks shipping with infinite eval requirements | placeholder |
 | 11 | The Strategy-Skeptic | `good-strategy-rumelt.md`, `product-strategy.md` | Spots non-strategy | Diagnoses without proposing alternatives | placeholder |
@@ -545,6 +545,79 @@ Topic files (rotated daily): `saying-no`, `pm-pitfalls`, `prioritization-framewo
 - vs #10 Eval-Forward: "the Eval-Forward trines your list — their rigor clears a few easy yeses off the table today; let it"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your roadmap — they'll name the items that don't connect to strategy; know which ones you're defending before they start"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist conjuncts your pattern — two PMs keeping the room comfortable today; the one who says no first wins the week"
+
+### Archetype 8 — The Top-1-Percent
+
+Corpus anchors: `top-1-percent-pm.md`, `becoming-senior-pm.md`, `pm-influence.md`, `product-sense.md`, `decision-making-frameworks.md`
+
+Topic files (rotated daily): `top-1-percent-pm`, `becoming-senior-pm`, `pm-influence`, `product-sense`, `decision-making-frameworks`
+
+**Predictions (30):**
+1. The call you've been the only one to hold for three months is about to get company. You were right; the team needs to hear that before someone else announces it.
+2. Someone on your team ships something at the standard you've been holding. Acknowledge it visibly. It's rare.
+3. Today you'll do a task that belongs to someone else because you don't trust them yet. That's where the burnout math starts.
+4. A peer will ask how you get things done. The real answer involves decisions you made before they were in the room.
+5. The thing that feels slow is not slow. It's careful. Learn the difference before you override it.
+6. You'll have the answer before the question finishes. Today, wait.
+7. A customer detail you noticed last week turns into the design constraint today. That's not luck.
+8. Cross-functional credibility is today's asset. One specific thing said to engineering will matter more than the spec.
+9. The bias-to-action instinct will push hard this morning. Check first whether the action you're biased toward is the right one.
+10. Someone will do the analysis and get 80% there. The 20% they missed is real. The question is whether you need it before shipping.
+11. A framework will come up in the meeting. The answer exists without it. Use the framework to communicate, not to decide.
+12. Your opinion will form faster than the room's. Slow it down enough to let someone else get there.
+13. The thing that's slowing the team today is not the team. It's the decision that hasn't been made.
+14. A stakeholder wants a roadmap. You want a strategy. Today you have to give them both.
+15. You'll be asked to do something one level below your current scope. Do it if it unblocks the team. Don't do it twice.
+16. The highest leverage thing today is not the work. It's the conversation with the engineer who's about to go down the wrong path.
+17. Someone will update you on progress. The details they leave out are worth asking about.
+18. Your judgment has been right more often than wrong this quarter. Don't let that calcify into certainty about a question you haven't actually examined.
+19. The team ships something you'd have done differently. Before you say anything, ask whether it worked.
+20. You have a clearer picture of the strategy than anyone in the room. The constraint is not your clarity; it's their access to it.
+21. The long-term bet you've been holding is under review. Its strongest argument is the one you haven't said yet.
+22. Today will feel like it was spent on the wrong things. That's often wrong. Check what actually moved.
+23. Someone will escalate the thing you thought you'd resolved. It wasn't resolved; it was deferred. Deal with the actual disagreement.
+24. A decision you thought was closed will reopen. Don't resist the reopening; check whether your original rationale still holds.
+25. A junior PM is watching how you handle the hard call. You may be the mentor without knowing it yet.
+26. You can write the spec faster than the team can. Don't. Ask for it, give feedback, and let the author improve.
+27. The week you felt most productive was not the week you shipped most. Track what you mean by that word.
+28. The room will defer to you faster than you think is useful. Redirect the deference toward whoever has the most context.
+29. Operating one level above your title is a stance, not a job description. Today it shows up in how you frame the tradeoff, not in the title you hold.
+30. Burnout isn't about hours. It's about working on things that don't use you well. Check which this week is.
+
+**Nudges (20):**
+1. Pick one decision this week that belongs to your team, not you. Write it down. Hand it over. Follow up only if asked.
+2. After the next meeting where you had the answer early, write down what you'd have missed if you'd spoken first.
+3. Find the one team member closest to the top-1-percent bar and say it to them directly. They probably don't know.
+4. Name the thing you're doing because nobody else will. Ask whether that's actually true, or whether you haven't trusted the team to find out.
+5. Before you jump into the analysis, ask who on the team would be better positioned to do it. If the answer is no one, that's a gap to fix, not a reason to keep doing it yourself.
+6. Pull up your customer notes from the last two weeks. Find the detail you haven't told anyone yet. Put it into the next relevant conversation.
+7. Write the strategic case for your top priority in four sentences. If any sentence has a framework name instead of a claim, replace it with the claim.
+8. Find the cross-functional relationship that's weakest right now. One specific compliment or question this week will move it more than a sync invite.
+9. Ask a junior PM what they think before you give your take. Then ask yourself whether you actually updated after hearing them.
+10. Check your task list for anything that's been there more than two weeks without moving. Either decide or delete.
+11. At the end of the week, write down the three decisions that mattered most. Were they made by you or by the team?
+12. Find the thing you're holding as a single point of failure. Name the person you'd hand it to if you disappeared tomorrow.
+13. Write down the last time you changed your mind in public. If it's been more than two weeks, you're optimizing for looking right, not being right.
+14. The next time you're tempted to redo something a teammate did, ask whether the difference matters to the customer. If it doesn't, leave it.
+15. Track your energy at the end of each day for a week. The pattern is telling you something about where you're spending it.
+16. Tell one person on your team what you think the highest-leverage thing they could do this week is. Ask if they agree.
+17. Find the decision you've been the only one capable of making for more than one sprint. Fix the knowledge gap that's causing that.
+18. Before the next review, write the one sentence that explains what you're optimizing for. If it sounds like a metric, not a strategy, rewrite it.
+19. Find the last piece of work your team was proud of. If you've already forgotten it, say something now.
+20. Delegate one thing this week that you could do better. Do it on purpose. Notice what happens.
+
+**Aspect lines (11, one per partner archetype):**
+- vs #1 Bet-Defender: "the Bet-Defender trines your bar — their conviction and your quality instinct are aligned today; the meeting where both of you are in the room is the one that produces the real decision"
+- vs #2 Theatre Director: "the Theatre Director opposes your instinct — the ceremony runs where the work needs to be; ask what would happen to the team's coordination if the meeting didn't exist"
+- vs #3 Cornered Resource: "the Cornered Resource conjuncts your standard — their moat is worth scrutinizing today; the question that sharpens the moat is better than the one that protects it"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged opposes your timeline — the decision they're avoiding has a cost that compounded last week; name the cost before you name the direction"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent trines your bar — their weekly discovery practice is the work at the standard; connect the insight they brought to the decision that's stalling"
+- vs #6 Founder-Mode Returnee: "the Founder-Mode Returnee squares your proximity — two high-bar views in the room today, and one belongs to the person who's been closest to the current state; ask before you reassert"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser opposes your pattern — their yes-reflex and your quality bar are pulling in different directions today; name the tradeoff that's getting smoothed over"
+- vs #9 Saying-No: "the Saying-No conjuncts your conviction — two instincts for holding the line today; check that the no you're both protecting isn't covering a yes that actually belongs on the list"
+- vs #10 Eval-Forward: "the Eval-Forward trines your bar — their rigor on evals is the kind of deliberate quality instinct you trust; check whether the threshold is serving the user or becoming the decision itself"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your bias — they'll identify what doesn't connect to strategy today with precision; ask for their alternative before you supply your own"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist opposes your practice — they did a customer call this week; the question is whether anything changed in the next decision they made; that's the only metric that matters"
 
 ---
 
