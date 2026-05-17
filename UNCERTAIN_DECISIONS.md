@@ -8,15 +8,14 @@
 
 **Routine:** remote scheduled agent via `/schedule` (runs on Anthropic's cloud, not on the owner's machine — no local Claude Code session needed).
 
-- Cron expression: `33 4,10,16,22 * * *` (UTC)
-- Fires 4×/day at: `04:33`, `10:33`, `16:33`, `22:33` UTC
-- Local equivalents (Europe/Berlin CEST = UTC+2): `06:33`, `12:33`, `18:33`, `00:33`
-- First run: ~`2026-05-14T10:33Z` (`12:33 local`)
-- Total runs over 4 days: ~16
+- Cron expression: `33 */2 * * *` (UTC) — **updated 2026-05-17 ~18:28 UTC** (was `33 4,10,16,22 * * *`, every 6h)
+- Fires every 2 hours at minute :33 (12×/day)
 - Model: `claude-sonnet-4-6`
 - Allowed tools: `Bash`, `Read`, `Write`, `Edit`, `Glob`, `Grep`
 
-**To disable after 4 days** (manual, no auto-expiry): https://claude.ai/code/routines. Target disable: any time after `2026-05-17T22:33Z` (the 16th run).
+**Scope change (same update 2026-05-17):** the prompt no longer caps each run to one logical commit. Runs now chain multiple batches and only exit on the 45-min time stop, full-backlog completion, or a genuine blocker. Reason: cadence + per-run cap together were producing ~one chunk per 6h, much slower than the work could move.
+
+**To disable** (manual, no auto-expiry): https://claude.ai/code/routines.
 
 **Prerequisite:** GitHub auth must be connected for the remote agent (the repo is private). The owner needs to either run `/web-setup` in Claude Code or install the Claude GitHub App on `sellisrev/lenny-actualize` before the first run at `12:33 local`. Without this, the routine fires but the agent fails at `git clone`.
 
