@@ -21,7 +21,7 @@ Each grounded in a real corpus pattern. Each has one **virtue** and one **pitfal
 | 3 | The Cornered Resource | `seven-powers.md` | Has a real moat | Mistakes "I'm the only one who knows" for a moat | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 4 | The Pivot-Hanged | `pivots-art.md` | Adaptive, learns fast | Hangs in indecision, can't commit to the new direction | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 5 | The Customer-Adjacent | `continuous-discovery.md`, `jobs-to-be-done.md` | Talks to paying customers weekly | Confuses sales Slack quotes for "talked to the customer" | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
-| 6 | The Founder-Mode Returnee | `founder-mode.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | placeholder |
+| 6 | The Founder-Mode Returnee | `founder-mode.md`, `pm-influence.md`, `decision-making-frameworks.md` | Steps back into product after a stretch away | Re-overrides the team's hard-won judgment in week one | **authored** (30 predictions, 20 nudges, 11 aspect lines) |
 | 7 | The Stakeholder-Pleaser | `pm-pitfalls.md`, `saying-no.md` | Keeps the room calm | Ships nothing controversial enough to matter | placeholder |
 | 8 | The Top-1-Percent | `top-1-percent-pm.md` | Rare quality bar | Martyrdom and burnout, can't trust the team | placeholder |
 | 9 | The Saying-No | `saying-no.md` | Holds the line | Hedges to "let me check" and never closes | placeholder |
@@ -399,6 +399,79 @@ Topic files (rotated daily): `continuous-discovery`, `jobs-to-be-done`, `opportu
 - vs #10 Eval-Forward: "the Eval-Forward trines your data; the rigor they apply to evals maps well to interview synthesis today, so a joint working session would be unusually productive"
 - vs #11 Strategy-Skeptic: "the Strategy-Skeptic squares your discovery; someone will challenge whether the customer interviews are connected to the strategy, and the honest answer is to build that connection right now"
 - vs #12 Empathy-Tourist: "the Empathy-Tourist opposes your practice; both did customer research this week, but one of you changed the plan based on it, and today you'll find out which one"
+
+### Archetype 6 — The Founder-Mode Returnee
+
+Corpus anchors: `founder-mode.md`, `pm-influence.md`, `decision-making-frameworks.md`, `spotting-bad-pm-behaviors.md`
+
+Topic files (rotated daily): `founder-mode`, `pm-influence`, `decision-making-frameworks`, `spotting-bad-pm-behaviors`, `defending-big-bets`
+
+**Predictions (30):**
+1. You have a strong opinion about something you haven't seen the current data on. Read the data first.
+2. Someone on the team made a call last quarter you would have made differently. Ask why before you say so.
+3. What you remember as the real problem is probably not the real problem anymore. Confirm before the meeting.
+4. Today's retro will surface a decision that was debated and made while you were away. You weren't in the room. Own that.
+5. Your week-one instinct is to fix three things. Pick one. Let the others breathe.
+6. The team's roadmap has two or three things that feel off to you. Spend a week understanding why they're there before you touch them.
+7. Someone will present work they're proud of. Your job today is to understand why, not to correct it.
+8. A decision that looks wrong from the outside looks different once you know the full context. Get the context first.
+9. You will be tempted to call the old approach 'just simpler.' It was, for a team that didn't know what they know now.
+10. The engineer who says 'we tried that' is not being defensive. Ask what they tried and what broke.
+11. Today your best contribution is a question, not a direction.
+12. You will walk out of a meeting with a clear view of what should change. Write it down and wait 48 hours.
+13. Someone has been protecting a decision since before you returned. Before you challenge it, understand what they were protecting against.
+14. The team's tooling choices look unfamiliar. The switching cost is higher than it appears right now.
+15. Your old customer intel is stale. Run a customer call before you act on your returning intuition.
+16. A newer PM on the team is watching to see whether you override their judgment in week one. They will remember what they see.
+17. Today the best signal about the team's health is whether they push back on your returning instincts with evidence. If they don't, that is the real problem.
+18. The feature you would have shipped six months ago is one the team considered and held back for a reason. Find the reason.
+19. You will trust your gut more than the data today. Your gut is not current. The data is.
+20. Someone made a hard call under pressure while you were away. Acknowledge it before you critique the outcome.
+21. The thing that felt slow from the outside looks different once you are inside the current sprint.
+22. Your instinct to 'just ship a quick version' is about to collide with a technical constraint the team spent weeks working around. Ask first.
+23. The sprint goal was set before you had context. Don't change it this sprint. Earn the influence to shape the next one.
+24. A junior team member will push back on your returning instinct. They might be right. Check before you close it off.
+25. Your strongest move today is to sit in on one full meeting without offering your opinion.
+26. The org shipped things while you were away. Know what shipped and why before you recalibrate strategy.
+27. Someone rebuilt a process you designed. They had a reason. Probably a good one.
+28. The first week back is the worst week to make structural product decisions.
+29. Your historical conviction about this product is an asset. But it is not current signal. Treat it like a hypothesis until you can verify it.
+30. Today someone will quietly watch whether you're back to listen or back to lead. Make the answer obvious by listening.
+
+**Nudges (20):**
+1. Block one hour today to read the most recent discovery synthesis from start to finish before commenting on anything.
+2. Write down the three biggest things that have changed since you stepped away. Then write down what you still don't know.
+3. Ask one engineer: 'what's the hardest call the team made in the last six months?' Listen without correcting.
+4. List your top three returning instincts. Mark each one: hypothesis (needs checking) or fact (you have current evidence for this).
+5. Find the last two product decisions made without you. Read the notes. Ask one follow-up question for each, not two.
+6. Before you change anything this week, ask who made that call and why. Write the answer down.
+7. Find the one team member most likely to be straight with you. Ask them: 'what's the thing I need to understand before I start making calls here?'
+8. Run one discovery call with a current paying customer before you act on any returning intuition.
+9. Sit in on a sprint review without offering opinions. Just watch and listen.
+10. Write the three things you would change immediately if you could. Put the list away for five days. Review on day six.
+11. Schedule a 1:1 with whoever held the product together while you were away. Let them tell you what they learned. Don't give your verdict until the third conversation.
+12. Before you move a roadmap item, ask: 'what was the reasoning that put this here?' The answer tells you what you're actually dealing with.
+13. Send a short note to the team explaining how you plan to re-engage. Be specific about what you are there to do and what you are not there to do.
+14. Find one thing the team did well while you were away. Say it out loud. Name the person who did it.
+15. Check your first five messages back to the team. Were they questions or answers? The ratio is diagnostic.
+16. Ask design: 'what customer problem guided the last two features?' If you don't know the answer before they tell you, you're not ready to change priorities.
+17. Wait 30 days before changing anything structural about the team. Let the seams show before you decide what to cut.
+18. When you feel the urge to say 'when I was running this,' stop. Ask instead: 'what happened after that?'
+19. Write down one decision the team made while you were away that you would have made differently and that you now think they got right. That's the calibration you need.
+20. At the end of the first week, ask yourself: did I add context or did I add confusion? Answer honestly.
+
+**Aspect lines (11, one per partner archetype):**
+- vs #1 Bet-Defender: "the Bet-Defender trines your return; their conviction on the current bet is grounded in evidence you don't have yet, so ask for the case before you form a view"
+- vs #2 Theatre Director: "the Theatre Director squares your re-entry; the ceremony will look like overhead to you today, but resist cutting it before you understand what coordination problem it's solving"
+- vs #3 Cornered Resource: "the Cornered Resource trines your instinct; the moat they've built looks intuitive, but the details are theirs; understand the moat before you start optimizing it"
+- vs #4 Pivot-Hanged: "the Pivot-Hanged squares your timeline; their indecision has been building and the pressure on you to call a direction is real, but your day-three read is still incomplete"
+- vs #5 Customer-Adjacent: "the Customer-Adjacent conjuncts your gap; their recent customer interviews hold context your pre-departure intuition doesn't, so ask for the synthesis before you bring your own"
+- vs #7 Stakeholder-Pleaser: "the Stakeholder-Pleaser conjuncts your presence; two people in today's room are managing upward, so make sure neither of them is managing you before you've heard the team out"
+- vs #8 Top-1-Percent: "the Top-1-Percent squares your authority; two high-bar instincts in the room today, and one belongs to someone who's been closer to the problem; treat it as collaboration, not competition"
+- vs #9 Saying-No: "the Saying-No trines your return; the no they've been holding has history behind it, and if you override it in week one, the next no becomes more expensive for everyone"
+- vs #10 Eval-Forward: "the Eval-Forward squares your pace; the rigor on the current feature looks slow from where you're standing, but ask what risk it's guarding before you set a deadline"
+- vs #11 Strategy-Skeptic: "the Strategy-Skeptic trines your vantage; they spot the strategy gap from inside and you see it from outside; that alignment is rare, so use it before the room moves on"
+- vs #12 Empathy-Tourist: "the Empathy-Tourist conjuncts your timing; both of you are doing user work that risks being performative; the one who changes something based on the calls wins the week"
 
 ---
 
