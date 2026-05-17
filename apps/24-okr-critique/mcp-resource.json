@@ -1,0 +1,133 @@
+{
+  "_comment": "MCP resource spec for #24 OKR Critique. Phase 2 .mcpb bundle target. Draft 2026-05-17.",
+  "_app": {
+    "id": 24,
+    "name": "OKR Critique",
+    "phase": 2,
+    "type": "paste + LLM critique with stance picker"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/okr-critique",
+    "name": "OKR Critique",
+    "description": "Paste draft OKRs. Returns four-test critique per KR (outcome-vs-activity, measurable, single-team-fit, too-many), stance-specific synthesis, and a rewritten set.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "okr_parse",
+      "description": "Deterministic. Extracts objectives and key results from free-form pasted text. Returns structured form for downstream critique.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "okr_text": { "type": "string", "minLength": 100, "maxLength": 3000 }
+        },
+        "required": ["okr_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "objectives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": { "type": "string" },
+                "key_results": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "parsing_confidence": { "type": "string", "enum": ["low", "med", "high"] }
+        }
+      }
+    },
+    {
+      "name": "okr_critique",
+      "description": "LLM-narrated. Runs four-test critique per KR (outcome-vs-activity, measurable, single-team-fit, too-many), produces per-KR diagnosis + rewrite + anchor.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objectives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": { "type": "string" },
+                "key_results": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "stance": { "type": "string", "enum": ["orthodox", "skeptical", "hybrid"] },
+          "level": { "type": "string", "enum": ["team", "org"] }
+        },
+        "required": ["objectives", "stance"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "per_objective": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "objective_text": { "type": "string" },
+                "too_many": { "type": "string", "enum": ["pass", "fail"] },
+                "key_results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "kr_text": { "type": "string" },
+                      "verdicts": { "type": "object" },
+                      "diagnosis": { "type": "string" },
+                      "rewrite": { "type": ["string", "null"] },
+                      "anchor_quote": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "stance_synthesis": { "type": "string" },
+          "rewritten_okrs": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okr_org_coherence",
+      "description": "LLM-narrated. Org-level cross-team coherence check across multiple objectives. Surfaces internal contradictions and KR-ownership ambiguity.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "objectives": { "type": "array" }
+        },
+        "required": ["objectives"]
+      },
+      "_phase_note": "Available in both web and MCP versions, but only triggered when level == 'org'."
+    },
+    {
+      "name": "okr_mortality",
+      "description": "MCP-only (stateful). Ingests actual quarterly outcomes after the fact. Surfaces which OKRs were rewritten mid-quarter vs achieved as-stated. Pattern: high mid-quarter rewrites = theatre.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "quarter": { "type": "string" },
+          "outcomes": { "type": "array" }
+        },
+        "required": ["user_id", "quarter", "outcomes"]
+      },
+      "_phase_note": "Web version does not expose this. Mortality analysis requires persisted prior OKRs + outcomes, which is .mcpb scope."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 720,
+    "preferredHeight": 900
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Org-level coherence: what's the right max-objectives input cap? More than 8 starts to read as 'we're doing too many things' rather than a coherence problem.",
+    "okr_mortality: should the tool prompt the user for outcomes per KR, or pull from connected analytics? Latter is a hard dependency.",
+    "Should the four-test verdicts be configurable (some teams reject 'too-many' as a test) or locked? Locked is simpler; configurable is closer to how teams actually argue about OKRs."
+  ]
+}

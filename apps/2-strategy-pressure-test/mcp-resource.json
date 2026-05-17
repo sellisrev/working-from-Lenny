@@ -1,0 +1,109 @@
+{
+  "_comment": "MCP resource spec for #2 Strategy Pressure-Tester. Phase 2 .mcpb bundle target. The lenny-pressure-test skill in this repo is the engine reference. Draft 2026-05-17 — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
+  "_app": {
+    "id": 2,
+    "name": "Strategy Pressure-Tester",
+    "phase": 2,
+    "type": "paste + LLM critique"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/pressure-test",
+    "name": "Strategy Pressure-Tester",
+    "description": "Paste a strategy doc, PRD, or roadmap. Returns the five strongest objections a smart skeptic would raise (Rumelt-style diagnosis, missing tradeoffs, untested assumptions, six-month stress scenario), each anchored to the Lenny corpus.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "strategy_classify",
+      "description": "Deterministic. Classifies the input as strategy / roadmap / prd / mixed so downstream critique uses the right vocabulary.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategy_text": { "type": "string", "minLength": 200, "maxLength": 4000 }
+        },
+        "required": ["strategy_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "doc_type": { "type": "string", "enum": ["strategy", "roadmap", "prd", "mixed"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "signals": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Short reasons for the classification (e.g., 'no named challenge', 'features-by-quarter pattern')."
+          }
+        }
+      }
+    },
+    {
+      "name": "strategy_critique",
+      "description": "LLM-narrated. Runs the four-pass critique (Rumelt diagnosis, missing tradeoffs, untested assumptions, six-month stress scenario) and returns five objection cards.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategy_text": { "type": "string", "minLength": 200, "maxLength": 4000 },
+          "doc_type": { "type": "string", "enum": ["strategy", "roadmap", "prd", "mixed"] },
+          "user_context": { "type": "string", "maxLength": 400 }
+        },
+        "required": ["strategy_text", "doc_type"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "objections": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "diagnosis": { "type": "string" },
+                "anchor_topic": { "type": "string" },
+                "anchor_quote": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "strategy_rehearse",
+      "description": "LLM-narrated. Multi-turn rehearsal of the counter to one chosen objection. Skeptic pushes back; user argues; ends with the strategy variant that survives.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategy_text": { "type": "string" },
+          "chosen_objection_index": { "type": "integer", "minimum": 0, "maximum": 5 },
+          "user_counter": { "type": "string", "minLength": 20, "maxLength": 2000 }
+        },
+        "required": ["strategy_text", "chosen_objection_index", "user_counter"]
+      }
+    },
+    {
+      "name": "strategy_calibration",
+      "description": "MCP-only (stateful). Compares the current critique against the prior critique for the same user. Surfaces assumptions that resolved, tradeoffs the user actually made, and the next-quarter stress scenario.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "current_critique_id": { "type": "string" }
+        },
+        "required": ["user_id", "current_critique_id"]
+      },
+      "_phase_note": "Web version does not expose this tool. Calibration requires persisted prior critiques, which is .mcpb data-dir scope."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 720,
+    "preferredHeight": 900
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Confirm tool composition pattern (classify → critique → rehearse) matches MCP-Apps recommended flow.",
+    "Decide whether strategy_text should be stored hashed for calibration, or only the critique summary. Privacy posture in plan says default-off retention.",
+    "Engine sharing: should strategy_critique tool import directly from lenny-pressure-test skill, or duplicate the corpus-routing logic for .mcpb portability?"
+  ]
+}

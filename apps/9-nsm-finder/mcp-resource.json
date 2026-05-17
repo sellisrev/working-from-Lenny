@@ -1,0 +1,125 @@
+{
+  "_comment": "MCP resource spec for #9 North Star Metric Finder. Phase 2 .mcpb bundle target. Draft 2026-05-17.",
+  "_app": {
+    "id": 9,
+    "name": "North Star Metric Finder",
+    "phase": 2,
+    "type": "wizard + LLM-narrated candidate critique"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/nsm-finder",
+    "name": "North Star Metric Finder",
+    "description": "Four-step wizard returns three candidate North Star metrics with arguments for and against, vanity-risk analysis, leading-vs-lagging, gameability, and an input-metric tree per candidate.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "nsm_candidates",
+      "description": "LLM-narrated. Generates three candidate NSMs given structured wizard inputs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_shape": {
+            "type": "string",
+            "enum": ["B2C-subscription", "B2C-transactional", "B2B-PLG", "B2B-sales-led", "marketplace", "prosumer"]
+          },
+          "business_unusual": { "type": "string", "maxLength": 200 },
+          "primary_user_action": { "type": "string", "maxLength": 200 },
+          "monetization": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["pay-per-use", "subscription", "freemium-to-paid", "seat-based", "consumption-based", "ad-supported", "other"] }
+          },
+          "revenue_band": { "type": "string", "enum": ["pre-revenue", "$0-100k", "$100k-1M", "$1M-10M", "$10M-100M", "$100M+"] },
+          "friction_top": { "type": "string", "maxLength": 200 },
+          "stage": { "type": "string", "enum": ["pre-PMF", "early-PMF", "scaling", "mature"] }
+        },
+        "required": ["business_shape", "primary_user_action", "monetization", "stage"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "rationale": { "type": "string" },
+                "vanity_risk": { "type": "string" },
+                "leading_or_lagging": { "type": "string" },
+                "gameability": { "type": "string" },
+                "what_could_break_this": { "type": "string" },
+                "input_metrics": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 5,
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "nsm_dashboard_audit",
+      "description": "LLM-narrated. For each metric in the user's pasted dashboard, labels it closest-to-NSM, useful-input, or vanity-replace, with a one-line reason.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dashboard_metrics": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "maxItems": 40
+          },
+          "business_shape": { "type": "string" },
+          "stage": { "type": "string" }
+        },
+        "required": ["dashboard_metrics", "business_shape"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "verdicts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "metric_name": { "type": "string" },
+                "verdict": { "type": "string", "enum": ["closest-to-NSM", "useful-input", "vanity-replace"] },
+                "one_line_why": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "nsm_calibration",
+      "description": "MCP-only (stateful). Compares the user's chosen NSM against where it sits now. Has it moved? Has it surfaced the failure mode it was supposed to surface?",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "current_nsm_value": { "type": "number" }
+        },
+        "required": ["user_id", "current_nsm_value"]
+      },
+      "_phase_note": "Web version does not expose this tool. Calibration requires persisted prior picks + current value, which is .mcpb scope."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 720,
+    "preferredHeight": 900
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Should the input_metrics tree share a schema with #37 Activation Metric Finder so the two apps interoperate, or stay independent?",
+    "Dashboard audit: how to handle dashboards >40 metrics gracefully? Truncate with a 'audit the top 40' notice, or batch?",
+    "Calibration tool: who provides the current_nsm_value — pulled from a connected analytics tool, or user-entered? Latter is .mcpb-scope by default."
+  ]
+}

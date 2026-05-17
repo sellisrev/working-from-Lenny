@@ -1,0 +1,136 @@
+{
+  "_comment": "MCP resource spec for #6 AI Eval Coverage Scorecard. Phase 2 .mcpb bundle target. Draft 2026-05-17 — owner to validate.",
+  "_app": {
+    "id": 6,
+    "name": "AI Eval Coverage Scorecard",
+    "phase": 2,
+    "type": "wizard + LLM-generated eval starter set"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/eval-coverage",
+    "name": "AI Eval Coverage Scorecard",
+    "description": "Describe an AI feature in three sentences. Returns coverage status across seven eval categories (correctness, refusal, latency, hallucination, jailbreak, regression, drift) with starter eval prompts for the gaps.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "eval_coverage_classify",
+      "description": "LLM-narrated. Classifies the user's feature description across the seven eval categories. Returns covered/partial/missing per category with one-sentence reasoning.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_one_liner": { "type": "string", "maxLength": 200 },
+          "audience": { "type": "string", "maxLength": 200 },
+          "failure_modes": { "type": "string", "maxLength": 300 }
+        },
+        "required": ["feature_one_liner", "audience", "failure_modes"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "minItems": 7,
+            "maxItems": 7,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "status": { "type": "string", "enum": ["covered", "partial", "missing"] },
+                "reasoning": { "type": "string" },
+                "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "eval_coverage_score",
+      "description": "Deterministic. Computes the coverage score 0-100 from category classifications.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "enum": ["covered", "partial", "missing"] }
+              }
+            }
+          }
+        },
+        "required": ["categories"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+        }
+      }
+    },
+    {
+      "name": "eval_coverage_starter_set",
+      "description": "LLM-narrated. Generates 2-3 starter eval prompts per missing or partial category. Returns a JSON export ready to ingest into Braintrust, LangSmith, or a plain harness.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_one_liner": { "type": "string" },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "status": { "type": "string", "enum": ["covered", "partial", "missing"] }
+              }
+            }
+          }
+        },
+        "required": ["feature_one_liner", "categories"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "starter_evals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category": { "type": "string" },
+                "prompt_template": { "type": "string" },
+                "expected_signal": { "type": "string" },
+                "failure_mode": { "type": "string" },
+                "corpus_anchor": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "eval_coverage_portfolio_view",
+      "description": "MCP-only (stateful). Aggregates scorecards across multiple features the user has scored. Surfaces patterns ('regression sets missing on 5 of 8 features').",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "_phase_note": "Web version does not expose this tool. Portfolio aggregation requires persisted prior scorecards, which is .mcpb data-dir scope."
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 720,
+    "preferredHeight": 900
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "JSON export format: should the .mcpb version write to ~/.working-from-lenny/evals/<timestamp>.json or prompt the user for a path? Default-on filesystem write is the convention violation to check.",
+    "Does the portfolio view need user opt-in, or is local-only aggregation acceptable by default?",
+    "Should the seven categories be configurable (user can add 'tone consistency' or 'multi-turn coherence') or locked? Locked is simpler; configurable is more honest about how varied AI features actually are."
+  ]
+}

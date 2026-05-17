@@ -75,15 +75,45 @@ The deterministic content that needs writing against the actual corpus topic fil
 | #3 PM Ladder | 30 × 5 = 150 answer choices anchored to behaviors at each level — replaces the generic 1-5 level labels currently on the page | ladder topics (Petra Wille's PMwheel, Sean Sullivan's Scorecard, Lenny's ladder posts, `pm-career-ladders.md`) |
 | #12-38 Founder PM hire | Cross-check the merged decision tree against corpus; refine the pre-canned "what good looks like" and wrong-fit cost narrations baked into the HTML | `founder-mode`, team-composition topics |
 
+### Phase 1 content authoring (after Phase 0 horoscope completes)
+
+Each Phase 1 app's `prompt.md` includes an `## Autonomous-routine backlog` section with the specific items below. The routine picks these up in priority order (e → f → g → h → i) once Phase 0 horoscope is complete.
+
+| App | What to author |
+|---|---|
+| #2 Strategy Pressure-Tester (`apps/2-strategy-pressure-test/`) | 8-12 doc-type classifier exemplars (strategy/roadmap/PRD/mixed), ~30 anchor-quote candidates across the four passes, 5-10 synthetic strategy paragraphs for golden-set evals |
+| #6 AI Eval Coverage (`apps/6-ai-eval-coverage/`) | 3 worked few-shot classification examples per category (21 total), 5-7 starter eval-prompt exemplars per category (~40 total), 8-10 synthetic feature descriptions for golden-set |
+| #9 NSM Finder (`apps/9-nsm-finder/`) | 3 worked candidate examples per business shape (18 total), 5-10 dashboard-audit exemplars, 6-8 synthetic business descriptions for golden-set |
+| #24 OKR Critique (`apps/24-okr-critique/`) | 4 worked KR-critique examples per test (16 total), 6 before/after rewrite exemplars, 2 sample OKR sets per stance for golden-set |
+| #47 Mission/Vision Alignment (`apps/47-mission-vision-alignment/`) | 8-10 platitude→rewrite pairs, 4 worked drift-map examples across severity, 3 synthetic mission/vision/strategy triples for golden-set |
+
+Anchors and corpus cross-checks per app: see each app's `prompt.md` Autonomous-routine backlog section for specifics.
+
+### Phase 2 MCP work (after Phase 1 content authoring)
+
+The routine can take a first pass at the `_open_questions` arrays in each `mcp-resource.json` once Phase 1 content authoring is done. Source-of-truth: the published MCP Apps spec (Jan 2026). For each open question, propose an answer in a same-file `_proposed_answers` array, then log to UNCERTAIN_DECISIONS.md for owner review.
+
 ---
 
 ## After Phase 0 ships
 
-**Phase 1.** Five apps that need Worker inference: #2 (Strategy pressure-tester), #6 (AI eval coverage), #9 (NSM finder), #24 (OKR critique), #47 (Mission/vision alignment). Per-app `apps/<id>-<slug>/` folders not yet drafted; follow the same structure as Phase 0 (tile + prompt + page-copy + mcp-resource). Build comes after Phase 0 traffic signal per the plan's "kill the project before building inference plumbing" gate.
+**Phase 1 — specs drafted 2026-05-17.** Five apps that need Worker inference:
 
-When Phase 1 starts, the Express server at `artifacts/api-server/src/` is where the Gemini Flash proxy goes. The free-tier ceiling story already in every Phase 0 app's Block 2b is a promise that needs delivery.
+| Door | App | Spec folder |
+|---|---|---|
+| 7 | Strategy Pressure-Tester | `apps/2-strategy-pressure-test/` |
+| 8 | AI Eval Coverage Scorecard | `apps/6-ai-eval-coverage/` |
+| 9 | North Star Metric Finder | `apps/9-nsm-finder/` |
+| 10 | OKR Critique | `apps/24-okr-critique/` |
+| 11 | Mission/Vision/Strategy Alignment | `apps/47-mission-vision-alignment/` |
 
-**Phase 2 / MCP App.** All 23 active tools shipped as a `.mcpb` bundle. Per-app `mcp-resource.json` files drafted for Phase 0 already; Phase 1 and remaining apps will need theirs. MCP `_open_questions` in each spec need resolution against the current MCP Apps spec when work begins.
+Each folder follows the Phase 0 four-file pattern (tile + prompt + page-copy + mcp-resource). Each `prompt.md` includes an `## Autonomous-routine backlog` section listing the deterministic content (few-shot examples, exemplar anchors, golden-set eval inputs) the every-2h routine can author against `knowledge/topics/`. **Door styling: glass / transparent doors proposed for the Phase 1 row** to visually distinguish from the Phase 0 six materials — owner sign-off needed before locking CSS.
+
+Build gates: HTML pages, Express Worker proxy, and landing-tile additions (going from 6 to 11 tiles, layout shift) come *after* Phase 0 traffic signal. The "kill the project before building inference plumbing" gate from the plan still applies — autonomous content authoring can proceed independent of that gate.
+
+When Phase 1 starts, the Express server at `artifacts/api-server/src/` is where the Gemini Flash proxy goes. The free-tier ceiling story already in every Phase 0 app's Block 2b is a promise that needs delivery; same story now repeats in each Phase 1 page-copy.
+
+**Phase 2 / MCP App.** All 23 active tools shipped as a `.mcpb` bundle. Per-app `mcp-resource.json` files drafted for Phase 0 and now Phase 1; remaining apps from APP_IDEAS.md will need theirs. Each spec's `_open_questions` list needs resolution against the current MCP Apps spec when work begins — the routine can take a first pass at these by checking the published MCP-Apps spec (Jan 2026) against each open question and proposing answers.
 
 **Pre-publish checklist — surface this when Serge says he's getting ready to launch:**
 - Draft courtesy heads-up emails to Lenny Rachitsky AND Claire Vo before any heavy launch (both, not just Lenny — Claire's *How I AI* is part of the corpus framing). Same template can serve both with a tailored opening line each. The note explains the project is supportive of, not affiliated with, their original work, and points to the attribution on /about.

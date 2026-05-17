@@ -1,0 +1,168 @@
+{
+  "_comment": "MCP resource spec for #47 Mission/Vision/Strategy Alignment Checker. Phase 2 .mcpb bundle target. Draft 2026-05-17.",
+  "_app": {
+    "id": 47,
+    "name": "Mission / Vision / Strategy Alignment Checker",
+    "phase": 2,
+    "type": "paste-three + LLM drift analysis"
+  },
+  "resource": {
+    "uri": "ui://working-from-lenny/alignment",
+    "name": "Mission / Vision / Strategy Alignment Checker",
+    "description": "Paste mission, vision, and current quarter's strategy doc. Surfaces drift between the three, platitudes, operational gaps in named bets, and a Rumelt diagnosis of the strategy.",
+    "mimeType": "text/html"
+  },
+  "tools": [
+    {
+      "name": "alignment_drift_map",
+      "description": "LLM-narrated. Three pairwise comparisons (mission-vs-vision, mission-vs-strategy, vision-vs-strategy) with drift severity and a 10-word drift label per pair.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mission_text": { "type": "string", "maxLength": 500 },
+          "vision_text": { "type": "string", "maxLength": 500 },
+          "strategy_text": { "type": "string", "minLength": 200, "maxLength": 3000 }
+        },
+        "required": ["mission_text", "vision_text", "strategy_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "pairs": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "pair": { "type": "string", "enum": ["mission_vs_vision", "mission_vs_strategy", "vision_vs_strategy"] },
+                "drift_severity": { "type": "string", "enum": ["none", "low", "med", "high"] },
+                "drift_label": { "type": "string" },
+                "diagnosis": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "alignment_platitude_detector",
+      "description": "LLM-narrated. Lists empty phrases in each doc, verbatim, with what each would have to say to be load-bearing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mission_text": { "type": "string" },
+          "vision_text": { "type": "string" },
+          "strategy_text": { "type": "string" }
+        },
+        "required": ["mission_text", "vision_text", "strategy_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "platitudes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "phrase_verbatim": { "type": "string" },
+                "from_doc": { "type": "string", "enum": ["mission", "vision", "strategy"] },
+                "what_it_would_have_to_say": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "alignment_operational_gaps",
+      "description": "LLM-narrated. Extracts named bets from the strategy and produces the questions the user should ask team leads to test operational follow-through. In Phase 1, output is questions. In Phase 2 with roadmap files, output is assertions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategy_text": { "type": "string" },
+          "team_roadmaps": {
+            "type": "array",
+            "items": { "type": "object" },
+            "_phase_note": "Phase 1 omits this array; Phase 2 .mcpb populates it from local roadmap files."
+          }
+        },
+        "required": ["strategy_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "bets_extracted": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bet": { "type": "string" },
+                "operational_question": { "type": "string" },
+                "operational_assertion": { "type": ["string", "null"], "_phase_note": "Phase 2 only" }
+              }
+            }
+          },
+          "strategy_too_vague": { "type": "boolean" }
+        }
+      }
+    },
+    {
+      "name": "alignment_rumelt_diagnosis",
+      "description": "LLM-narrated. Direct application of Rumelt's diagnosis test to the strategy doc only.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategy_text": { "type": "string" }
+        },
+        "required": ["strategy_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "named_challenge": { "type": ["string", "null"] },
+          "guiding_policy": { "type": ["string", "null"] },
+          "coherent_actions": { "type": "array", "items": { "type": "string" } },
+          "verdict": { "type": "string", "enum": ["yes", "partial", "no"] },
+          "justification": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "alignment_quarterly_diff",
+      "description": "MCP-only (stateful). Compares this quarter's mission/vision/strategy against last quarter's. Surfaces drift direction (did the strategy drift away from the mission, or did the mission drift to follow the strategy?).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "current_quarter": { "type": "string" }
+        },
+        "required": ["user_id", "current_quarter"]
+      },
+      "_phase_note": "Web version does not expose this. Quarterly diff requires persisted prior triples, which is .mcpb scope."
+    },
+    {
+      "name": "alignment_board_prep",
+      "description": "MCP-only. Outputs a one-page board pre-read artifact summarizing the drift map, Rumelt verdict, and the three highest-leverage operational gaps.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "current_quarter": { "type": "string" }
+        },
+        "required": ["user_id", "current_quarter"]
+      }
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 720,
+    "preferredHeight": 1100
+  },
+  "_open_questions": [
+    "Validate ui:// URI scheme against current MCP Apps spec.",
+    "Drift-map visualization: in Phase 1 web, render the three-box arrow diagram as inline SVG or as CSS-grid blocks? Inline SVG scales; CSS-grid is lighter.",
+    "Platitude detector: should the list of flagged phrase patterns be user-editable (a team's actual platitudes vary), or locked? Locked is simpler but misses team-specific jargon.",
+    "Board-prep tool: should the output Markdown, PDF, or a structured JSON the user converts? PDF requires a Worker dependency; Markdown is most flexible."
+  ]
+}
