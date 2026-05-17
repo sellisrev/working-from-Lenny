@@ -156,10 +156,10 @@ Same as #2. No em dashes, no AI-writing tells, candid not corporate.
 
 Phase 1 content the every-2h routine can pick up:
 
-- [ ] Author 3 worked few-shot examples per category (21 total) showing how a feature description maps to covered/partial/missing. These prime the LLM's classification.
-- [ ] Author 5–7 starter eval-prompt exemplars per category (~40 total) for the LLM to pattern-match against. Anchor each to `evals-for-ai-products.md` / `ai-pm-skills.md`.
-- [ ] Cross-check that `evals-for-ai-products.md` and `ai-pm-skills.md` exist in `knowledge/topics/`. If not, substitute and log to UNCERTAIN_DECISIONS.md.
-- [ ] Draft 8–10 synthetic feature descriptions across the diversity space (B2C generation, B2B summarization, internal copilot, regulated-industry classifier, etc.) for golden-set evals once inference is wired.
+- [x] Author 3 worked few-shot examples per category (21 total) showing how a feature description maps to covered/partial/missing. → 21 examples (3 per category × 7 categories) in `authoring.md`.
+- [x] Author 5–7 starter eval-prompt exemplars per category (~40 total) for the LLM to pattern-match against. Anchor each to `evals-for-ai-products.md` / `ai-pm-skills.md`. → 41 exemplars total (5-6 per category) in `authoring.md`, all corpus-anchored.
+- [x] Cross-check that `evals-for-ai-products.md` and `ai-pm-skills.md` exist in `knowledge/topics/`. → Both confirmed present; no substitutions needed.
+- [x] Draft 8–10 synthetic feature descriptions across the diversity space (B2C generation, B2B summarization, internal copilot, regulated-industry classifier, etc.) for golden-set evals once inference is wired. → 8 descriptions (golden-f-01 through golden-f-08) with expected coverage gaps in `authoring.md`.
 
 ## Phase 2 MCP App spec
 
