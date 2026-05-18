@@ -3,7 +3,7 @@ app-id: 9
 app-name: North Star Metric Finder
 phase: 1
 type: wizard + LLM-narrated candidate critique
-updated: 2026-05-17
+updated: 2026-05-18
 ---
 
 # Engine — #9 North Star Metric Finder
@@ -19,6 +19,7 @@ updated: 2026-05-17
 - `revenue_band` (enum): pre-revenue / $0-100k / $100k-1M / $1M-10M / $10M-100M / $100M+
 - `friction_top` (≤200 chars)
 - `stage` (enum): pre-PMF / early-PMF / scaling / mature
+- `marketplace_side` (enum, only when `business_shape == marketplace`): supply / demand / both
 - `dashboard_paste` (≤2000 chars, optional). One metric per line.
 
 ## Pass 1: candidate generation
@@ -28,13 +29,17 @@ LLM is shown the structured inputs + a corpus-anchored set of NSM patterns per b
 ```
 Business shape → typical NSM family
 ─────────────────────────────────────
-B2C-subscription      → weekly/monthly retained value-moments
-B2C-transactional     → repeat purchase rate × order frequency
-B2B-PLG               → weekly active teams × retention shape
-B2B-sales-led         → product-qualified accounts that convert
-marketplace           → both-sided liquidity (matched transactions)
-prosumer              → power-user engagement depth
+B2C-subscription              → weekly/monthly retained value-moments
+B2C-transactional             → repeat purchase rate × order frequency
+B2B-PLG                       → weekly active teams × retention shape
+B2B-sales-led                 → product-qualified accounts that convert
+marketplace (supply side)     → active suppliers × listings per supplier
+marketplace (demand side)     → matched-transaction rate per buyer cohort
+marketplace (both)            → liquidity rate (matched / posted) × repeat frequency
+prosumer                      → power-user engagement depth
 ```
+
+For marketplace inputs, `marketplace_side` routes which family the candidates draw from. Two-sided NSMs (when `both`) should explicitly name the metric on both sides; single-side NSMs (when `supply` or `demand`) should produce candidates that target that side's health and note what the *other* side's leading indicator would have to look like for the chosen NSM to hold.
 
 Few-shot examples (3 worked candidates each for two contrasting business shapes — e.g., B2B-PLG vs marketplace — to teach the model the candidate shape, not the answer).
 
@@ -160,6 +165,7 @@ Same as #2. No em dashes, no AI-writing tells, candid.
 ## Autonomous-routine backlog
 
 - [x] Author 3 worked candidate examples per business shape (6 shapes × 3 = 18 candidates total) for the few-shot pattern. → 18 candidates with Pass 1 + Pass 2 critique content in `authoring.md`.
+- [ ] **Patch follow-up 2026-05-18:** the `marketplace` few-shot section in `authoring.md` was written before `marketplace_side` was added. Expand the 3 marketplace candidates to cover at least one supply-side, one demand-side, and one both-sides variant so the model has a side-aware few-shot pattern.
 - [x] Author 5–10 dashboard-audit exemplars showing metric_name → verdict mapping. Include obvious vanity (page views), partial (signups without retention), and gold (cohort revenue). → 10 exemplars in `authoring.md`.
 - [x] Cross-check that `north-star-metric.md`, `activation-metric.md`, and `growth-loops.md` exist in `knowledge/topics/`. → All three confirmed present; no substitutions needed.
 - [x] Verify Sean Ellis, Hila Qu, Andrew Chen corpus presence; substitute named voices to actual corpus authors if not present. → All three confirmed in corpus (Ellis: growth-loops.md + product-led-growth.md; Qu: product-led-marketing.md + bottom-up-saas.md; Chen: growth-loops.md). No substitutions needed.

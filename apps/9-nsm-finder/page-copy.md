@@ -3,7 +3,7 @@ app-id: 9
 app-name: North Star Metric Finder
 phase: 1
 type: wizard + LLM-narrated candidate critique
-updated: 2026-05-17
+updated: 2026-05-18
 ---
 
 # Page copy — #9 North Star Metric Finder
@@ -18,7 +18,7 @@ The working interface. On `/nsm-finder`:
 
 Four-step wizard, single page, no nav between steps. Step indicator dots at the top (1 of 4 / 2 of 4 / ...). Each step is one set of compact form fields.
 
-1. **Business shape.** Dropdown: B2C subscription / B2C transactional / B2B SaaS (PLG) / B2B SaaS (sales-led) / marketplace / prosumer. Plus a "what makes my business unusual" free-text (max 200 chars).
+1. **Business shape.** Dropdown: B2C subscription / B2C transactional / B2B SaaS (PLG) / B2B SaaS (sales-led) / marketplace / prosumer. Plus a "what makes my business unusual" free-text (max 200 chars). **If marketplace selected**, a second inline dropdown appears: "Which side are you optimizing for?" → supply / demand / both.
 2. **Primary user action.** Radio + free-text. "When a user gets value, what specific thing did they just do?" (max 200 chars)
 3. **Monetization shape.** Multi-select: pay-per-use / subscription / freemium-to-paid / seat-based / consumption-based / ad-supported / other. Plus current ARR-or-revenue band dropdown.
 4. **Friction + stage.** Two fields: "biggest friction point right now" (200 chars), "company stage" (dropdown: pre-PMF / early PMF / scaling / mature).

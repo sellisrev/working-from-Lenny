@@ -24,7 +24,12 @@
           },
           "revenue_band": { "type": "string", "enum": ["pre-revenue", "$0-100k", "$100k-1M", "$1M-10M", "$10M-100M", "$100M+"] },
           "friction_top": { "type": "string", "maxLength": 200 },
-          "stage": { "type": "string", "enum": ["pre-PMF", "early-PMF", "scaling", "mature"] }
+          "stage": { "type": "string", "enum": ["pre-PMF", "early-PMF", "scaling", "mature"] },
+          "marketplace_side": {
+            "type": "string",
+            "enum": ["supply", "demand", "both"],
+            "description": "Only applies when business_shape == marketplace. Routes which family of NSM candidates Pass 1 draws from. Omit for non-marketplace shapes."
+          }
         },
         "required": ["business_shape", "primary_user_action", "monetization", "stage"]
       },
