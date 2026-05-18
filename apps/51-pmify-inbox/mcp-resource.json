@@ -76,5 +76,10 @@
     "Validate ui:// URI scheme against current MCP Apps spec.",
     "Decide whether the tool should refuse very long inputs (>2000 chars) or truncate them — 2000 is a current guess.",
     "Confirm structured footnotes (array of objects) is acceptable in MCP outputSchema, or whether the host renders better with a single markdown string."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/pmify' matches the required pattern.",
+    "Refuse with a clear message, not silent truncation. Truncating mid-sentence produces a garbled translation; a refused input with context ('Your message is 2,400 chars; try pasting one email at a time') is more useful. The 2,000-char cap is a reasonable starting point for a single email. Evaluate after beta whether users regularly paste longer inputs (threads, forwarded chains) and raise the cap if the data supports it.",
+    "Structured footnotes (array of objects) are acceptable in MCP outputSchema per the Jan 2026 spec. Hosts with rich rendering (Claude desktop) can display footnotes as collapsible references. For hosts that render plain text, the narration layer can flatten footnotes to inline markdown. Keeping the structured form is correct: the host decides how to render it, and structure is recoverable from a flat string only with more parsing."
   ]
 }

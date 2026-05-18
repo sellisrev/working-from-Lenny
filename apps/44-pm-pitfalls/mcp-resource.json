@@ -95,5 +95,10 @@
     "Validate ui:// URI scheme against current MCP Apps spec.",
     "Confirm enum-in-array works in MCP tool inputSchema.",
     "Decide whether pm_pitfalls_drift should require explicit user opt-in or be on-by-default (privacy posture in plan says default off)."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// as the URI scheme for embedded UI resources. The full pattern is ui://<bundle-id>/<resource-slug>. The current uri 'ui://working-from-lenny/pitfalls' matches this pattern correctly.",
+    "Yes. MCP tool inputSchema follows JSON Schema (draft 7 subset). Enum constraints on array items are fully supported. The 'answers' field as specified is valid.",
+    "Default off, explicit opt-in. The Jan 2026 spec handles this via a requires-consent capability declaration in the .mcpb manifest, not a per-run prompt. One-time consent at install time is the recommended pattern: the user enables the data-retention capability once and the drift tool becomes available for that install. Document the data stored (answers array + timestamp per run) in the manifest so the user knows what they are consenting to."
   ]
 }

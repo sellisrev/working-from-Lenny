@@ -79,5 +79,10 @@
     "Validate ui:// URI scheme against current MCP Apps spec.",
     "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better.",
     "Decide whether the twitter-thread and podcast-cold-open modes ship in Phase 2 or get deferred."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/how-you-build' matches the required pattern.",
+    "Structured multi-section output is acceptable per the Jan 2026 spec. Hosts can render each section in order, highlight the pull-quote separately, or collapse secondary sections. A single markdown blob is simpler but throws away structure the host cannot recover. Recommend keeping the structured form and offering a mode parameter option (e.g., mode: 'markdown') that flattens all sections to a single string for hosts that prefer it. Do not change the outputSchema; add the flatten path in the narration layer.",
+    "Defer both alt modes to Phase 3. The profile output is the core value; twitter-thread and podcast-cold-open add surface area without adding PM-utility that validates the tool concept. Ship the MCP bundle with profile-only, confirm the output works well in the host, then add modes in a follow-on update. The mode enum can stay in the inputSchema now so the contract is established; unsupported modes fall through to the profile default."
   ]
 }

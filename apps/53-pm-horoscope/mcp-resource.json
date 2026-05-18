@@ -90,5 +90,10 @@
     "Validate `ui://` URI scheme against current MCP Apps spec.",
     "Confirm `mimeType: text/html` is the right way to declare UI resource vs structured output.",
     "Decide whether quiz state lives in the server (persistent across sessions) or in the host (cookie/local-storage)."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/horoscope' matches the required pattern.",
+    "mimeType: text/html is correct for embedded UI resources rendered as cards in the host. The Jan 2026 spec distinguishes UI resources (mimeType: text/html, rendered as a card) from data resources (no mimeType on the resource; tool returns structured output per outputSchema). Since this app renders a card, text/html is right.",
+    "Split by context. Web version: host-side (cookie or localStorage) for the chosen archetype. No server needed for a one-time selection, and the web version has no backend. MCP version: server data-dir, gated by the data-retention opt-in, consistent with the other stateful tools. This keeps the web version zero-backend while letting the MCP version persist the archetype across client restarts."
   ]
 }

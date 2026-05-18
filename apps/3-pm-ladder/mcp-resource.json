@@ -100,5 +100,10 @@
     "Validate ui:// URI scheme against current MCP Apps spec.",
     "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars).",
     "Decide whether pm_ladder_drift requires explicit opt-in per run, or one-time consent at MCP install."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/pm-ladder' matches the uri://<bundle-id>/<resource-slug> pattern.",
+    "8000 chars is safe. Typical written reviews run 1,500-4,000 chars; the 8000 cap is roughly double the high end, covering verbose orgs. It is not so large that it creates prompt-bloat risk when the review text feeds into the narration call. Keep 8000.",
+    "One-time consent at MCP install. Per-run opt-in adds friction without additional privacy benefit once the user has already enabled the capability. The .mcpb manifest declares a data-retention capability; the user enables it once during install and pm_ladder_drift becomes available. Log what is stored: dimension_levels object + effective_level + timestamp per run. No full answer text stored."
   ]
 }

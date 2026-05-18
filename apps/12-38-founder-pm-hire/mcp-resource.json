@@ -105,5 +105,10 @@
     "Validate ui:// URI scheme against current MCP Apps spec.",
     "Confirm enum-with-null is acceptable in MCP outputSchema (or refactor interim_playbook_id to optional field without null).",
     "Decide how the diagnose tool exposes the bias-toward-not-yet (early stages) and bias-away-from-head-of-product (non-heavy density) — debug logs in the tool output, or surface only in narration?"
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/founder-pm-hire' matches the required pattern.",
+    "Recommend refactoring to omit rather than null. While 'type': ['string', 'null'] is valid JSON Schema and acceptable in MCP outputSchema, the cleaner pattern is to declare interim_playbook_id as optional (remove it from 'required', do not include it in the output when verdict does not warrant a playbook). Absent fields are unambiguous; explicit nulls add a deserialization edge case for hosts. Keep the enum values; drop the null union; mark the field optional.",
+    "Surface only in narration. Debug-style bias annotations in the diagnose tool output leak implementation detail and can confuse hosts that render tool output verbatim. The founder_pm_hire_narrate tool is the right place to explain why the bias applies. If internal testing requires visibility into the routing logic, add a _debug_trace field (prefixed _ so the Jan 2026 spec ignores it for display) that hosts can suppress in production."
   ]
 }
