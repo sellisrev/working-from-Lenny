@@ -164,5 +164,11 @@
     "Drift-map visualization: in Phase 1 web, render the three-box arrow diagram as inline SVG or as CSS-grid blocks? Inline SVG scales; CSS-grid is lighter.",
     "Platitude detector: should the list of flagged phrase patterns be user-editable (a team's actual platitudes vary), or locked? Locked is simpler but misses team-specific jargon.",
     "Board-prep tool: should the output Markdown, PDF, or a structured JSON the user converts? PDF requires a Worker dependency; Markdown is most flexible."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/alignment' matches the required pattern.",
+    "Inline SVG for the drift-map visualization. The three-box diagram has semantic content (drift direction, severity) that CSS-grid cannot encode without custom classes. Inline SVG scales to card width, allows color-coding arrows by severity (none/low/med/high with a four-color scale), and renders without an external dependency. Note: this answers the HTML build question gated on owner sign-off per NEXT_STEPS.md; no code change made here.",
+    "Lock the base pattern list; add a custom_phrases optional array to the inputSchema for team-specific overrides. This gives teams a lightweight escape hatch per-run without opening the base list to per-user configuration that would complicate corpus maintenance. A custom_phrases: string[] input field costs nothing to add now and does not require schema versioning.",
+    "Markdown output for Phase 2. PDF would require a headless rendering dependency (Puppeteer or a Worker with wasm) that is out of scope for the Jan 2026 .mcpb bundle format. Structured JSON shifts formatting burden to the user. Markdown is immediately usable in Notion, Linear, or a Google Doc paste, which is where board pre-reads actually live. Use a fixed Markdown template with three named sections matching the tool's output fields. Phase 3 can add PDF once the rendering story is clearer."
   ]
 }

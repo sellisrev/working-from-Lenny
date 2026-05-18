@@ -132,5 +132,11 @@
     "JSON export format: should the .mcpb version write to ~/.working-from-lenny/evals/<timestamp>.json or prompt the user for a path? Default-on filesystem write is the convention violation to check.",
     "Does the portfolio view need user opt-in, or is local-only aggregation acceptable by default?",
     "Should the seven categories be configurable (user can add 'tone consistency' or 'multi-turn coherence') or locked? Locked is simpler; configurable is more honest about how varied AI features actually are."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/eval-coverage' matches the required pattern.",
+    "Prompt for path on first use, then remember the last-used path as the default. Default-on silent writes to ~/working-from-lenny/ are the convention violation: the Jan 2026 spec requires tools with fs-write capability to declare that capability in the manifest and either get explicit approval or prompt for path. Prompting once and caching the preference splits the difference: no surprise writes, minimal friction after the first use.",
+    "Opt-in, consistent with the plan's privacy posture. Local-only aggregation still creates a persistent record of which features the user has scored and how, which is data they should knowingly retain. Enable via the data-retention capability in the bundle manifest, same pattern as the stateful tools on other apps.",
+    "Lock the seven categories for Phase 2. They are corpus-anchored against evals-for-ai-products.md and represent a defensible standard set. Configurable categories complicate the portfolio view: cross-feature comparisons break if categories differ per feature. Add an optional free-text 'notes' field per category as an escape hatch without opening the category list to per-user configuration. Revisit in Phase 3 once real usage shows which categories users most want to extend."
   ]
 }

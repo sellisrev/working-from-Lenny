@@ -105,5 +105,11 @@
     "Confirm tool composition pattern (classify → critique → rehearse) matches MCP-Apps recommended flow.",
     "Decide whether strategy_text should be stored hashed for calibration, or only the critique summary. Privacy posture in plan says default-off retention.",
     "Engine sharing: should strategy_critique tool import directly from lenny-pressure-test skill, or duplicate the corpus-routing logic for .mcpb portability?"
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/pressure-test' matches the required pattern.",
+    "Yes. The Jan 2026 spec recommends composable, separable tools within a single resource. The three-step flow (classify then critique then rehearse) maps cleanly to this pattern: the host can invoke each step independently or chain them, passing doc_type from strategy_classify into strategy_critique as a parameter. Tool chaining with explicit handoff values (not implicit session state) is the recommended flow.",
+    "Store the critique summary only, not the full strategy text. Strategy docs can contain confidential roadmaps; full-text retention is the highest-risk item. The calibration value comes from tracking which objection labels resolved and which the user rehearsed, not from replaying the original text. Recommended: store critique ID, timestamp, the five objection labels (not full text), and chosen_objection_index. Hash the strategy text for deduplication if needed; do not store plaintext. Default off per the plan's privacy posture; enabled via data-retention capability in the bundle manifest.",
+    "Duplicate the corpus-routing logic for .mcpb portability. The Jan 2026 .mcpb bundle format is self-contained; the host cannot be expected to install the lenny-pressure-test skill as a dependency. Bundle the relevant corpus chunks and routing logic directly. If the skill is updated, a bundle refresh is the update path. Portability over DRY is the right tradeoff for Phase 2. Flag the duplication with a comment in the bundle so a Phase 3 refactor can consolidate if the spec adds inter-bundle references."
   ]
 }

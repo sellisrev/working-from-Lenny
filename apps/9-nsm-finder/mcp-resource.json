@@ -121,5 +121,11 @@
     "Should the input_metrics tree share a schema with #37 Activation Metric Finder so the two apps interoperate, or stay independent?",
     "Dashboard audit: how to handle dashboards >40 metrics gracefully? Truncate with a 'audit the top 40' notice, or batch?",
     "Calibration tool: who provides the current_nsm_value — pulled from a connected analytics tool, or user-entered? Latter is .mcpb-scope by default."
+  ],
+  "_proposed_answers": [
+    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/nsm-finder' matches the required pattern.",
+    "Stay independent for Phase 2. The Jan 2026 .mcpb format has no inter-bundle schema import mechanism; bundles are self-contained. Schema alignment between #9 and #37 is worth revisiting when both apps are production-ready and usage patterns are clear. For now the input_metrics array of strings is fit for purpose. Note this as a Phase 3 consideration for #37 spec work.",
+    "Truncate with a notice. 'I will audit the first 40; paste a second batch for the rest' is the right UX. Batching requires the host to sequence calls and merge results, which adds client-side complexity. The 40-metric cap is also a soft forcing function: if a team has 80 dashboard metrics, the real insight may be 'this is too many metrics to have' before the audit even runs. A one-line notice makes that implicit point.",
+    "User-entered for Phase 2. Pulling from a connected analytics tool requires a data-source integration that is out of scope for the Jan 2026 spec. User entry of the current NSM value is sufficient for the calibration pattern. Flag the analytics integration as a Phase 3 consideration, same rationale as the mortality tool on #24 OKR Critique."
   ]
 }
