@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #9 North Star Metric Finder. Phase 2 .mcpb bundle target. Draft 2026-05-17.",
-  "_app": {
-    "id": 9,
-    "name": "North Star Metric Finder",
-    "phase": 2,
-    "type": "wizard + LLM-narrated candidate critique"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/nsm-finder",
     "name": "North Star Metric Finder",
@@ -99,7 +92,7 @@
     },
     {
       "name": "nsm_calibration",
-      "description": "MCP-only (stateful). Compares the user's chosen NSM against where it sits now. Has it moved? Has it surfaced the failure mode it was supposed to surface?",
+      "description": "MCP-only (stateful). Compares the user's chosen NSM against where it sits now. Has it moved? Has it surfaced the failure mode it was supposed to surface? Stores prior NSM picks + values locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -108,7 +101,10 @@
         },
         "required": ["user_id", "current_nsm_value"]
       },
-      "_phase_note": "Web version does not expose this tool. Calibration requires persisted prior picks + current value, which is .mcpb scope."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Calibration requires persisted prior picks + current value in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -116,16 +112,36 @@
     "preferredWidth": 720,
     "preferredHeight": 900
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Should the input_metrics tree share a schema with #37 Activation Metric Finder so the two apps interoperate, or stay independent?",
-    "Dashboard audit: how to handle dashboards >40 metrics gracefully? Truncate with a 'audit the top 40' notice, or batch?",
-    "Calibration tool: who provides the current_nsm_value — pulled from a connected analytics tool, or user-entered? Latter is .mcpb-scope by default."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/nsm-finder' matches the required pattern.",
-    "Stay independent for Phase 2. The Jan 2026 .mcpb format has no inter-bundle schema import mechanism; bundles are self-contained. Schema alignment between #9 and #37 is worth revisiting when both apps are production-ready and usage patterns are clear. For now the input_metrics array of strings is fit for purpose. Note this as a Phase 3 consideration for #37 spec work.",
-    "Truncate with a notice. 'I will audit the first 40; paste a second batch for the rest' is the right UX. Batching requires the host to sequence calls and merge results, which adds client-side complexity. The 40-metric cap is also a soft forcing function: if a team has 80 dashboard metrics, the real insight may be 'this is too many metrics to have' before the audit even runs. A one-line notice makes that implicit point.",
-    "User-entered for Phase 2. Pulling from a connected analytics tool requires a data-source integration that is out of scope for the Jan 2026 spec. User entry of the current NSM value is sufficient for the calibration pattern. Flag the analytics integration as a Phase 3 consideration, same rationale as the mortality tool on #24 OKR Critique."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #9 North Star Metric Finder. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 9,
+      "name": "North Star Metric Finder",
+      "phase": 2,
+      "type": "wizard + LLM-narrated candidate critique"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Should the input_metrics tree share a schema with #37 Activation Metric Finder so the two apps interoperate, or stay independent?",
+      "Dashboard audit: how to handle dashboards >40 metrics gracefully? Truncate with a 'audit the top 40' notice, or batch?",
+      "Calibration tool: who provides the current_nsm_value — pulled from a connected analytics tool, or user-entered? Latter is .mcpb-scope by default."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Stay independent for Phase 2. The .mcpb format has no inter-bundle schema import mechanism; bundles are self-contained. Schema alignment between #9 and #37 is worth revisiting when both apps are production-ready and usage patterns are clear. For now the input_metrics array of strings is fit for purpose. Note this as a Phase 3 consideration for #37 spec work.",
+      "Truncate with a notice. 'I will audit the first 40; paste a second batch for the rest' is the right UX. Batching requires the host to sequence calls and merge results, which adds client-side complexity. The 40-metric cap is also a soft forcing function: if a team has 80 dashboard metrics, the real insight may be 'this is too many metrics to have' before the audit even runs. A one-line notice makes that implicit point.",
+      "User-entered for Phase 2. Pulling from a connected analytics tool requires a data-source integration that is out of scope. User entry of the current NSM value is sufficient for the calibration pattern. Flag the analytics integration as a Phase 3 consideration, same rationale as the mortality tool on #24 OKR Critique."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

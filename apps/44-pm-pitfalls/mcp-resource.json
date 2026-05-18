@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #44 PM Pitfalls Self-Audit. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
-  "_app": {
-    "id": 44,
-    "name": "PM Pitfalls Self-Audit",
-    "phase": 2,
-    "type": "quiz + LLM narration"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/pitfalls",
     "name": "PM Pitfalls Self-Audit",
@@ -75,7 +68,7 @@
     },
     {
       "name": "pm_pitfalls_drift",
-      "description": "MCP-only (stateful). Returns the user's calibration drift if they've audited before — what shifted, what didn't, and a one-line read.",
+      "description": "MCP-only (stateful). Returns the user's calibration drift if they've audited before — what shifted, what didn't, and a one-line read. Stores audit answers locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -83,7 +76,10 @@
         },
         "required": ["user_id"]
       },
-      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -91,14 +87,34 @@
     "preferredWidth": 560,
     "preferredHeight": 720
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Confirm enum-in-array works in MCP tool inputSchema.",
-    "Decide whether pm_pitfalls_drift should require explicit user opt-in or be on-by-default (privacy posture in plan says default off)."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// as the URI scheme for embedded UI resources. The full pattern is ui://<bundle-id>/<resource-slug>. The current uri 'ui://working-from-lenny/pitfalls' matches this pattern correctly.",
-    "Yes. MCP tool inputSchema follows JSON Schema (draft 7 subset). Enum constraints on array items are fully supported. The 'answers' field as specified is valid.",
-    "Default off, explicit opt-in. The Jan 2026 spec handles this via a requires-consent capability declaration in the .mcpb manifest, not a per-run prompt. One-time consent at install time is the recommended pattern: the user enables the data-retention capability once and the drift tool becomes available for that install. Document the data stored (answers array + timestamp per run) in the manifest so the user knows what they are consenting to."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #44 PM Pitfalls Self-Audit. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 44,
+      "name": "PM Pitfalls Self-Audit",
+      "phase": 2,
+      "type": "quiz + LLM narration"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Confirm enum-in-array works in MCP tool inputSchema.",
+      "Decide how pm_pitfalls_drift signals statefulness to the host."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Yes. MCP tool inputSchema follows JSON Schema (draft 7 subset). Enum constraints on array items are fully supported. The 'answers' field as specified is valid.",
+      "Use the tool-level annotations.readOnlyHint: false hint (now set above). The MCP Apps spec leaves consent UX to host discretion — there is no manifest-level requires-consent or data-retention flag. The host's confirmation UI handles per-call or install-time consent however that host chooses. Document persisted data in the tool description (answers array + timestamp per run) so the host's confirmation can convey it."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

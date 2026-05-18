@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #53 PM Horoscope. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young and may have changed; owner to validate against current docs before locking.",
-  "_app": {
-    "id": 53,
-    "name": "PM Horoscope",
-    "phase": 2,
-    "type": "deterministic"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/horoscope",
     "name": "PM Horoscope",
@@ -86,14 +79,35 @@
     "preferredWidth": 480,
     "preferredHeight": 320
   },
-  "_open_questions": [
-    "Validate `ui://` URI scheme against current MCP Apps spec.",
-    "Confirm `mimeType: text/html` is the right way to declare UI resource vs structured output.",
-    "Decide whether quiz state lives in the server (persistent across sessions) or in the host (cookie/local-storage)."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/horoscope' matches the required pattern.",
-    "mimeType: text/html is correct for embedded UI resources rendered as cards in the host. The Jan 2026 spec distinguishes UI resources (mimeType: text/html, rendered as a card) from data resources (no mimeType on the resource; tool returns structured output per outputSchema). Since this app renders a card, text/html is right.",
-    "Split by context. Web version: host-side (cookie or localStorage) for the chosen archetype. No server needed for a one-time selection, and the web version has no backend. MCP version: server data-dir, gated by the data-retention opt-in, consistent with the other stateful tools. This keeps the web version zero-backend while letting the MCP version persist the archetype across client restarts."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #53 PM Horoscope. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 53,
+      "name": "PM Horoscope",
+      "phase": 2,
+      "type": "deterministic"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Confirm `mimeType: text/html` is the right way to declare UI resource vs structured output.",
+      "Decide whether quiz state lives in the server (persistent across sessions) or in the host (cookie/local-storage)."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "mimeType: text/html is correct for embedded UI resources rendered as cards in the host. The MCP Apps spec uses `text/html;profile=mcp-app` as the canonical MIME for UI bundles; clients negotiate this in their `mimeTypes` capability. The bare `text/html` here is the user-facing rendering hint at the resource level; the actual bundle payload should advertise the full `text/html;profile=mcp-app` profile when served.",
+      "Split by context. Web version: host-side (cookie or localStorage) for the chosen archetype. No server needed for a one-time selection, and the web version has no backend. MCP version: server data-dir under the bundle's own scope. There is no manifest-level consent flag — if the MCP version stores the archetype, surface it in the tool's description so the host's confirmation UI conveys the persistence to the user."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Canonical UI-bundle MIME is text/html;profile=mcp-app per the spec's mimeTypes negotiation.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

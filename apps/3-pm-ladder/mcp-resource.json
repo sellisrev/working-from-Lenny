@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #3 PM Ladder Self-Assessment. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
-  "_app": {
-    "id": 3,
-    "name": "PM Ladder Self-Assessment",
-    "phase": 2,
-    "type": "quiz + LLM narration"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/pm-ladder",
     "name": "PM Ladder Self-Assessment",
@@ -80,7 +73,7 @@
     },
     {
       "name": "pm_ladder_drift",
-      "description": "MCP-only (stateful). Compares the user's current scoring against a previous run and reports drift. Default off — requires opt-in.",
+      "description": "MCP-only (stateful). Stores scoring across runs and reports drift versus prior runs. The tool stores state locally and is not read-only — hosts will surface a confirmation prompt on first invocation.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -88,7 +81,10 @@
         },
         "required": ["user_id"]
       },
-      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -96,14 +92,34 @@
     "preferredWidth": 640,
     "preferredHeight": 800
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars).",
-    "Decide whether pm_ladder_drift requires explicit opt-in per run, or one-time consent at MCP install."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/pm-ladder' matches the uri://<bundle-id>/<resource-slug> pattern.",
-    "8000 chars is safe. Typical written reviews run 1,500-4,000 chars; the 8000 cap is roughly double the high end, covering verbose orgs. It is not so large that it creates prompt-bloat risk when the review text feeds into the narration call. Keep 8000.",
-    "One-time consent at MCP install. Per-run opt-in adds friction without additional privacy benefit once the user has already enabled the capability. The .mcpb manifest declares a data-retention capability; the user enables it once during install and pm_ladder_drift becomes available. Log what is stored: dimension_levels object + effective_level + timestamp per run. No full answer text stored."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #3 PM Ladder Self-Assessment. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 3,
+      "name": "PM Ladder Self-Assessment",
+      "phase": 2,
+      "type": "quiz + LLM narration"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars).",
+      "Decide how pm_ladder_drift signals to the host that it is stateful — readOnlyHint: false on the tool annotation is the only normative hook."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "8000 chars is safe. Typical written reviews run 1,500-4,000 chars; the 8000 cap is roughly double the high end, covering verbose orgs. It is not so large that it creates prompt-bloat risk when the review text feeds into the narration call. Keep 8000.",
+      "Use the tool-level annotations.readOnlyHint: false hint (now set above). The MCP Apps spec leaves consent UX to host discretion — there is no manifest-level data-retention or requires-consent flag. The host's confirmation UI handles per-call or install-time consent however that host chooses. Document persisted data in the tool description so the host's confirmation can convey it (dimension_levels + effective_level + timestamp per run; no full answer text)."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

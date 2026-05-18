@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #47 Mission/Vision/Strategy Alignment Checker. Phase 2 .mcpb bundle target. Draft 2026-05-17.",
-  "_app": {
-    "id": 47,
-    "name": "Mission / Vision / Strategy Alignment Checker",
-    "phase": 2,
-    "type": "paste-three + LLM drift analysis"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/alignment",
     "name": "Mission / Vision / Strategy Alignment Checker",
@@ -53,7 +46,12 @@
         "properties": {
           "mission_text": { "type": "string" },
           "vision_text": { "type": "string" },
-          "strategy_text": { "type": "string" }
+          "strategy_text": { "type": "string" },
+          "custom_phrases": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional team-specific platitudes to add to the base detection list."
+          }
         },
         "required": ["mission_text", "vision_text", "strategy_text"]
       },
@@ -84,7 +82,7 @@
           "team_roadmaps": {
             "type": "array",
             "items": { "type": "object" },
-            "_phase_note": "Phase 1 omits this array; Phase 2 .mcpb populates it from local roadmap files."
+            "description": "Phase 2 only. .mcpb bundle populates this array from local roadmap files. Phase 1 omits the array."
           }
         },
         "required": ["strategy_text"]
@@ -99,7 +97,10 @@
               "properties": {
                 "bet": { "type": "string" },
                 "operational_question": { "type": "string" },
-                "operational_assertion": { "type": ["string", "null"], "_phase_note": "Phase 2 only" }
+                "operational_assertion": {
+                  "type": "string",
+                  "description": "Phase 2 only. Omitted in Phase 1 output where only operational_question is populated."
+                }
               }
             }
           },
@@ -120,8 +121,8 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "named_challenge": { "type": ["string", "null"] },
-          "guiding_policy": { "type": ["string", "null"] },
+          "named_challenge": { "type": "string", "description": "Optional. Omitted when the strategy names no real challenge." },
+          "guiding_policy": { "type": "string", "description": "Optional. Omitted when no guiding policy is identifiable." },
           "coherent_actions": { "type": "array", "items": { "type": "string" } },
           "verdict": { "type": "string", "enum": ["yes", "partial", "no"] },
           "justification": { "type": "string" }
@@ -130,7 +131,7 @@
     },
     {
       "name": "alignment_quarterly_diff",
-      "description": "MCP-only (stateful). Compares this quarter's mission/vision/strategy against last quarter's. Surfaces drift direction (did the strategy drift away from the mission, or did the mission drift to follow the strategy?).",
+      "description": "MCP-only (stateful). Compares this quarter's mission/vision/strategy against last quarter's. Surfaces drift direction (did the strategy drift away from the mission, or did the mission drift to follow the strategy?). Stores quarterly triples locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -139,11 +140,14 @@
         },
         "required": ["user_id", "current_quarter"]
       },
-      "_phase_note": "Web version does not expose this. Quarterly diff requires persisted prior triples, which is .mcpb scope."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web version does not expose this. Quarterly diff requires persisted prior triples in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
+      }
     },
     {
       "name": "alignment_board_prep",
-      "description": "MCP-only. Outputs a one-page board pre-read artifact summarizing the drift map, Rumelt verdict, and the three highest-leverage operational gaps.",
+      "description": "MCP-only. Outputs a one-page board pre-read artifact (Markdown) summarizing the drift map, Rumelt verdict, and the three highest-leverage operational gaps. Reads from persisted quarterly triples.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -151,6 +155,10 @@
           "current_quarter": { "type": "string" }
         },
         "required": ["user_id", "current_quarter"]
+      },
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Reads the persisted triples from alignment_quarterly_diff; same data-dir scope."
       }
     }
   ],
@@ -159,16 +167,37 @@
     "preferredWidth": 720,
     "preferredHeight": 1100
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Drift-map visualization: in Phase 1 web, render the three-box arrow diagram as inline SVG or as CSS-grid blocks? Inline SVG scales; CSS-grid is lighter.",
-    "Platitude detector: should the list of flagged phrase patterns be user-editable (a team's actual platitudes vary), or locked? Locked is simpler but misses team-specific jargon.",
-    "Board-prep tool: should the output Markdown, PDF, or a structured JSON the user converts? PDF requires a Worker dependency; Markdown is most flexible."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/alignment' matches the required pattern.",
-    "Inline SVG for the drift-map visualization. The three-box diagram has semantic content (drift direction, severity) that CSS-grid cannot encode without custom classes. Inline SVG scales to card width, allows color-coding arrows by severity (none/low/med/high with a four-color scale), and renders without an external dependency. Note: this answers the HTML build question gated on owner sign-off per PROCEDURAL_REFERENCE.md; no code change made here.",
-    "Lock the base pattern list; add a custom_phrases optional array to the inputSchema for team-specific overrides. This gives teams a lightweight escape hatch per-run without opening the base list to per-user configuration that would complicate corpus maintenance. A custom_phrases: string[] input field costs nothing to add now and does not require schema versioning.",
-    "Markdown output for Phase 2. PDF would require a headless rendering dependency (Puppeteer or a Worker with wasm) that is out of scope for the Jan 2026 .mcpb bundle format. Structured JSON shifts formatting burden to the user. Markdown is immediately usable in Notion, Linear, or a Google Doc paste, which is where board pre-reads actually live. Use a fixed Markdown template with three named sections matching the tool's output fields. Phase 3 can add PDF once the rendering story is clearer."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #47 Mission/Vision/Strategy Alignment Checker. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 47,
+      "name": "Mission / Vision / Strategy Alignment Checker",
+      "phase": 2,
+      "type": "paste-three + LLM drift analysis"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Drift-map visualization: in Phase 1 web, render the three-box arrow diagram as inline SVG or as CSS-grid blocks? Inline SVG scales; CSS-grid is lighter.",
+      "Platitude detector: should the list of flagged phrase patterns be user-editable (a team's actual platitudes vary), or locked? Locked is simpler but misses team-specific jargon.",
+      "Board-prep tool: should the output be Markdown, PDF, or a structured JSON the user converts? PDF requires a Worker dependency; Markdown is most flexible."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Inline SVG for the drift-map visualization. The three-box diagram has semantic content (drift direction, severity) that CSS-grid cannot encode without custom classes. Inline SVG scales to card width, allows color-coding arrows by severity (none/low/med/high with a four-color scale), and renders without an external dependency. Note: this answers the HTML build question gated on owner sign-off per PROCEDURAL_REFERENCE.md; no code change made here.",
+      "Lock the base pattern list; add a custom_phrases optional array to the inputSchema for team-specific overrides (now applied above on alignment_platitude_detector). This gives teams a lightweight escape hatch per-run without opening the base list to per-user configuration that would complicate corpus maintenance.",
+      "Markdown output for Phase 2 (now applied — alignment_board_prep emits Markdown). PDF would require a headless rendering dependency (Puppeteer or a Worker with wasm) that is out of scope for the .mcpb bundle format. Structured JSON shifts formatting burden to the user. Markdown is immediately usable in Notion, Linear, or a Google Doc paste, which is where board pre-reads actually live."
+    ],
+    "dev.workingfromlenny.outputSchema_refactor_note": "Removed `type: ['string', 'null']` on operational_assertion, named_challenge, and guiding_policy; changed to plain optional strings. Absent fields are unambiguous in the MCP output contract.",
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

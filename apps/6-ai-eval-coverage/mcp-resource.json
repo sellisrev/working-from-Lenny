@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #6 AI Eval Coverage Scorecard. Phase 2 .mcpb bundle target. Draft 2026-05-17 — owner to validate.",
-  "_app": {
-    "id": 6,
-    "name": "AI Eval Coverage Scorecard",
-    "phase": 2,
-    "type": "wizard + LLM-generated eval starter set"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/eval-coverage",
     "name": "AI Eval Coverage Scorecard",
@@ -86,6 +79,10 @@
                 "status": { "type": "string", "enum": ["covered", "partial", "missing"] }
               }
             }
+          },
+          "export_path": {
+            "type": "string",
+            "description": ".mcpb only. User-supplied directory path for the JSON export. The tool prompts the host for a path on first call and the host (per its own UX) may remember it for subsequent calls."
           }
         },
         "required": ["feature_one_liner", "categories"]
@@ -105,13 +102,21 @@
                 "corpus_anchor": { "type": "string" }
               }
             }
+          },
+          "exported_to": {
+            "type": "string",
+            "description": "Optional. Set when export_path was provided and the JSON file was written."
           }
         }
+      },
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Filesystem write is implicit to the server process — there is no MCP-level fs-write capability flag. Host's confirmation UI handles the consent surface for the write; the tool itself prompts for / accepts the export_path input."
       }
     },
     {
       "name": "eval_coverage_portfolio_view",
-      "description": "MCP-only (stateful). Aggregates scorecards across multiple features the user has scored. Surfaces patterns ('regression sets missing on 5 of 8 features').",
+      "description": "MCP-only (stateful). Aggregates scorecards across multiple features the user has scored. Surfaces patterns ('regression sets missing on 5 of 8 features'). Stores per-feature scorecards locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -119,7 +124,10 @@
         },
         "required": ["user_id"]
       },
-      "_phase_note": "Web version does not expose this tool. Portfolio aggregation requires persisted prior scorecards, which is .mcpb data-dir scope."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Portfolio aggregation requires persisted prior scorecards in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -127,16 +135,36 @@
     "preferredWidth": 720,
     "preferredHeight": 900
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "JSON export format: should the .mcpb version write to ~/.working-from-lenny/evals/<timestamp>.json or prompt the user for a path? Default-on filesystem write is the convention violation to check.",
-    "Does the portfolio view need user opt-in, or is local-only aggregation acceptable by default?",
-    "Should the seven categories be configurable (user can add 'tone consistency' or 'multi-turn coherence') or locked? Locked is simpler; configurable is more honest about how varied AI features actually are."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/eval-coverage' matches the required pattern.",
-    "Prompt for path on first use, then remember the last-used path as the default. Default-on silent writes to ~/working-from-lenny/ are the convention violation: the Jan 2026 spec requires tools with fs-write capability to declare that capability in the manifest and either get explicit approval or prompt for path. Prompting once and caching the preference splits the difference: no surprise writes, minimal friction after the first use.",
-    "Opt-in, consistent with the plan's privacy posture. Local-only aggregation still creates a persistent record of which features the user has scored and how, which is data they should knowingly retain. Enable via the data-retention capability in the bundle manifest, same pattern as the stateful tools on other apps.",
-    "Lock the seven categories for Phase 2. They are corpus-anchored against evals-for-ai-products.md and represent a defensible standard set. Configurable categories complicate the portfolio view: cross-feature comparisons break if categories differ per feature. Add an optional free-text 'notes' field per category as an escape hatch without opening the category list to per-user configuration. Revisit in Phase 3 once real usage shows which categories users most want to extend."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #6 AI Eval Coverage Scorecard. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 6,
+      "name": "AI Eval Coverage Scorecard",
+      "phase": 2,
+      "type": "wizard + LLM-generated eval starter set"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "JSON export format: should the .mcpb version write to ~/.working-from-lenny/evals/<timestamp>.json or prompt the user for a path?",
+      "Does the portfolio view need user opt-in, or is local-only aggregation acceptable by default?",
+      "Should the seven categories be configurable (user can add 'tone consistency' or 'multi-turn coherence') or locked? Locked is simpler; configurable is more honest about how varied AI features actually are."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Prompt for path on first use; let the host cache it. The .mcpb manifest has no permissions system for filesystem writes — the server process simply does the write. The honest consent surface is to take export_path as a tool input rather than silently defaulting to ~/working-from-lenny/. The host's confirmation UI (driven by readOnlyHint: false on the tool annotation) will display the path before the write. Note: an earlier draft claimed the spec 'requires fs-write capability declaration' — verified against the current spec; no such capability exists.",
+      "Statefulness is signaled via readOnlyHint: false on the portfolio_view tool (now set above). The MCP Apps spec has no manifest-level data-retention flag; consent UX is host discretion, triggered by the readOnlyHint hint. Document what is persisted in the tool description so the host's confirmation surface can convey it.",
+      "Lock the seven categories for Phase 2. They are corpus-anchored against evals-for-ai-products.md and represent a defensible standard set. Configurable categories complicate the portfolio view: cross-feature comparisons break if categories differ per feature. Add an optional free-text 'notes' field per category as an escape hatch without opening the category list to per-user configuration. Revisit in Phase 3 once real usage shows which categories users most want to extend."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook. Filesystem writes from the server process are not gated by any manifest declaration.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

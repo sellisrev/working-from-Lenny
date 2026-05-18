@@ -1,12 +1,4 @@
 {
-  "_comment": "MCP resource spec for the merged Founder PM hire app (supersedes #12 + #38). Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
-  "_app": {
-    "id": "12-38",
-    "name": "Founder PM hire",
-    "phase": 2,
-    "type": "wizard / diagnostic",
-    "supersedes": ["12", "38"]
-  },
   "resource": {
     "uri": "ui://working-from-lenny/founder-pm-hire",
     "name": "Founder PM hire",
@@ -61,10 +53,12 @@
             "enum": ["stay-founder-mode", "not-yet", "hire-apm", "hire-empowered-pm", "hire-head-of-product"]
           },
           "interim_playbook_id": {
-            "type": ["string", "null"],
-            "enum": ["pre-seed-founder-owns-product", "seed-early-team", "seed-founder-distracted", "need-product-clarity-first", null]
+            "type": "string",
+            "enum": ["pre-seed-founder-owns-product", "seed-early-team", "seed-founder-distracted", "need-product-clarity-first"],
+            "description": "Optional. Omitted from the output when the verdict does not warrant an interim playbook (i.e., when an actual PM hire is recommended)."
           }
-        }
+        },
+        "required": ["verdict"]
       }
     },
     {
@@ -74,7 +68,7 @@
         "type": "object",
         "properties": {
           "verdict": { "type": "string" },
-          "interim_playbook_id": { "type": ["string", "null"] },
+          "interim_playbook_id": { "type": "string" },
           "user_inputs": {
             "type": "object",
             "description": "The eight original inputs verbatim so the narration can reference specifics."
@@ -85,7 +79,7 @@
     },
     {
       "name": "founder_pm_hire_drift",
-      "description": "MCP-only (stateful). Compares the current diagnostic to a previous run and reports what shifted. Default off — requires opt-in.",
+      "description": "MCP-only (stateful). Compares the current diagnostic to a previous run and reports what shifted. Stores diagnostic inputs locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -93,7 +87,10 @@
         },
         "required": ["user_id"]
       },
-      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -101,14 +98,35 @@
     "preferredWidth": 560,
     "preferredHeight": 640
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Confirm enum-with-null is acceptable in MCP outputSchema (or refactor interim_playbook_id to optional field without null).",
-    "Decide how the diagnose tool exposes the bias-toward-not-yet (early stages) and bias-away-from-head-of-product (non-heavy density) — debug logs in the tool output, or surface only in narration?"
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/founder-pm-hire' matches the required pattern.",
-    "Recommend refactoring to omit rather than null. While 'type': ['string', 'null'] is valid JSON Schema and acceptable in MCP outputSchema, the cleaner pattern is to declare interim_playbook_id as optional (remove it from 'required', do not include it in the output when verdict does not warrant a playbook). Absent fields are unambiguous; explicit nulls add a deserialization edge case for hosts. Keep the enum values; drop the null union; mark the field optional.",
-    "Surface only in narration. Debug-style bias annotations in the diagnose tool output leak implementation detail and can confuse hosts that render tool output verbatim. The founder_pm_hire_narrate tool is the right place to explain why the bias applies. If internal testing requires visibility into the routing logic, add a _debug_trace field (prefixed _ so the Jan 2026 spec ignores it for display) that hosts can suppress in production."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for the merged Founder PM hire app (supersedes #12 + #38). Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": "12-38",
+      "name": "Founder PM hire",
+      "phase": 2,
+      "type": "wizard / diagnostic",
+      "supersedes": ["12", "38"]
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Decide how the diagnose tool exposes the bias-toward-not-yet (early stages) and bias-away-from-head-of-product (non-heavy density) — debug logs in the tool output, or surface only in narration?"
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Surface only in narration. Debug-style bias annotations in the diagnose tool output leak implementation detail and can confuse hosts that render tool output verbatim. The founder_pm_hire_narrate tool is the right place to explain why the bias applies. If internal testing requires visibility into the routing logic, attach it under _meta with a reverse-DNS key (e.g., _meta['dev.workingfromlenny.debug_trace']) on the diagnose tool's output — _meta is the only metadata channel the spec actually defines, and reverse-DNS namespacing is the documented convention."
+    ],
+    "dev.workingfromlenny.outputSchema_refactor_note": "interim_playbook_id was changed from `type: ['string', 'null']` with `null` in the enum, to an optional string field omitted when not applicable. Absent fields are unambiguous; explicit nulls add a deserialization edge case for hosts.",
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys.",
+        "interim_playbook_id refactored from nullable-enum to optional field; absent fields are unambiguous in the MCP output contract."
+      ]
+    }
+  }
 }

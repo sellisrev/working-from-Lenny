@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #2 Strategy Pressure-Tester. Phase 2 .mcpb bundle target. The lenny-pressure-test skill in this repo is the engine reference. Draft 2026-05-17 — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
-  "_app": {
-    "id": 2,
-    "name": "Strategy Pressure-Tester",
-    "phase": 2,
-    "type": "paste + LLM critique"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/pressure-test",
     "name": "Strategy Pressure-Tester",
@@ -83,7 +76,7 @@
     },
     {
       "name": "strategy_calibration",
-      "description": "MCP-only (stateful). Compares the current critique against the prior critique for the same user. Surfaces assumptions that resolved, tradeoffs the user actually made, and the next-quarter stress scenario.",
+      "description": "MCP-only (stateful). Compares the current critique against the prior critique for the same user. Surfaces assumptions that resolved, tradeoffs the user actually made, and the next-quarter stress scenario. Stores critique summaries locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -92,7 +85,10 @@
         },
         "required": ["user_id", "current_critique_id"]
       },
-      "_phase_note": "Web version does not expose this tool. Calibration requires persisted prior critiques, which is .mcpb data-dir scope."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Calibration requires persisted prior critiques in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -100,16 +96,36 @@
     "preferredWidth": 720,
     "preferredHeight": 900
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Confirm tool composition pattern (classify → critique → rehearse) matches MCP-Apps recommended flow.",
-    "Decide whether strategy_text should be stored hashed for calibration, or only the critique summary. Privacy posture in plan says default-off retention.",
-    "Engine sharing: should strategy_critique tool import directly from lenny-pressure-test skill, or duplicate the corpus-routing logic for .mcpb portability?"
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/pressure-test' matches the required pattern.",
-    "Yes. The Jan 2026 spec recommends composable, separable tools within a single resource. The three-step flow (classify then critique then rehearse) maps cleanly to this pattern: the host can invoke each step independently or chain them, passing doc_type from strategy_classify into strategy_critique as a parameter. Tool chaining with explicit handoff values (not implicit session state) is the recommended flow.",
-    "Store the critique summary only, not the full strategy text. Strategy docs can contain confidential roadmaps; full-text retention is the highest-risk item. The calibration value comes from tracking which objection labels resolved and which the user rehearsed, not from replaying the original text. Recommended: store critique ID, timestamp, the five objection labels (not full text), and chosen_objection_index. Hash the strategy text for deduplication if needed; do not store plaintext. Default off per the plan's privacy posture; enabled via data-retention capability in the bundle manifest.",
-    "Duplicate the corpus-routing logic for .mcpb portability. The Jan 2026 .mcpb bundle format is self-contained; the host cannot be expected to install the lenny-pressure-test skill as a dependency. Bundle the relevant corpus chunks and routing logic directly. If the skill is updated, a bundle refresh is the update path. Portability over DRY is the right tradeoff for Phase 2. Flag the duplication with a comment in the bundle so a Phase 3 refactor can consolidate if the spec adds inter-bundle references."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #2 Strategy Pressure-Tester. Phase 2 .mcpb bundle target. The lenny-pressure-test skill in this repo is the engine reference. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 2,
+      "name": "Strategy Pressure-Tester",
+      "phase": 2,
+      "type": "paste + LLM critique"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Confirm tool composition pattern (classify → critique → rehearse) matches MCP-Apps recommended flow.",
+      "Decide whether strategy_text should be stored hashed for calibration, or only the critique summary. Privacy posture in plan says default-off retention.",
+      "Engine sharing: should strategy_critique tool import directly from lenny-pressure-test skill, or duplicate the corpus-routing logic for .mcpb portability?"
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Yes. The spec encourages composable, separable tools within a single resource. The three-step flow (classify then critique then rehearse) maps cleanly to this pattern: the host can invoke each step independently or chain them, passing doc_type from strategy_classify into strategy_critique as a parameter. Tool chaining with explicit handoff values (not implicit session state) is the recommended flow.",
+      "Store the critique summary only, not the full strategy text. Strategy docs can contain confidential roadmaps; full-text retention is the highest-risk item. The calibration value comes from tracking which objection labels resolved and which the user rehearsed, not from replaying the original text. Recommended: store critique ID, timestamp, the five objection labels (not full text), and chosen_objection_index. Hash the strategy text for deduplication if needed; do not store plaintext. The MCP Apps spec has no manifest-level retention capability — the only normative hook is readOnlyHint: false on the calibration tool, which prompts the host's confirmation UI on first use. Document what is persisted in the tool description so the host can convey it.",
+      "Duplicate the corpus-routing logic for .mcpb portability. The .mcpb bundle format is self-contained; the host cannot be expected to install the lenny-pressure-test skill as a dependency. Bundle the relevant corpus chunks and routing logic directly. If the skill is updated, a bundle refresh is the update path. Portability over DRY is the right tradeoff for Phase 2. Flag the duplication with a comment in the bundle so a Phase 3 refactor can consolidate if the spec adds inter-bundle references."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }

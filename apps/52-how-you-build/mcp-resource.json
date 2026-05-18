@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #52 How [You] Build Product. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
-  "_app": {
-    "id": 52,
-    "name": "How [You] Build Product",
-    "phase": 2,
-    "type": "paste-and-critique"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/how-you-build",
     "name": "How [You] Build Product",
@@ -48,7 +41,7 @@
             "maxItems": 6
           },
           "closing_lesson": { "type": "string" },
-          "_mode_alt_output": {
+          "mode_alt_output": {
             "type": "string",
             "description": "Populated only when mode is twitter-thread or podcast-cold-open; replaces the structured fields with the alt format."
           }
@@ -57,7 +50,7 @@
     },
     {
       "name": "how_you_build_save",
-      "description": "MCP-only (stateful). Saves a team profile for later iteration. Default off — requires opt-in per the plan's privacy posture.",
+      "description": "MCP-only (stateful). Saves a team profile for later iteration. Stores profile inputs locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -67,7 +60,10 @@
         },
         "required": ["user_id", "team_description"]
       },
-      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -75,14 +71,35 @@
     "preferredWidth": 720,
     "preferredHeight": 880
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better.",
-    "Decide whether the twitter-thread and podcast-cold-open modes ship in Phase 2 or get deferred."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/how-you-build' matches the required pattern.",
-    "Structured multi-section output is acceptable per the Jan 2026 spec. Hosts can render each section in order, highlight the pull-quote separately, or collapse secondary sections. A single markdown blob is simpler but throws away structure the host cannot recover. Recommend keeping the structured form and offering a mode parameter option (e.g., mode: 'markdown') that flattens all sections to a single string for hosts that prefer it. Do not change the outputSchema; add the flatten path in the narration layer.",
-    "Defer both alt modes to Phase 3. The profile output is the core value; twitter-thread and podcast-cold-open add surface area without adding PM-utility that validates the tool concept. Ship the MCP bundle with profile-only, confirm the output works well in the host, then add modes in a follow-on update. The mode enum can stay in the inputSchema now so the contract is established; unsupported modes fall through to the profile default."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #52 How [You] Build Product. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 52,
+      "name": "How [You] Build Product",
+      "phase": 2,
+      "type": "paste-and-critique"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better.",
+      "Decide whether the twitter-thread and podcast-cold-open modes ship in Phase 2 or get deferred."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Structured multi-section output is acceptable. Hosts can render each section in order, highlight the pull-quote separately, or collapse secondary sections. A single markdown blob is simpler but throws away structure the host cannot recover. Recommend keeping the structured form and offering a mode parameter option (e.g., mode: 'markdown') that flattens all sections to a single string for hosts that prefer it. Do not change the outputSchema; add the flatten path in the narration layer.",
+      "Defer both alt modes to Phase 3. The profile output is the core value; twitter-thread and podcast-cold-open add surface area without adding PM-utility that validates the tool concept. Ship the MCP bundle with profile-only, confirm the output works well in the host, then add modes in a follow-on update. The mode enum can stay in the inputSchema now so the contract is established; unsupported modes fall through to the profile default. Note: mode_alt_output was renamed from _mode_alt_output — underscore-prefixed top-level property names are not safe in JSON Schema output."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys.",
+        "Renamed outputSchema property _mode_alt_output → mode_alt_output: underscore prefix is the _meta convention, not a property-name convention."
+      ]
+    }
+  }
 }

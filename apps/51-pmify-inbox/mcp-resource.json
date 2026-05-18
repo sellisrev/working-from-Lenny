@@ -1,11 +1,4 @@
 {
-  "_comment": "MCP resource spec for #51 PM-ify My Inbox. Phase 2 .mcpb bundle target. Draft — MCP Apps spec (Jan 2026) is young; owner to validate before locking.",
-  "_app": {
-    "id": 51,
-    "name": "PM-ify My Inbox",
-    "phase": 2,
-    "type": "paste-and-critique"
-  },
   "resource": {
     "uri": "ui://working-from-lenny/pmify",
     "name": "PM-ify My Inbox",
@@ -55,7 +48,7 @@
     },
     {
       "name": "pmify_history",
-      "description": "MCP-only (stateful). Returns the user's past translations. Default off — requires explicit opt-in per the plan's privacy posture.",
+      "description": "MCP-only (stateful). Returns the user's past translations. Stores translations locally across runs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -64,7 +57,10 @@
         },
         "required": ["user_id"]
       },
-      "_phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App AND user opt-in."
+      "_meta": {
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      }
     }
   ],
   "ui": {
@@ -72,14 +68,34 @@
     "preferredWidth": 560,
     "preferredHeight": 640
   },
-  "_open_questions": [
-    "Validate ui:// URI scheme against current MCP Apps spec.",
-    "Decide whether the tool should refuse very long inputs (>2000 chars) or truncate them — 2000 is a current guess.",
-    "Confirm structured footnotes (array of objects) is acceptable in MCP outputSchema, or whether the host renders better with a single markdown string."
-  ],
-  "_proposed_answers": [
-    "Confirmed valid. The Jan 2026 MCP Apps spec uses ui:// for embedded UI resources. 'ui://working-from-lenny/pmify' matches the required pattern.",
-    "Refuse with a clear message, not silent truncation. Truncating mid-sentence produces a garbled translation; a refused input with context ('Your message is 2,400 chars; try pasting one email at a time') is more useful. The 2,000-char cap is a reasonable starting point for a single email. Evaluate after beta whether users regularly paste longer inputs (threads, forwarded chains) and raise the cap if the data supports it.",
-    "Structured footnotes (array of objects) are acceptable in MCP outputSchema per the Jan 2026 spec. Hosts with rich rendering (Claude desktop) can display footnotes as collapsible references. For hosts that render plain text, the narration layer can flatten footnotes to inline markdown. Keeping the structured form is correct: the host decides how to render it, and structure is recoverable from a flat string only with more parsing."
-  ]
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #51 PM-ify My Inbox. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.app": {
+      "id": 51,
+      "name": "PM-ify My Inbox",
+      "phase": 2,
+      "type": "paste-and-critique"
+    },
+    "dev.workingfromlenny.open_questions": [
+      "Decide whether the tool should refuse very long inputs (>2000 chars) or truncate them — 2000 is a current guess.",
+      "Confirm structured footnotes (array of objects) is acceptable in MCP outputSchema, or whether the host renders better with a single markdown string."
+    ],
+    "dev.workingfromlenny.proposed_answers": [
+      "Refuse with a clear message, not silent truncation. Truncating mid-sentence produces a garbled translation; a refused input with context ('Your message is 2,400 chars; try pasting one email at a time') is more useful. The 2,000-char cap is a reasonable starting point for a single email. Evaluate after beta whether users regularly paste longer inputs (threads, forwarded chains) and raise the cap if the data supports it.",
+      "Structured footnotes (array of objects) are acceptable in MCP outputSchema. Hosts with rich rendering (Claude desktop) can display footnotes as collapsible references. For hosts that render plain text, the narration layer can flatten footnotes to inline markdown. Keeping the structured form is correct: the host decides how to render it, and structure is recoverable from a flat string only with more parsing."
+    ],
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-18",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
+        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+      ]
+    }
+  }
 }
