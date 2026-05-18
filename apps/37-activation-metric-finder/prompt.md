@@ -164,8 +164,8 @@ Aha-moment guess: {aha_moment_guess}
 
 Using Lenny Rachitsky's corpus (especially activation-metric, retention,
 cohort-retention, and hierarchy-of-engagement topics; for marketplaces,
-marketplace-metrics; for AI products, the Cat Wu wow-vs-aha distinction
-from vibe-coding), please:
+marketplace-metrics; for AI products, the Cat Wu wow-moment-vs-aha-moment
+distinction developed in activation-metric.md), please:
 
 1. Propose 2-3 candidate activation events that fit my business shape
    and stage.
@@ -207,9 +207,9 @@ Structurally distinct from the 11 existing voice shapes — no current app uses 
 - [ ] Author 3 worked candidate examples per business shape (6 shapes × 3 = 18 candidates total) for the few-shot pattern in `authoring.md`. Include marketplace supply-side AND demand-side variants.
 - [ ] Author 5-10 funnel-audit exemplars showing step → verdict mapping. Cover all five verdict types (value-moment / friction-filter / friction-drop / bypass / drop-off).
 - [ ] Author 6 synthetic business + funnel descriptions (one per business shape) for golden-set evals.
-- [ ] Cross-check that `activation-metric.md`, `retention.md`, `cohort-retention.md`, `hierarchy-of-engagement.md`, `marketplace-metrics.md`, `pm-pitfalls.md` exist in `knowledge/topics/`. (All six confirmed present 2026-05-18.)
-- [ ] Verify Cat Wu / wow-moment / aha-moment framing is anchored — currently lives in `vibe-coding.md` and is cross-referenced from `activation-metric.md`. Substitute or extend if needed.
-- [ ] Verify Lauryn Isford onboarding-mastery framing is corpus-anchored — currently in `activation-metric.md`. Substitute or extend if needed.
+- [x] Cross-check that `activation-metric.md`, `retention.md`, `cohort-retention.md`, `hierarchy-of-engagement.md`, `marketplace-metrics.md`, `pm-pitfalls.md` exist in `knowledge/topics/`. → All six confirmed present 2026-05-18.
+- [x] Verify Cat Wu / wow-moment / aha-moment framing is anchored. → Confirmed present in `activation-metric.md` (line 17 — explicit attribution to Cat Wu with the framing; line 23 — AI-product two-funnel shape with 30-second wow + stickiness-cliff specifics). `vibe-coding.md` cites Cat Wu for AGI-calibration / research-preview / taste-vs-execution but does NOT itself develop the wow-vs-aha distinction. Stage C content should cite `activation-metric.md` only; the `vibe-coding.md` cross-reference inside activation-metric.md is for AI-product context, not for the wow-vs-aha framing itself.
+- [x] Verify Lauryn Isford onboarding-mastery framing is corpus-anchored. → Confirmed present in `activation-metric.md` (line 19 — "Mastering onboarding" 2023 citation with the first-session-is-where-retention-is-lost framing; line 35 — "How thinking has evolved" entry). Cross-referenced in `retention.md` (line 26). No substitution needed; no separate `onboarding.md` topic file exists.
 
 ## Phase 2 MCP App spec
 
