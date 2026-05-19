@@ -1,0 +1,104 @@
+{
+  "score_cases": [
+    {
+      "name": "all sometimes",
+      "input": {
+        "answers": [
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes"
+        ]
+      },
+      "expect": {
+        "score_display": 10,
+        "all_never": false,
+        "top_three_pitfall_ids_subset_of": [1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    },
+    {
+      "name": "all never",
+      "input": {
+        "answers": [
+          "never", "never", "never", "never", "never",
+          "never", "never", "never", "never", "never",
+          "never", "never", "never", "never", "never",
+          "never", "never", "never", "never", "never"
+        ]
+      },
+      "expect": {
+        "score_display": 0,
+        "all_never": true,
+        "top_three_pitfall_ids": [1, 2, 4]
+      }
+    },
+    {
+      "name": "all always",
+      "input": {
+        "answers": [
+          "always", "always", "always", "always", "always",
+          "always", "always", "always", "always", "always",
+          "always", "always", "always", "always", "always",
+          "always", "always", "always", "always", "always"
+        ]
+      },
+      "expect": {
+        "score_display": 20,
+        "all_never": false,
+        "top_three_pitfall_ids_subset_of": [1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    },
+    {
+      "name": "first-eight always, rest never",
+      "input": {
+        "answers": [
+          "always", "always", "always", "always",
+          "always", "always", "always", "always",
+          "never", "never", "never", "never",
+          "never", "never", "never", "never",
+          "never", "never", "never", "never"
+        ]
+      },
+      "expect": {
+        "score_display": 8,
+        "all_never": false,
+        "top_three_pitfall_ids": [1, 2, 3]
+      }
+    }
+  ],
+  "drift_cases": [
+    {
+      "name": "first audit only",
+      "user_id": "u_test1",
+      "current_audit": {
+        "answers": [
+          "always", "always", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes"
+        ],
+        "score_display": 11
+      },
+      "expect": { "status": "first_audit", "audit_count": 1 }
+    },
+    {
+      "name": "second audit drifts",
+      "user_id": "u_test1",
+      "current_audit": {
+        "answers": [
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes",
+          "sometimes", "sometimes", "sometimes", "sometimes", "sometimes"
+        ],
+        "score_display": 10
+      },
+      "expect": {
+        "status": "drift_report",
+        "current_score": 10,
+        "previous_score": 11,
+        "audit_count": 2
+      }
+    }
+  ]
+}

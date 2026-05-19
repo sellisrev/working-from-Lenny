@@ -1,0 +1,64 @@
+{
+  "manifest_version": "0.2",
+  "name": "working-from-lenny",
+  "display_name": "Working from Lenny",
+  "version": "0.1.0",
+  "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool ships with corpus-anchored content; the host's LLM handles narration via sampling.",
+  "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Narration runs through the host's LLM via MCP sampling; if sampling is unavailable, the user can configure an API key in user_config. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
+  "author": {
+    "name": "Serge V.",
+    "url": "https://github.com/sellisrev/from-Lenny"
+  },
+  "homepage": "https://github.com/sellisrev/from-Lenny",
+  "documentation": "https://github.com/sellisrev/from-Lenny#readme",
+  "license": "TBD-before-v0.1.0",
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/server.js"],
+      "env": {
+        "WFL_DATA_DIR": "${user_config_dir}/working-from-lenny",
+        "WFL_BUNDLE_ROOT": "${__dirname}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "pm_pitfalls_score",
+      "description": "Deterministic. Returns the user's score (0-20) and the three highest-leverage pitfall IDs given their twenty answers."
+    },
+    {
+      "name": "pm_pitfalls_narrate",
+      "description": "LLM-narrated. Takes the score and top three picks and returns personalized one-paragraph diagnoses + behavior suggestions per pitfall."
+    },
+    {
+      "name": "pm_pitfalls_drift",
+      "description": "Stateful. Returns the user's calibration drift across re-audits. Persists answers locally between runs."
+    }
+  ],
+  "prompts_generated": false,
+  "tools_generated": false,
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "Inference API key (fallback)",
+      "description": "Only needed if the host doesn't implement MCP sampling. Get one from console.anthropic.com, ai.google.dev/gemini-api, or platform.openai.com. Optional otherwise.",
+      "sensitive": true,
+      "required": false
+    },
+    "api_provider": {
+      "type": "string",
+      "title": "API provider",
+      "description": "Which provider the api_key is for, used only when sampling is unavailable. One of: anthropic, gemini, openai.",
+      "default": "anthropic",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"]
+  }
+}
