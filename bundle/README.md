@@ -35,11 +35,28 @@ bundle/
 cd bundle
 pnpm install
 pnpm run build       # tsc -> dist/server.js + inlined UI HTMLs
-pnpm run validate    # zod roundtrip + golden-set in-process + no-network check
-pnpm run pack        # produces dist/working-from-lenny.mcpb
+pnpm run validate    # zod roundtrip + golden-set in-process + installed-layout + no-network
+pnpm run smoke       # spawns server.js in a staged install-root and runs MCP client calls
+pnpm run pack        # stages apps/+knowledge/topics/ then produces dist/working-from-lenny.mcpb
 ```
 
 `pnpm run validate` is the routine pre-commit gate per [`../PHASE2_BUILD.md`](../PHASE2_BUILD.md). Sonnet refuses to commit if validate is red.
+
+`pnpm run smoke` is the deeper pre-release gate: it stages the bundle into a fresh temp dir (same layout the installed `.mcpb` produces) and exercises every tool via the MCP SDK client over stdio. It's slower than validate and only needs to run before tagging a release or when a tool's contract changes.
+
+`pnpm run pack` copies the read-only runtime assets into `bundle/apps/` and `bundle/knowledge/topics/` before invoking `mcpb pack`, then removes them. Both staging paths are gitignored. If you run `mcpb pack` directly, the resulting `.mcpb` will be missing prompts and corpus — always go through `pnpm run pack`.
+
+## Owner smoke-test checklist (Claude Desktop)
+
+`pnpm run smoke` exercises every code path Opus can verify without a host. The bits below need a real Claude Desktop install to confirm — run these before tagging the first public `.mcpb`:
+
+1. **Install.** `pnpm run build && pnpm run pack`, then drag `dist/working-from-lenny.mcpb` into Claude Desktop -> Settings -> Extensions.
+2. **List the UI resource.** The pitfalls UI should appear in the host's resource picker as `PM Pitfalls Self-Audit` (`ui://working-from-lenny/pitfalls`). Open it and confirm the twenty rows render with always/sometimes/never controls and a Score button.
+3. **Score with host sampling.** Fill in the audit, hit Score. The host should call `pm_pitfalls_score` (deterministic — instant) and then `pm_pitfalls_narrate`. Narration should arrive via the host's sampling channel — meaning **no api-key prompt**. If you see the api-key prompt, host sampling failed or was declined; check the host's MCP logs.
+4. **Drift persistence.** Re-take the audit later in the same session with two answers changed. The drift call should report two `shifted_pitfalls`, a `previous_audit_at` timestamp, and an `audit_count: 2`. The data file lives at `$WFL_DATA_DIR/<user_id>/pm-pitfalls.json` (host substitutes `${user_config_dir}/working-from-lenny`).
+5. **Fallback path (optional).** In an MCP host that doesn't implement sampling, set `api_key` + `api_provider` in the extension's user_config screen and re-run step 3. Confirm narration arrives via the provider's API.
+
+If any step fails, do **not** let the Sonnet routine start cloning this pattern across the other ten apps — fix the worked example first, since the bug will multiply.
 
 ## Worked example: #44 PM Pitfalls
 

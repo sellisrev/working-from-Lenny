@@ -3,3 +3,7 @@ dist/
 *.mcpb
 *.log
 .tsbuildinfo
+
+# Staged at pack time by scripts/pack.ts; source of truth lives at repo root.
+apps/
+knowledge/

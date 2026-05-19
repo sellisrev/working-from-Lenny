@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json && tsx scripts/build-html.ts",
     "validate": "tsx scripts/validate.ts",
+    "smoke": "tsx scripts/smoke-test.ts",
     "pack": "tsx scripts/pack.ts",
     "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",

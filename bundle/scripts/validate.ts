@@ -7,6 +7,8 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import * as scoreTool from "../src/tools/pm-pitfalls/score";
 import * as narrateTool from "../src/tools/pm-pitfalls/narrate";
 import * as driftTool from "../src/tools/pm-pitfalls/drift";
+import { loadPrompt } from "../src/lib/prompt-loader";
+import { loadCorpusChunks } from "../src/lib/corpus";
 
 interface CaseResult {
   name: string;
@@ -31,6 +33,7 @@ async function main(): Promise<void> {
   await checkScoreGoldens();
   await checkDriftGoldens();
   await checkUiBuild();
+  await checkInstalledLayout();
 
   const fetchCalls = getFetchCalls();
   record(
@@ -246,6 +249,76 @@ async function checkUiBuild(): Promise<void> {
     return;
   }
   record("ui inlined", true);
+}
+
+/**
+ * Simulates an installed-.mcpb layout: a fresh root containing only the
+ * bundled apps/ and knowledge/topics/ slices. Confirms loadPrompt and
+ * loadCorpusChunks resolve against the bundled copies (NOT the repo-root
+ * fallback) and return non-empty content. Catches the regression class where
+ * pack.ts stages nothing and the installed bundle throws ENOENT on first
+ * narrate call.
+ */
+async function checkInstalledLayout(): Promise<void> {
+  const installRoot = await fs.mkdtemp(
+    path.join(os.tmpdir(), "wfl-installed-"),
+  );
+  const repoRoot = path.resolve(bundleRoot, "..");
+  const originalBundleRoot = process.env.WFL_BUNDLE_ROOT;
+
+  try {
+    const appsDest = path.join(installRoot, "apps", "44-pm-pitfalls");
+    await fs.mkdir(appsDest, { recursive: true });
+    await fs.copyFile(
+      path.join(repoRoot, "apps", "44-pm-pitfalls", "prompt.md"),
+      path.join(appsDest, "prompt.md"),
+    );
+
+    const topicsDest = path.join(installRoot, "knowledge", "topics");
+    await fs.mkdir(topicsDest, { recursive: true });
+    for (const slug of ["pm-pitfalls", "ai-pm-skills"]) {
+      await fs.copyFile(
+        path.join(repoRoot, "knowledge", "topics", `${slug}.md`),
+        path.join(topicsDest, `${slug}.md`),
+      );
+    }
+
+    process.env.WFL_BUNDLE_ROOT = installRoot;
+
+    const prompt = await loadPrompt("44");
+    if (!prompt || prompt.length < 100) {
+      record(
+        "installed layout: loadPrompt(44)",
+        false,
+        `got ${prompt?.length ?? 0} chars`,
+      );
+    } else {
+      record("installed layout: loadPrompt(44)", true);
+    }
+
+    const corpus = await loadCorpusChunks(["pm-pitfalls", "ai-pm-skills"]);
+    const missing = Object.entries(corpus)
+      .filter(([, body]) => !body || body.length === 0)
+      .map(([slug]) => slug);
+    if (missing.length > 0) {
+      record(
+        "installed layout: loadCorpusChunks",
+        false,
+        `empty: ${missing.join(", ")}`,
+      );
+    } else {
+      record("installed layout: loadCorpusChunks", true);
+    }
+  } catch (err) {
+    record("installed layout", false, (err as Error).message);
+  } finally {
+    if (originalBundleRoot === undefined) {
+      delete process.env.WFL_BUNDLE_ROOT;
+    } else {
+      process.env.WFL_BUNDLE_ROOT = originalBundleRoot;
+    }
+    await fs.rm(installRoot, { recursive: true, force: true });
+  }
 }
 
 function installFetchGuard(): () => string[] {
