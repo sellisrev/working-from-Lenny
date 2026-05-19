@@ -4,6 +4,6 @@ dist/
 *.log
 .tsbuildinfo
 
-# Staged at pack time by scripts/pack.ts; source of truth lives at repo root.
-apps/
-knowledge/
+# Staged at pack time by scripts/pack.ts under dist/.mcpb-staging/ (which is
+# already ignored via the dist/ rule above). The bundle no longer pollutes
+# its own working tree.

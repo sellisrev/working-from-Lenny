@@ -48,7 +48,42 @@ const RESOURCES: ResourceEntry[] = [
   },
 ];
 
+// stderr logging is what appears in Claude Desktop's extension log file.
+function logErr(label: string, detail: unknown): void {
+  try {
+    const body =
+      detail instanceof Error
+        ? `${detail.message}\n${detail.stack ?? ""}`
+        : typeof detail === "string"
+          ? detail
+          : JSON.stringify(detail, null, 2);
+    // eslint-disable-next-line no-console
+    console.error(`[wfl] ${label}: ${body}`);
+  } catch {
+    // eslint-disable-next-line no-console
+    console.error(`[wfl] ${label}: <unserializable>`);
+  }
+}
+
+process.on("uncaughtException", (err) => {
+  logErr("uncaughtException", err);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  logErr("unhandledRejection", reason);
+  process.exit(1);
+});
+process.on("exit", (code) => {
+  // eslint-disable-next-line no-console
+  console.error(`[wfl] process.exit code=${code}`);
+});
+
 async function main(): Promise<void> {
+  logErr(
+    "boot",
+    `node=${process.version} platform=${process.platform} cwd=${process.cwd()} bundleRoot=${process.env.WFL_BUNDLE_ROOT ?? "<unset>"} dataDir=${process.env.WFL_DATA_DIR ?? "<unset>"}`,
+  );
+
   const server = new Server(
     {
       name: "working-from-lenny",
@@ -166,10 +201,10 @@ async function main(): Promise<void> {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  logErr("ready", "stdio transport connected, handlers registered");
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error("Server crashed:", err);
+  logErr("main crashed", err);
   process.exit(1);
 });
