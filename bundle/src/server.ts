@@ -14,6 +14,7 @@ import { SamplingUnavailableError } from "./shared/types";
 import { configureSampling } from "./lib/sampling";
 import { bundleRoot } from "./lib/paths";
 
+import * as questionsTool from "./tools/pm-pitfalls/questions";
 import * as scoreTool from "./tools/pm-pitfalls/score";
 import * as narrateTool from "./tools/pm-pitfalls/narrate";
 import * as driftTool from "./tools/pm-pitfalls/drift";
@@ -32,6 +33,7 @@ interface ResourceEntry {
 }
 
 const TOOLS: RegisteredTool[] = [
+  questionsTool as unknown as RegisteredTool,
   scoreTool as unknown as RegisteredTool,
   narrateTool as unknown as RegisteredTool,
   driftTool as unknown as RegisteredTool,

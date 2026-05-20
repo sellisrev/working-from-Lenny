@@ -14,13 +14,22 @@
   <p class="app-tagline">Twenty pitfalls. Most PMs are guilty of seven. The honest ones admit nine.</p>
 
   <form class="pitfalls-form" id="pitfalls-form" novalidate>
-    <div id="pitfalls-list" aria-label="PM pitfalls self-audit">
-      <!-- Rows built by JS -->
+    <div class="pitfalls-progress">
+      <div class="pitfalls-progress-bar"><div class="pitfalls-progress-fill" id="pitfalls-progress-fill"></div></div>
+      <div class="pitfalls-dots" id="pitfalls-dots" aria-hidden="true"></div>
     </div>
+
+    <div id="pitfalls-pages" aria-live="polite"></div>
+
+    <div class="pitfalls-nav">
+      <button type="button" class="pitfalls-btn" id="pitfalls-prev" disabled>← Back</button>
+      <span class="pitfalls-counter" id="pitfalls-counter">1 / 20</span>
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="pitfalls-next">Next →</button>
+    </div>
+
     <p class="pitfalls-validation" id="pitfalls-validation" role="alert">
-      Please rate all 20 pitfalls above to see your results.
+      Please answer all 20 questions to see your results.
     </p>
-    <button type="submit" class="pitfalls-submit" id="pitfalls-submit">See my three to fix this quarter</button>
   </form>
 
   <div class="pitfalls-error" id="pitfalls-error" role="alert"></div>
@@ -29,14 +38,11 @@
     <p class="pitfalls-score" id="pitfalls-score-text"></p>
     <p class="pitfalls-picks-header" id="pitfalls-picks-header"></p>
     <ol class="pitfalls-picks" id="pitfalls-picks-list"></ol>
-
-    <div class="pitfalls-context">
-      <label for="pitfalls-context-input">Optional context (your role, stage, company size):</label>
-      <input type="text" id="pitfalls-context-input" placeholder="e.g. Senior PM at a 30-person B2B startup">
-    </div>
-
+    <p class="pitfalls-narrate-hint">
+      For a personalized read of your top three, ask Claude in the chat: <strong>"narrate my pitfalls"</strong>.
+      The assistant uses your answers and a corpus brief to render the diagnosis.
+    </p>
     <div class="pitfalls-actions">
-      <button type="button" class="pitfalls-btn" id="pitfalls-narrate-btn">Get personalized narration</button>
       <button type="button" class="pitfalls-btn" id="pitfalls-drift-btn">Compare to my last audit</button>
       <button type="button" class="pitfalls-btn" id="pitfalls-retake-btn">Retake</button>
     </div>
@@ -73,73 +79,123 @@
     { id: 20, text: "Confusing being busy with being useful" }
   ];
 
-  var lastAnswers = null;
+  var OPTIONS = ["always", "sometimes", "never"];
+
+  var answers = new Array(20).fill(null);
+  var current = 0;
   var lastScore = null;
   var lastPicks = null;
+  var advanceTimer = null;
 
   function $(id) { return document.getElementById(id); }
 
-  function buildForm() {
-    var list = $("pitfalls-list");
-    PITFALLS.forEach(function (p) {
-      var row = document.createElement("div");
-      row.className = "pitfalls-row";
-      row.dataset.id = String(p.id);
+  function buildPages() {
+    var pagesEl = $("pitfalls-pages");
+    var dotsEl = $("pitfalls-dots");
+    PITFALLS.forEach(function (p, i) {
+      var page = document.createElement("div");
+      page.className = "pitfalls-page" + (i === 0 ? " active" : "");
+      page.id = "pitfalls-page-" + i;
 
-      var label = document.createElement("div");
-      label.className = "pitfalls-row-label";
+      var card = document.createElement("div");
+      card.className = "pitfalls-card";
 
-      var num = document.createElement("span");
-      num.className = "pitfalls-row-number";
-      num.textContent = String(p.id);
+      var num = document.createElement("div");
+      num.className = "pitfalls-q-num";
+      num.textContent = "Question " + (i + 1) + " of 20";
+      card.appendChild(num);
 
-      var txt = document.createElement("span");
-      txt.className = "pitfalls-row-text";
-      txt.textContent = p.text;
+      var text = document.createElement("div");
+      text.className = "pitfalls-q-text";
+      text.textContent = p.text;
+      card.appendChild(text);
 
-      label.appendChild(num);
-      label.appendChild(txt);
+      var opts = document.createElement("div");
+      opts.className = "pitfalls-options";
+      opts.setAttribute("role", "radiogroup");
+      opts.setAttribute("aria-label", "Rate pitfall " + (i + 1));
 
-      var radios = document.createElement("div");
-      radios.className = "pitfalls-radios";
-      radios.setAttribute("role", "radiogroup");
-      radios.setAttribute("aria-label", "Rate pitfall " + p.id);
-
-      ["always", "sometimes", "never"].forEach(function (val) {
-        var lbl = document.createElement("label");
-        lbl.className = "pitfalls-radio-label";
-
-        var input = document.createElement("input");
-        input.type = "radio";
-        input.name = "p" + p.id;
-        input.value = val;
-
-        var span = document.createElement("span");
-        span.textContent = val;
-
-        lbl.appendChild(input);
-        lbl.appendChild(span);
-        radios.appendChild(lbl);
+      OPTIONS.forEach(function (val) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pitfalls-opt";
+        btn.dataset.q = String(i);
+        btn.dataset.val = val;
+        btn.setAttribute("role", "radio");
+        btn.setAttribute("aria-checked", "false");
+        btn.textContent = val.charAt(0).toUpperCase() + val.slice(1);
+        btn.addEventListener("click", function () { pick(i, val); });
+        opts.appendChild(btn);
       });
 
-      row.appendChild(label);
-      row.appendChild(radios);
-      list.appendChild(row);
+      card.appendChild(opts);
+      page.appendChild(card);
+      pagesEl.appendChild(page);
+
+      var dot = document.createElement("div");
+      dot.className = "dot" + (i === 0 ? " current" : "");
+      dot.id = "pitfalls-dot-" + i;
+      dotsEl.appendChild(dot);
     });
   }
 
-  function gatherAnswers() {
-    var answers = [];
-    var unanswered = [];
-    PITFALLS.forEach(function (p) {
-      var checked = document.querySelector('input[name="p' + p.id + '"]:checked');
-      if (checked) {
-        answers.push(checked.value);
-      } else {
-        unanswered.push(p.id);
-      }
+  function pick(qi, val) {
+    answers[qi] = val;
+    var page = $("pitfalls-page-" + qi);
+    var buttons = page.querySelectorAll(".pitfalls-opt");
+    buttons.forEach(function (b) {
+      var selected = b.dataset.val === val;
+      b.classList.toggle("selected", selected);
+      b.setAttribute("aria-checked", selected ? "true" : "false");
     });
-    return { answers: answers, unanswered: unanswered };
+    $("pitfalls-dot-" + qi).classList.add("answered");
+    updateProgress();
+
+    if (advanceTimer) clearTimeout(advanceTimer);
+    if (qi < 19) {
+      advanceTimer = setTimeout(function () { navigate(1); }, 220);
+    }
+  }
+
+  function navigate(dir) {
+    var next = current + dir;
+    if (next < 0 || next > 19) return;
+    $("pitfalls-page-" + current).classList.remove("active");
+    $("pitfalls-dot-" + current).classList.remove("current");
+    current = next;
+    $("pitfalls-page-" + current).classList.add("active");
+    $("pitfalls-dot-" + current).classList.add("current");
+    updateProgress();
+    // Focus the first option on the new page for keyboard users; do not steal
+    // focus from a click on the touch path (the click already moved on).
+    var firstOpt = $("pitfalls-page-" + current).querySelector(".pitfalls-opt");
+    if (firstOpt) firstOpt.focus({ preventScroll: true });
+  }
+
+  function updateProgress() {
+    var answered = answers.filter(function (a) { return a !== null; }).length;
+    $("pitfalls-progress-fill").style.width = (answered / 20 * 100) + "%";
+    $("pitfalls-counter").textContent = (current + 1) + " / 20";
+    $("pitfalls-prev").disabled = current === 0;
+
+    var nextBtn = $("pitfalls-next");
+    var allAnswered = answered === 20;
+    if (current === 19 && allAnswered) {
+      nextBtn.textContent = "See my three to fix this quarter";
+      nextBtn.dataset.mode = "submit";
+    } else {
+      nextBtn.textContent = "Next →";
+      nextBtn.dataset.mode = "next";
+      nextBtn.disabled = current === 19 && !allAnswered;
+    }
+  }
+
+  function gatherAnswers() {
+    var unanswered = [];
+    for (var i = 0; i < 20; i++) {
+      if (answers[i] === null) unanswered.push(i);
+    }
+    return { answers: answers.slice(), unanswered: unanswered };
   }
 
   function showError(msg) {
@@ -155,7 +211,6 @@
   }
 
   function parseToolResult(result) {
-    // CallToolResult shape: { content: [{type: "text", text: "..."}] }
     if (!result || !Array.isArray(result.content)) {
       throw new Error("Malformed tool result");
     }
@@ -166,42 +221,49 @@
     return JSON.parse(first.text);
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    clearError();
+  function handleNext() {
+    var nextBtn = $("pitfalls-next");
+    if (nextBtn.dataset.mode === "submit") {
+      handleSubmit();
+    } else {
+      navigate(1);
+    }
+  }
 
+  function handleSubmit() {
+    clearError();
     var gathered = gatherAnswers();
-    document.querySelectorAll(".pitfalls-row").forEach(function (row) {
-      row.classList.remove("unanswered");
-    });
     if (gathered.unanswered.length > 0) {
-      gathered.unanswered.forEach(function (id) {
-        var row = document.querySelector('.pitfalls-row[data-id="' + id + '"]');
-        if (row) row.classList.add("unanswered");
-      });
       $("pitfalls-validation").classList.add("visible");
-      var firstRow = document.querySelector(".pitfalls-row.unanswered");
-      if (firstRow) firstRow.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Jump to the first unanswered page.
+      var firstMissing = gathered.unanswered[0];
+      if (current !== firstMissing) {
+        $("pitfalls-page-" + current).classList.remove("active");
+        $("pitfalls-dot-" + current).classList.remove("current");
+        current = firstMissing;
+        $("pitfalls-page-" + current).classList.add("active");
+        $("pitfalls-dot-" + current).classList.add("current");
+      }
+      updateProgress();
       return;
     }
 
     $("pitfalls-validation").classList.remove("visible");
-    var submit = $("pitfalls-submit");
-    submit.disabled = true;
-    submit.textContent = "Scoring...";
+    var nextBtn = $("pitfalls-next");
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Scoring...";
 
     window.mcp.callTool("pm_pitfalls_score", { answers: gathered.answers })
       .then(function (result) {
         var scored = parseToolResult(result);
-        lastAnswers = gathered.answers;
         lastScore = scored.score_display;
         lastPicks = scored;
         renderScore(scored);
       })
       .catch(function (err) { showError(err.message || String(err)); })
       .then(function () {
-        submit.disabled = false;
-        submit.textContent = "See my three to fix this quarter";
+        nextBtn.disabled = false;
+        updateProgress();
       });
   }
 
@@ -210,7 +272,7 @@
 
     var header = $("pitfalls-picks-header");
     header.textContent = scored.all_never
-      ? "Either you’re in the top 1% or you’re being kind to yourself. Try again being a little more honest."
+      ? "Either you’re in the top 1% or you’re being kind to yourself. Try again, more honestly."
       : "Your three highest-leverage to fix this quarter:";
 
     var list = $("pitfalls-picks-list");
@@ -245,74 +307,8 @@
     out.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function handleNarrate() {
-    if (!lastPicks) return;
-    clearError();
-    var btn = $("pitfalls-narrate-btn");
-    btn.disabled = true;
-    btn.textContent = "Narrating...";
-    var ctx = $("pitfalls-context-input").value || "";
-
-    window.mcp.callTool("pm_pitfalls_narrate", {
-      score_display: lastScore,
-      top_three_pitfall_ids: lastPicks.top_three_pitfall_ids,
-      user_context: ctx
-    })
-      .then(function (result) {
-        var narrated = parseToolResult(result);
-        renderNarrations(narrated.narrations);
-      })
-      .catch(function (err) { showError(err.message || String(err)); })
-      .then(function () {
-        btn.disabled = false;
-        btn.textContent = "Get personalized narration";
-      });
-  }
-
-  function renderNarrations(narrations) {
-    narrations.forEach(function (n) {
-      var li = document.querySelector('.pitfalls-pick[data-pitfall-id="' + n.pitfall_id + '"]');
-      if (!li) return;
-      var existing = li.querySelector(".pitfalls-pick-narration");
-      if (existing) existing.remove();
-
-      var wrap = document.createElement("div");
-      wrap.className = "pitfalls-pick-narration";
-
-      var h = document.createElement("h4");
-      h.textContent = "Diagnosis";
-      wrap.appendChild(h);
-
-      var p = document.createElement("p");
-      p.textContent = n.diagnosis;
-      wrap.appendChild(p);
-
-      var h2 = document.createElement("h4");
-      h2.textContent = "Start this quarter";
-      wrap.appendChild(h2);
-
-      var ul = document.createElement("ul");
-      (n.behaviors || []).forEach(function (b) {
-        var liB = document.createElement("li");
-        liB.textContent = b;
-        ul.appendChild(liB);
-      });
-      wrap.appendChild(ul);
-
-      var h3 = document.createElement("h4");
-      h3.textContent = "Corpus example";
-      wrap.appendChild(h3);
-
-      var pEx = document.createElement("p");
-      pEx.textContent = n.example;
-      wrap.appendChild(pEx);
-
-      li.appendChild(wrap);
-    });
-  }
-
   function handleDrift() {
-    if (!lastAnswers || lastScore == null) return;
+    if (!lastPicks || lastScore == null) return;
     clearError();
     var btn = $("pitfalls-drift-btn");
     btn.disabled = true;
@@ -321,11 +317,11 @@
     var userId = getOrCreateUserId();
     window.mcp.callTool("pm_pitfalls_drift", {
       user_id: userId,
-      current_audit: { answers: lastAnswers, score_display: lastScore }
+      current_audit: { answers: answers.slice(), score_display: lastScore }
     })
       .then(function (result) {
         var drift = parseToolResult(result);
-        alertDrift(drift);
+        showDriftLine(drift);
       })
       .catch(function (err) { showError(err.message || String(err)); })
       .then(function () {
@@ -334,8 +330,7 @@
       });
   }
 
-  function alertDrift(d) {
-    // Simple modal-ish display in the error area (re-purposed as info banner).
+  function showDriftLine(d) {
     var el = $("pitfalls-error");
     el.style.background = "#f4f8ff";
     el.style.borderLeftColor = "#446";
@@ -358,24 +353,35 @@
   }
 
   function handleRetake() {
-    document.querySelectorAll('input[type="radio"]').forEach(function (input) {
-      input.checked = false;
+    if (advanceTimer) clearTimeout(advanceTimer);
+    answers = new Array(20).fill(null);
+    lastScore = null;
+    lastPicks = null;
+    document.querySelectorAll(".pitfalls-opt").forEach(function (b) {
+      b.classList.remove("selected");
+      b.setAttribute("aria-checked", "false");
     });
-    document.querySelectorAll(".pitfalls-row").forEach(function (row) {
-      row.classList.remove("unanswered");
+    document.querySelectorAll(".dot").forEach(function (d) {
+      d.classList.remove("answered");
+      d.classList.remove("current");
     });
+    $("pitfalls-dot-0").classList.add("current");
+    document.querySelectorAll(".pitfalls-page").forEach(function (pg) {
+      pg.classList.remove("active");
+    });
+    $("pitfalls-page-0").classList.add("active");
+    current = 0;
     $("pitfalls-validation").classList.remove("visible");
     $("pitfalls-output").classList.remove("visible");
     clearError();
-    lastAnswers = null;
-    lastScore = null;
-    lastPicks = null;
+    updateProgress();
     document.getElementById("pitfalls-form").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  buildForm();
-  $("pitfalls-form").addEventListener("submit", handleSubmit);
-  $("pitfalls-narrate-btn").addEventListener("click", handleNarrate);
+  buildPages();
+  updateProgress();
+  $("pitfalls-prev").addEventListener("click", function () { navigate(-1); });
+  $("pitfalls-next").addEventListener("click", handleNext);
   $("pitfalls-drift-btn").addEventListener("click", handleDrift);
   $("pitfalls-retake-btn").addEventListener("click", handleRetake);
 })();

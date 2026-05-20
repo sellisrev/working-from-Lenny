@@ -14,24 +14,78 @@
         "properties": {
           "business_shape": {
             "type": "string",
-            "enum": ["B2C-subscription", "B2C-transactional", "B2B-PLG", "B2B-sales-led", "marketplace", "prosumer"]
+            "enum": [
+              "B2C-subscription",
+              "B2C-transactional",
+              "B2B-PLG",
+              "B2B-sales-led",
+              "marketplace",
+              "prosumer"
+            ]
           },
-          "business_unusual": { "type": "string", "maxLength": 200 },
-          "primary_user_action": { "type": "string", "maxLength": 200 },
+          "business_unusual": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "primary_user_action": {
+            "type": "string",
+            "maxLength": 200
+          },
           "monetization": {
             "type": "array",
-            "items": { "type": "string", "enum": ["pay-per-use", "subscription", "freemium-to-paid", "seat-based", "consumption-based", "ad-supported", "other"] }
+            "items": {
+              "type": "string",
+              "enum": [
+                "pay-per-use",
+                "subscription",
+                "freemium-to-paid",
+                "seat-based",
+                "consumption-based",
+                "ad-supported",
+                "other"
+              ]
+            }
           },
-          "revenue_band": { "type": "string", "enum": ["pre-revenue", "$0-100k", "$100k-1M", "$1M-10M", "$10M-100M", "$100M+"] },
-          "friction_top": { "type": "string", "maxLength": 200 },
-          "stage": { "type": "string", "enum": ["pre-PMF", "early-PMF", "scaling", "mature"] },
+          "revenue_band": {
+            "type": "string",
+            "enum": [
+              "pre-revenue",
+              "$0-100k",
+              "$100k-1M",
+              "$1M-10M",
+              "$10M-100M",
+              "$100M+"
+            ]
+          },
+          "friction_top": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "pre-PMF",
+              "early-PMF",
+              "scaling",
+              "mature"
+            ]
+          },
           "marketplace_side": {
             "type": "string",
-            "enum": ["supply", "demand", "both"],
+            "enum": [
+              "supply",
+              "demand",
+              "both"
+            ],
             "description": "Only applies when business_shape == marketplace. Routes which family of NSM candidates Pass 1 draws from. Omit for non-marketplace shapes."
           }
         },
-        "required": ["business_shape", "primary_user_action", "monetization", "stage"]
+        "required": [
+          "business_shape",
+          "primary_user_action",
+          "monetization",
+          "stage"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -43,17 +97,31 @@
             "items": {
               "type": "object",
               "properties": {
-                "name": { "type": "string" },
-                "rationale": { "type": "string" },
-                "vanity_risk": { "type": "string" },
-                "leading_or_lagging": { "type": "string" },
-                "gameability": { "type": "string" },
-                "what_could_break_this": { "type": "string" },
+                "name": {
+                  "type": "string"
+                },
+                "rationale": {
+                  "type": "string"
+                },
+                "vanity_risk": {
+                  "type": "string"
+                },
+                "leading_or_lagging": {
+                  "type": "string"
+                },
+                "gameability": {
+                  "type": "string"
+                },
+                "what_could_break_this": {
+                  "type": "string"
+                },
                 "input_metrics": {
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 5,
-                  "items": { "type": "string" }
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -69,14 +137,23 @@
         "properties": {
           "dashboard_metrics": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 1,
             "maxItems": 40
           },
-          "business_shape": { "type": "string" },
-          "stage": { "type": "string" }
+          "business_shape": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          }
         },
-        "required": ["dashboard_metrics", "business_shape"]
+        "required": [
+          "dashboard_metrics",
+          "business_shape"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -86,9 +163,20 @@
             "items": {
               "type": "object",
               "properties": {
-                "metric_name": { "type": "string" },
-                "verdict": { "type": "string", "enum": ["closest-to-NSM", "useful-input", "vanity-replace"] },
-                "one_line_why": { "type": "string" }
+                "metric_name": {
+                  "type": "string"
+                },
+                "verdict": {
+                  "type": "string",
+                  "enum": [
+                    "closest-to-NSM",
+                    "useful-input",
+                    "vanity-replace"
+                  ]
+                },
+                "one_line_why": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -101,13 +189,22 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" },
-          "current_nsm_value": { "type": "number" }
+          "user_id": {
+            "type": "string"
+          },
+          "current_nsm_value": {
+            "type": "number"
+          }
         },
-        "required": ["user_id", "current_nsm_value"]
+        "required": [
+          "user_id",
+          "current_nsm_value"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Calibration requires persisted prior picks + current value in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
       }
     }
@@ -124,6 +221,16 @@
       "name": "North Star Metric Finder",
       "phase": 2,
       "type": "wizard + LLM-narrated candidate critique"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "nsm_candidates",
+        "nsm_dashboard_audit"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Should the input_metrics tree share a schema with #37 Activation Metric Finder so the two apps interoperate, or stay independent?",

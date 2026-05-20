@@ -7,8 +7,35 @@
   },
   "tools": [
     {
+      "name": "pm_pitfalls_get_questions",
+      "description": "Returns the canonical 20 PM-pitfall questions (id + text). Host MUST use these exact questions or render the ui://working-from-lenny/pitfalls resource; never substitute generic PM questions, since the scoring is positional against this list.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "questions": {
+            "type": "array",
+            "minItems": 20,
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 20 },
+                "text": { "type": "string" }
+              }
+            }
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    {
       "name": "pm_pitfalls_score",
-      "description": "Deterministic. Returns the user's score (0-20) and the three highest-leverage pitfall IDs given their twenty answers.",
+      "description": "Deterministic. Returns the user's score (0-20), the three highest-leverage pitfall IDs given their twenty answers, the pre-written exemplar quote per pick, AND the canonical 20 questions. Answers are interpreted positionally against the canonical pitfalls — call pm_pitfalls_get_questions or render ui://working-from-lenny/pitfalls first; never substitute generic PM questions.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -16,54 +43,194 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["always", "sometimes", "never"]
+              "enum": [
+                "always",
+                "sometimes",
+                "never"
+              ]
             },
             "minItems": 20,
             "maxItems": 20,
             "description": "Twenty answers in pitfall-ID order (1 through 20)."
           }
         },
-        "required": ["answers"]
+        "required": [
+          "answers"
+        ]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "score_display": { "type": "integer", "minimum": 0, "maximum": 20 },
+          "score_display": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          },
           "top_three_pitfall_ids": {
             "type": "array",
-            "items": { "type": "integer" },
+            "items": {
+              "type": "integer"
+            },
             "minItems": 3,
             "maxItems": 3
           },
           "exemplar_quotes": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 3,
             "maxItems": 3,
             "description": "Pre-written corpus-anchored exemplar quote per top-three pitfall."
+          },
+          "questions": {
+            "type": "array",
+            "minItems": 20,
+            "maxItems": 20,
+            "description": "Canonical 20 pitfall questions (id + text), echoed so the host has them in context for downstream rendering.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 20 },
+                "text": { "type": "string" }
+              }
+            }
           }
         }
       }
     },
     {
       "name": "pm_pitfalls_narrate",
-      "description": "LLM-narrated. Takes the score and top three picks and returns personalized one-paragraph diagnoses + behavior suggestions per pitfall. Uses local corpus chunks for grounding.",
+      "description": "Packages a corpus-grounded narration brief for the user's top three pitfalls. Returns voice rules, structure, picks (pitfall text + exemplar quote + corpus anchors), and the corpus chunks themselves. The host chat model renders the user-facing narration from this brief.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "score_display": { "type": "integer" },
+          "score_display": {
+            "type": "integer"
+          },
           "top_three_pitfall_ids": {
             "type": "array",
-            "items": { "type": "integer" },
+            "items": {
+              "type": "integer"
+            },
             "minItems": 3,
             "maxItems": 3
           },
           "user_context": {
             "type": "string",
             "description": "Optional. User's role, stage, company size — sharpens the narration. Empty string if not provided."
+          },
+          "answers": {
+            "type": "array",
+            "minItems": 20,
+            "maxItems": 20,
+            "items": { "type": "string", "enum": ["always", "sometimes", "never"] },
+            "description": "Optional. Pass through the user's 20 answers (in pitfall-id order) from the score call so the brief can ground specific behavioral claims in actual answers."
           }
         },
-        "required": ["score_display", "top_three_pitfall_ids"]
+        "required": [
+          "score_display",
+          "top_three_pitfall_ids"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "narration_brief"
+          },
+          "audience": {
+            "const": "user"
+          },
+          "directive": {
+            "type": "string"
+          },
+          "voice_rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "per_section_template": {
+                "type": "string"
+              },
+              "length_cap": {
+                "type": "string"
+              }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "score_display": {
+                "type": "integer"
+              },
+              "user_context": {
+                "type": "string"
+              },
+              "picks": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pitfall_id": {
+                      "type": "integer"
+                    },
+                    "pitfall_text": {
+                      "type": "string"
+                    },
+                    "exemplar_quote": {
+                      "type": "string"
+                    },
+                    "corpus_anchors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "user_answer": {
+                      "type": "string",
+                      "enum": ["always", "sometimes", "never"],
+                      "description": "Optional. Populated when narrate was called with the answers array."
+                    }
+                  }
+                }
+              },
+              "full_audit": {
+                "type": "array",
+                "minItems": 20,
+                "maxItems": 20,
+                "description": "Optional. Per-pitfall user answer mapping. Present only when narrate was called with the answers array. Use to ground specific behavioral claims; do NOT invent answers when this field is absent.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pitfall_id": { "type": "integer", "minimum": 1, "maximum": 20 },
+                    "pitfall_text": { "type": "string" },
+                    "user_answer": { "type": "string", "enum": ["always", "sometimes", "never"] }
+                  }
+                }
+              }
+            }
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Map of anchor slug to corpus chunk text."
+          }
+        }
       }
     },
     {
@@ -72,12 +239,18 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" }
+          "user_id": {
+            "type": "string"
+          }
         },
-        "required": ["user_id"]
+        "required": [
+          "user_id"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
       }
     }
@@ -94,6 +267,15 @@
       "name": "PM Pitfalls Self-Audit",
       "phase": 2,
       "type": "quiz + LLM narration"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "pm_pitfalls_narrate"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Confirm enum-in-array works in MCP tool inputSchema.",

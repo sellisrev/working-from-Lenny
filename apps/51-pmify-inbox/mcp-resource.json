@@ -14,7 +14,10 @@
         "properties": {
           "mode": {
             "type": "string",
-            "enum": ["pm-ify", "de-pm-ify"],
+            "enum": [
+              "pm-ify",
+              "de-pm-ify"
+            ],
             "description": "pm-ify: plain English → corporate-PM-speak. de-pm-ify: corporate-PM-speak → plain English."
           },
           "text": {
@@ -24,20 +27,32 @@
             "description": "The message to translate."
           }
         },
-        "required": ["mode", "text"]
+        "required": [
+          "mode",
+          "text"
+        ]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "translation": { "type": "string" },
+          "translation": {
+            "type": "string"
+          },
           "footnotes": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "pattern_name": { "type": "string" },
-                "diagnosis": { "type": "string" },
-                "corpus_topic": { "type": "string", "description": "Topic file the pattern is anchored in." }
+                "pattern_name": {
+                  "type": "string"
+                },
+                "diagnosis": {
+                  "type": "string"
+                },
+                "corpus_topic": {
+                  "type": "string",
+                  "description": "Topic file the pattern is anchored in."
+                }
               }
             },
             "minItems": 2,
@@ -52,13 +67,23 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" },
-          "limit": { "type": "integer", "default": 10, "maximum": 100 }
+          "user_id": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10,
+            "maximum": 100
+          }
         },
-        "required": ["user_id"]
+        "required": [
+          "user_id"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
       }
     }
@@ -75,6 +100,15 @@
       "name": "PM-ify My Inbox",
       "phase": 2,
       "type": "paste-and-critique"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "pmify_translate"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Decide whether the tool should refuse very long inputs (>2000 chars) or truncate them — 2000 is a current guess.",

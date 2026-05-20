@@ -14,51 +14,114 @@
         "properties": {
           "stage": {
             "type": "string",
-            "enum": ["pre-seed", "seed", "series-a", "series-b-plus"]
+            "enum": [
+              "pre-seed",
+              "seed",
+              "series-a",
+              "series-b-plus"
+            ]
           },
-          "engineer_count": { "type": "integer", "minimum": 0 },
-          "designer_count": { "type": "integer", "minimum": 0 },
+          "engineer_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "designer_count": {
+            "type": "integer",
+            "minimum": 0
+          },
           "pm_work_today": {
             "type": "string",
-            "enum": ["the-founder", "doubling-engineer", "doubling-designer", "ceo-and-head-eng", "nobody"]
+            "enum": [
+              "the-founder",
+              "doubling-engineer",
+              "doubling-designer",
+              "ceo-and-head-eng",
+              "nobody"
+            ]
           },
           "founder_time_on_product": {
             "type": "string",
-            "enum": ["rarely", "some-of-the-time", "most-of-the-time", "full-time"]
+            "enum": [
+              "rarely",
+              "some-of-the-time",
+              "most-of-the-time",
+              "full-time"
+            ]
           },
           "founder_enjoyment": {
             "type": "string",
-            "enum": ["enjoy", "tolerate", "dislike"]
+            "enum": [
+              "enjoy",
+              "tolerate",
+              "dislike"
+            ]
           },
           "ceo_bandwidth": {
             "type": "string",
-            "enum": ["room-to-add-product", "stretched-but-functioning", "overstretched"]
+            "enum": [
+              "room-to-add-product",
+              "stretched-but-functioning",
+              "overstretched"
+            ]
           },
           "product_density_6mo": {
             "type": "string",
-            "enum": ["light", "moderate", "heavy"]
+            "enum": [
+              "light",
+              "moderate",
+              "heavy"
+            ]
           },
           "biggest_bottleneck": {
             "type": "string",
-            "enum": ["we-dont-know-what-to-build", "we-cant-keep-up-with-stakeholder-asks", "engineering-builds-wrong-thing", "no-time-for-customer-research", "no-time-for-strategy"]
+            "enum": [
+              "we-dont-know-what-to-build",
+              "we-cant-keep-up-with-stakeholder-asks",
+              "engineering-builds-wrong-thing",
+              "no-time-for-customer-research",
+              "no-time-for-strategy"
+            ]
           }
         },
-        "required": ["stage", "engineer_count", "designer_count", "pm_work_today", "founder_time_on_product", "founder_enjoyment", "ceo_bandwidth", "product_density_6mo", "biggest_bottleneck"]
+        "required": [
+          "stage",
+          "engineer_count",
+          "designer_count",
+          "pm_work_today",
+          "founder_time_on_product",
+          "founder_enjoyment",
+          "ceo_bandwidth",
+          "product_density_6mo",
+          "biggest_bottleneck"
+        ]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
           "verdict": {
             "type": "string",
-            "enum": ["stay-founder-mode", "not-yet", "hire-apm", "hire-empowered-pm", "hire-head-of-product"]
+            "enum": [
+              "stay-founder-mode",
+              "not-yet",
+              "hire-apm",
+              "hire-empowered-pm",
+              "hire-head-of-product"
+            ]
           },
           "interim_playbook_id": {
             "type": "string",
-            "enum": ["pre-seed-founder-owns-product", "seed-early-team", "seed-founder-distracted", "need-product-clarity-first"],
+            "enum": [
+              "pre-seed-founder-owns-product",
+              "seed-early-team",
+              "seed-founder-distracted",
+              "need-product-clarity-first"
+            ],
             "description": "Optional. Omitted from the output when the verdict does not warrant an interim playbook (i.e., when an actual PM hire is recommended)."
           }
         },
-        "required": ["verdict"]
+        "required": [
+          "verdict"
+        ]
       }
     },
     {
@@ -67,14 +130,21 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "verdict": { "type": "string" },
-          "interim_playbook_id": { "type": "string" },
+          "verdict": {
+            "type": "string"
+          },
+          "interim_playbook_id": {
+            "type": "string"
+          },
           "user_inputs": {
             "type": "object",
             "description": "The eight original inputs verbatim so the narration can reference specifics."
           }
         },
-        "required": ["verdict", "user_inputs"]
+        "required": [
+          "verdict",
+          "user_inputs"
+        ]
       }
     },
     {
@@ -83,12 +153,18 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" }
+          "user_id": {
+            "type": "string"
+          }
         },
-        "required": ["user_id"]
+        "required": [
+          "user_id"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
       }
     }
@@ -105,7 +181,19 @@
       "name": "Founder PM hire",
       "phase": 2,
       "type": "wizard / diagnostic",
-      "supersedes": ["12", "38"]
+      "supersedes": [
+        "12",
+        "38"
+      ]
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "founder_pm_hire_narrate"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Decide how the diagnose tool exposes the bias-toward-not-yet (early stages) and bias-away-from-head-of-product (non-heavy density) — debug logs in the tool output, or surface only in narration?"

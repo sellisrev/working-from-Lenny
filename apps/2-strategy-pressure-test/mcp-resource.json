@@ -12,18 +12,38 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "strategy_text": { "type": "string", "minLength": 200, "maxLength": 4000 }
+          "strategy_text": {
+            "type": "string",
+            "minLength": 200,
+            "maxLength": 4000
+          }
         },
-        "required": ["strategy_text"]
+        "required": [
+          "strategy_text"
+        ]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "doc_type": { "type": "string", "enum": ["strategy", "roadmap", "prd", "mixed"] },
-          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "doc_type": {
+            "type": "string",
+            "enum": [
+              "strategy",
+              "roadmap",
+              "prd",
+              "mixed"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
           "signals": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Short reasons for the classification (e.g., 'no named challenge', 'features-by-quarter pattern')."
           }
         }
@@ -35,11 +55,29 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "strategy_text": { "type": "string", "minLength": 200, "maxLength": 4000 },
-          "doc_type": { "type": "string", "enum": ["strategy", "roadmap", "prd", "mixed"] },
-          "user_context": { "type": "string", "maxLength": 400 }
+          "strategy_text": {
+            "type": "string",
+            "minLength": 200,
+            "maxLength": 4000
+          },
+          "doc_type": {
+            "type": "string",
+            "enum": [
+              "strategy",
+              "roadmap",
+              "prd",
+              "mixed"
+            ]
+          },
+          "user_context": {
+            "type": "string",
+            "maxLength": 400
+          }
         },
-        "required": ["strategy_text", "doc_type"]
+        "required": [
+          "strategy_text",
+          "doc_type"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -51,10 +89,18 @@
             "items": {
               "type": "object",
               "properties": {
-                "label": { "type": "string" },
-                "diagnosis": { "type": "string" },
-                "anchor_topic": { "type": "string" },
-                "anchor_quote": { "type": "string" }
+                "label": {
+                  "type": "string"
+                },
+                "diagnosis": {
+                  "type": "string"
+                },
+                "anchor_topic": {
+                  "type": "string"
+                },
+                "anchor_quote": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -67,11 +113,25 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "strategy_text": { "type": "string" },
-          "chosen_objection_index": { "type": "integer", "minimum": 0, "maximum": 5 },
-          "user_counter": { "type": "string", "minLength": 20, "maxLength": 2000 }
+          "strategy_text": {
+            "type": "string"
+          },
+          "chosen_objection_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "user_counter": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 2000
+          }
         },
-        "required": ["strategy_text", "chosen_objection_index", "user_counter"]
+        "required": [
+          "strategy_text",
+          "chosen_objection_index",
+          "user_counter"
+        ]
       }
     },
     {
@@ -80,13 +140,22 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" },
-          "current_critique_id": { "type": "string" }
+          "user_id": {
+            "type": "string"
+          },
+          "current_critique_id": {
+            "type": "string"
+          }
         },
-        "required": ["user_id", "current_critique_id"]
+        "required": [
+          "user_id",
+          "current_critique_id"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Calibration requires persisted prior critiques in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
       }
     }
@@ -103,6 +172,16 @@
       "name": "Strategy Pressure-Tester",
       "phase": 2,
       "type": "paste + LLM critique"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "strategy_critique",
+        "strategy_rehearse"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Confirm tool composition pattern (classify → critique → rehearse) matches MCP-Apps recommended flow.",

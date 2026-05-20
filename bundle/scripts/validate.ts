@@ -4,6 +4,7 @@ import path from "node:path";
 import os from "node:os";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
+import * as questionsTool from "../src/tools/pm-pitfalls/questions";
 import * as scoreTool from "../src/tools/pm-pitfalls/score";
 import * as narrateTool from "../src/tools/pm-pitfalls/narrate";
 import * as driftTool from "../src/tools/pm-pitfalls/drift";
@@ -95,7 +96,7 @@ async function checkManifest(): Promise<void> {
 }
 
 async function checkSchemas(): Promise<void> {
-  const tools = [scoreTool, narrateTool, driftTool];
+  const tools = [questionsTool, scoreTool, narrateTool, driftTool];
   for (const t of tools) {
     try {
       const inJson = zodToJsonSchema(t.meta.inputSchema as never, {

@@ -20,27 +20,46 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["profile", "twitter-thread", "podcast-cold-open"],
+            "enum": [
+              "profile",
+              "twitter-thread",
+              "podcast-cold-open"
+            ],
             "default": "profile",
             "description": "Output format. Profile is the default reverence write-up; twitter-thread reformats as 47 numbered bullets; podcast-cold-open returns a 90-second intro."
           }
         },
-        "required": ["team_description"]
+        "required": [
+          "team_description"
+        ]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "pull_quote": { "type": "string" },
-          "profile_narrative": { "type": "string" },
-          "architecture_diagram": { "type": "string", "description": "ASCII/Unicode diagram." },
-          "origin_story": { "type": "string" },
+          "pull_quote": {
+            "type": "string"
+          },
+          "profile_narrative": {
+            "type": "string"
+          },
+          "architecture_diagram": {
+            "type": "string",
+            "description": "ASCII/Unicode diagram."
+          },
+          "origin_story": {
+            "type": "string"
+          },
           "rituals": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 4,
             "maxItems": 6
           },
-          "closing_lesson": { "type": "string" },
+          "closing_lesson": {
+            "type": "string"
+          },
           "mode_alt_output": {
             "type": "string",
             "description": "Populated only when mode is twitter-thread or podcast-cold-open; replaces the structured fields with the alt format."
@@ -54,14 +73,25 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" },
-          "label": { "type": "string" },
-          "team_description": { "type": "string" }
+          "user_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "team_description": {
+            "type": "string"
+          }
         },
-        "required": ["user_id", "team_description"]
+        "required": [
+          "user_id",
+          "team_description"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
       }
     }
@@ -78,6 +108,15 @@
       "name": "How [You] Build Product",
       "phase": 2,
       "type": "paste-and-critique"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "how_you_build_generate"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better.",

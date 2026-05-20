@@ -6,7 +6,7 @@ import { PITFALLS, answerValue, pitfallById } from "./data";
 export const meta: ToolMeta = {
   name: "pm_pitfalls_score",
   description:
-    "Deterministic. Returns the user's score (0-20) and the three highest-leverage pitfall IDs given their twenty answers, plus the pre-written exemplar quote per pick.",
+    "Deterministic. Returns the user's score (0-20) and the three highest-leverage pitfall IDs given their twenty answers, plus the pre-written exemplar quote per pick AND the canonical 20 questions for downstream rendering. Answers are interpreted positionally against the canonical pitfalls — call pm_pitfalls_get_questions or render ui://working-from-lenny/pitfalls first; never substitute generic PM questions.",
   inputSchema: PitfallScoreInput,
   outputSchema: PitfallScoreOutput,
   annotations: { readOnlyHint: true },
@@ -49,5 +49,6 @@ export const invoke: ToolHandler<Input, Output> = async (args) => {
     top_three_pitfall_ids: topIds as [number, number, number],
     exemplar_quotes: exemplarQuotes as [string, string, string],
     all_never: allNever,
+    questions: PITFALLS.map((p) => ({ id: p.id, text: p.text })),
   };
 };

@@ -14,13 +14,19 @@
         "properties": {
           "answers": {
             "type": "array",
-            "items": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
             "minItems": 30,
             "maxItems": 30,
             "description": "Thirty answers in question-ID order. Each answer is a level (1-5)."
           }
         },
-        "required": ["answers"]
+        "required": [
+          "answers"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -28,16 +34,36 @@
           "dimension_levels": {
             "type": "object",
             "properties": {
-              "scope": { "type": "number" },
-              "ambiguity": { "type": "number" },
-              "influence": { "type": "number" },
-              "judgment": { "type": "number" },
-              "craft": { "type": "number" }
+              "scope": {
+                "type": "number"
+              },
+              "ambiguity": {
+                "type": "number"
+              },
+              "influence": {
+                "type": "number"
+              },
+              "judgment": {
+                "type": "number"
+              },
+              "craft": {
+                "type": "number"
+              }
             }
           },
-          "effective_level": { "type": "integer", "minimum": 1, "maximum": 5 },
-          "widest_gap_dimension": { "type": "string" },
-          "target_level": { "type": "integer", "minimum": 1, "maximum": 5 }
+          "effective_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "widest_gap_dimension": {
+            "type": "string"
+          },
+          "target_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          }
         }
       }
     },
@@ -47,11 +73,21 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "dimension_levels": { "type": "object" },
-          "effective_level": { "type": "integer" },
-          "target_level": { "type": "integer" }
+          "dimension_levels": {
+            "type": "object"
+          },
+          "effective_level": {
+            "type": "integer"
+          },
+          "target_level": {
+            "type": "integer"
+          }
         },
-        "required": ["dimension_levels", "effective_level", "target_level"]
+        "required": [
+          "dimension_levels",
+          "effective_level",
+          "target_level"
+        ]
       }
     },
     {
@@ -60,7 +96,9 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "dimension_levels": { "type": "object" },
+          "dimension_levels": {
+            "type": "object"
+          },
           "manager_review_text": {
             "type": "string",
             "minLength": 50,
@@ -68,7 +106,10 @@
             "description": "The text of the user's last performance review from their manager."
           }
         },
-        "required": ["dimension_levels", "manager_review_text"]
+        "required": [
+          "dimension_levels",
+          "manager_review_text"
+        ]
       }
     },
     {
@@ -77,12 +118,18 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" }
+          "user_id": {
+            "type": "string"
+          }
         },
-        "required": ["user_id"]
+        "required": [
+          "user_id"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
       }
     }
@@ -99,6 +146,16 @@
       "name": "PM Ladder Self-Assessment",
       "phase": 2,
       "type": "quiz + LLM narration"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "pm_ladder_narrate",
+        "pm_ladder_calibrate"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars).",

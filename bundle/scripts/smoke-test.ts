@@ -10,9 +10,8 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
  * Stages the bundle into a fresh install-root (same layout `mcpb pack`
  * produces), spawns the server, and connects an MCP client over stdio. Runs
  * each tool through one realistic input and verifies the resource URI
- * resolves. The narration tool is expected to return a structured
- * SamplingUnavailableError because neither the test client nor user_config
- * supplies inference — that path returning *cleanly* is itself the check.
+ * resolves. Path 4: narrate returns a structured narration brief (corpus +
+ * picks + voice rules) for the host chat model to render — no sampling call.
  *
  * Run after `pnpm run build`. Independent of `pnpm run validate`.
  */
@@ -122,9 +121,11 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
   await client.connect(transport);
   try {
     await checkListTools(client);
+    await checkGetQuestions(client);
     await checkScore(client);
     await checkDriftFirstThenSecond(client);
-    await checkNarrateSamplingUnavailable(client);
+    await checkNarrateReturnsBrief(client);
+    await checkNarrateWithAnswersIncludesFullAudit(client);
     await checkResources(client);
   } finally {
     await client.close();
@@ -135,15 +136,49 @@ async function checkListTools(client: Client): Promise<void> {
   try {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name).sort();
-    const expected = ["pm_pitfalls_drift", "pm_pitfalls_narrate", "pm_pitfalls_score"];
+    const expected = [
+      "pm_pitfalls_drift",
+      "pm_pitfalls_get_questions",
+      "pm_pitfalls_narrate",
+      "pm_pitfalls_score",
+    ];
     const ok = JSON.stringify(names) === JSON.stringify(expected);
     record(
-      "list_tools returns three pm-pitfalls tools",
+      "list_tools returns four pm-pitfalls tools",
       ok,
       ok ? undefined : `got ${JSON.stringify(names)}`,
     );
   } catch (err) {
     record("list_tools", false, (err as Error).message);
+  }
+}
+
+async function checkGetQuestions(client: Client): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pm_pitfalls_get_questions",
+      arguments: {},
+    });
+    if (result.isError) {
+      record("call get_questions", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      Array.isArray(parsed.questions) &&
+      parsed.questions.length === 20 &&
+      parsed.questions.every(
+        (q: { id: number; text: string }, i: number) =>
+          q.id === i + 1 && typeof q.text === "string" && q.text.length > 0,
+      ) &&
+      typeof parsed.note === "string";
+    record(
+      "call get_questions returns 20 canonical questions",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 200),
+    );
+  } catch (err) {
+    record("call get_questions", false, (err as Error).message);
   }
 }
 
@@ -164,11 +199,15 @@ async function checkScore(client: Client): Promise<void> {
       Array.isArray(parsed.top_three_pitfall_ids) &&
       parsed.top_three_pitfall_ids.length === 3 &&
       Array.isArray(parsed.exemplar_quotes) &&
-      parsed.exemplar_quotes.length === 3;
+      parsed.exemplar_quotes.length === 3 &&
+      Array.isArray(parsed.questions) &&
+      parsed.questions.length === 20 &&
+      parsed.questions[0]?.id === 1 &&
+      typeof parsed.questions[0]?.text === "string";
     record(
-      "call score (all sometimes -> 10/20, 3 picks)",
+      "call score (all sometimes -> 10/20, 3 picks, 20 questions)",
       ok,
-      ok ? undefined : JSON.stringify(parsed),
+      ok ? undefined : JSON.stringify(parsed).slice(0, 200),
     );
   } catch (err) {
     record("call score", false, (err as Error).message);
@@ -231,7 +270,7 @@ async function checkDriftFirstThenSecond(client: Client): Promise<void> {
   }
 }
 
-async function checkNarrateSamplingUnavailable(client: Client): Promise<void> {
+async function checkNarrateReturnsBrief(client: Client): Promise<void> {
   try {
     const result = await client.callTool({
       name: "pm_pitfalls_narrate",
@@ -241,18 +280,81 @@ async function checkNarrateSamplingUnavailable(client: Client): Promise<void> {
         user_context: "smoke test",
       },
     });
-    // We expect a structured sampling-unavailable error (NOT an uncaught
-    // crash), because the smoke client doesn't implement sampling and we
-    // didn't pass api_key.
-    const text = contentText(result);
-    const ok = result.isError === true && /inference/i.test(text);
+    if (result.isError) {
+      record("call narrate", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const picks = parsed?.inputs?.picks;
+    const corpus = parsed?.corpus;
+    const ok =
+      parsed.type === "narration_brief" &&
+      parsed.audience === "user" &&
+      typeof parsed.directive === "string" &&
+      Array.isArray(parsed.voice_rules) &&
+      parsed.voice_rules.length > 0 &&
+      Array.isArray(picks) &&
+      picks.length === 3 &&
+      picks.every(
+        (p: { pitfall_id: number; pitfall_text: string; exemplar_quote: string; corpus_anchors: unknown }) =>
+          typeof p.pitfall_id === "number" &&
+          typeof p.pitfall_text === "string" &&
+          typeof p.exemplar_quote === "string" &&
+          Array.isArray(p.corpus_anchors),
+      ) &&
+      corpus &&
+      typeof corpus === "object" &&
+      Object.keys(corpus).length > 0;
     record(
-      "call narrate (no sampling, no api_key -> structured error)",
+      "call narrate returns structured narration brief",
       ok,
-      ok ? undefined : `isError=${result.isError} text=${text.slice(0, 160)}`,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 200),
     );
   } catch (err) {
     record("call narrate", false, (err as Error).message);
+  }
+}
+
+async function checkNarrateWithAnswersIncludesFullAudit(client: Client): Promise<void> {
+  try {
+    const answers = Array<"sometimes">(20).fill("sometimes");
+    const result = await client.callTool({
+      name: "pm_pitfalls_narrate",
+      arguments: {
+        score_display: 10,
+        top_three_pitfall_ids: [1, 2, 4],
+        user_context: "smoke test with answers",
+        answers,
+      },
+    });
+    if (result.isError) {
+      record("call narrate with answers", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const full = parsed?.inputs?.full_audit;
+    const picksHaveAnswers = (parsed?.inputs?.picks ?? []).every(
+      (p: { user_answer?: string }) => typeof p.user_answer === "string",
+    );
+    const ok =
+      Array.isArray(full) &&
+      full.length === 20 &&
+      full.every(
+        (e: { pitfall_id: number; pitfall_text: string; user_answer: string }) =>
+          typeof e.pitfall_id === "number" &&
+          typeof e.pitfall_text === "string" &&
+          ["always", "sometimes", "never"].includes(e.user_answer),
+      ) &&
+      picksHaveAnswers &&
+      typeof parsed.directive === "string" &&
+      parsed.directive.includes("full_audit");
+    record(
+      "call narrate with answers includes full_audit and grounded directive",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 200),
+    );
+  } catch (err) {
+    record("call narrate with answers", false, (err as Error).message);
   }
 }
 

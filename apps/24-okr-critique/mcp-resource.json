@@ -12,9 +12,15 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "okr_text": { "type": "string", "minLength": 100, "maxLength": 3000 }
+          "okr_text": {
+            "type": "string",
+            "minLength": 100,
+            "maxLength": 3000
+          }
         },
-        "required": ["okr_text"]
+        "required": [
+          "okr_text"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -24,12 +30,26 @@
             "items": {
               "type": "object",
               "properties": {
-                "text": { "type": "string" },
-                "key_results": { "type": "array", "items": { "type": "string" } }
+                "text": {
+                  "type": "string"
+                },
+                "key_results": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
-          "parsing_confidence": { "type": "string", "enum": ["low", "med", "high"] }
+          "parsing_confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "med",
+              "high"
+            ]
+          }
         }
       }
     },
@@ -44,15 +64,38 @@
             "items": {
               "type": "object",
               "properties": {
-                "text": { "type": "string" },
-                "key_results": { "type": "array", "items": { "type": "string" } }
+                "text": {
+                  "type": "string"
+                },
+                "key_results": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
-          "stance": { "type": "string", "enum": ["orthodox", "skeptical", "hybrid"] },
-          "level": { "type": "string", "enum": ["team", "org"] }
+          "stance": {
+            "type": "string",
+            "enum": [
+              "orthodox",
+              "skeptical",
+              "hybrid"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "team",
+              "org"
+            ]
+          }
         },
-        "required": ["objectives", "stance"]
+        "required": [
+          "objectives",
+          "stance"
+        ]
       },
       "outputSchema": {
         "type": "object",
@@ -62,29 +105,49 @@
             "items": {
               "type": "object",
               "properties": {
-                "objective_text": { "type": "string" },
-                "too_many": { "type": "string", "enum": ["pass", "fail"] },
+                "objective_text": {
+                  "type": "string"
+                },
+                "too_many": {
+                  "type": "string",
+                  "enum": [
+                    "pass",
+                    "fail"
+                  ]
+                },
                 "key_results": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "kr_text": { "type": "string" },
-                      "verdicts": { "type": "object" },
-                      "diagnosis": { "type": "string" },
+                      "kr_text": {
+                        "type": "string"
+                      },
+                      "verdicts": {
+                        "type": "object"
+                      },
+                      "diagnosis": {
+                        "type": "string"
+                      },
                       "rewrite": {
                         "type": "string",
                         "description": "Optional. Omitted when no rewrite is needed."
                       },
-                      "anchor_quote": { "type": "string" }
+                      "anchor_quote": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
               }
             }
           },
-          "stance_synthesis": { "type": "string" },
-          "rewritten_okrs": { "type": "string" }
+          "stance_synthesis": {
+            "type": "string"
+          },
+          "rewritten_okrs": {
+            "type": "string"
+          }
         }
       }
     },
@@ -94,9 +157,14 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "objectives": { "type": "array", "maxItems": 8 }
+          "objectives": {
+            "type": "array",
+            "maxItems": 8
+          }
         },
-        "required": ["objectives"]
+        "required": [
+          "objectives"
+        ]
       },
       "_meta": {
         "dev.workingfromlenny.phase_note": "Available in both web and MCP versions, but only triggered when level == 'org'."
@@ -108,14 +176,26 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": { "type": "string" },
-          "quarter": { "type": "string" },
-          "outcomes": { "type": "array" }
+          "user_id": {
+            "type": "string"
+          },
+          "quarter": {
+            "type": "string"
+          },
+          "outcomes": {
+            "type": "array"
+          }
         },
-        "required": ["user_id", "quarter", "outcomes"]
+        "required": [
+          "user_id",
+          "quarter",
+          "outcomes"
+        ]
       },
       "_meta": {
-        "annotations": { "readOnlyHint": false },
+        "annotations": {
+          "readOnlyHint": false
+        },
         "dev.workingfromlenny.phase_note": "Web version does not expose this. Mortality analysis requires persisted prior OKRs + outcomes in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
       }
     }
@@ -132,6 +212,16 @@
       "name": "OKR Critique",
       "phase": 2,
       "type": "paste + LLM critique with stance picker"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
+      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "narration_tools": [
+        "okr_critique",
+        "okr_org_coherence"
+      ],
+      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
     },
     "dev.workingfromlenny.open_questions": [
       "Org-level coherence: what's the right max-objectives input cap? More than 8 starts to read as 'we're doing too many things' rather than a coherence problem.",
