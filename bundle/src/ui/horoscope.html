@@ -115,33 +115,8 @@
     .horoscope-archetype-next {
       font-size: 0.875rem;
       color: var(--fg-faint);
-      margin: 0 0 1.25rem;
+      margin: 0 0 0;
       font-style: italic;
-    }
-    .horoscope-reading {
-      border-top: 1px solid var(--border-soft);
-      padding-top: 1.25rem;
-      margin-top: 1.25rem;
-    }
-    .horoscope-reading-date {
-      font-size: 0.875rem;
-      color: var(--fg-muted);
-      margin: 0 0 0.75rem;
-    }
-    .horoscope-reading p { margin: 0 0 0.85rem; line-height: 1.65; }
-    .horoscope-reading-label {
-      font-size: 0.75rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--fg-faint);
-      margin-bottom: 0.15rem;
-    }
-    .horoscope-topic {
-      background: var(--border-soft);
-      border-left: 3px solid var(--border);
-      padding: 0.6rem 1rem;
-      margin: 1rem 0 0;
-      font-size: 0.9rem;
     }
     .horoscope-narrate-hint {
       margin-top: 1.25rem;
@@ -216,17 +191,6 @@
     <p class="horoscope-archetype-meta" id="horoscope-archetype-virtue"></p>
     <p class="horoscope-archetype-meta" id="horoscope-archetype-pitfall"></p>
     <p class="horoscope-archetype-next" id="horoscope-archetype-next"></p>
-
-    <div class="horoscope-reading">
-      <p class="horoscope-reading-date" id="horoscope-reading-date"></p>
-      <p class="horoscope-reading-label">Aspect</p>
-      <p id="horoscope-reading-aspect"></p>
-      <p class="horoscope-reading-label">Prediction</p>
-      <p id="horoscope-reading-prediction"></p>
-      <p class="horoscope-reading-label">Nudge</p>
-      <p id="horoscope-reading-nudge"></p>
-      <p class="horoscope-topic" id="horoscope-reading-topic"></p>
-    </div>
 
     <p class="horoscope-narrate-hint" id="horoscope-narrate-hint">
       <span id="horoscope-narrate-hint-auto">Queueing your personalized reading in chat…</span>
@@ -441,33 +405,23 @@
   }
 
   function renderScore(scored) {
+    // Intentionally minimal: archetype reveal + runner-up only. The
+    // deterministic reading (aspect / prediction / nudge / topic) is the
+    // spine the chat-side narration renders — duplicating it here makes the
+    // user read the same content twice and slows them down getting to the
+    // personalized reading. Keep the iframe's job to "you are X" and let
+    // chat handle "here's your horoscope today."
     $("horoscope-archetype-name").textContent = scored.archetype_name;
     $("horoscope-archetype-virtue").textContent = "Virtue: " + scored.archetype_virtue + ".";
     $("horoscope-archetype-pitfall").textContent = "Pitfall: " + scored.archetype_pitfall + ".";
     $("horoscope-archetype-next").textContent =
       "If that doesn't fit, your runner-up was " + scored.next_archetype_name + ".";
 
-    $("horoscope-reading-date").textContent = scored.date;
-    $("horoscope-reading-aspect").textContent =
-      "Today, " + scored.reading.aspect + ".";
-    $("horoscope-reading-prediction").textContent = scored.reading.prediction;
-    $("horoscope-reading-nudge").textContent = scored.reading.nudge;
-    $("horoscope-reading-topic").innerHTML =
-      "<strong>Lucky topic:</strong> " + escHtml(scored.reading.topic);
-
     var out = $("horoscope-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
 
     requestNarration(scored);
-  }
-
-  function escHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
   }
 
   function requestNarration(scored) {
