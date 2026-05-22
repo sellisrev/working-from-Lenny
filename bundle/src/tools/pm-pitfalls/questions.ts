@@ -9,10 +9,11 @@ import { PITFALLS } from "./data";
 export const meta: ToolMeta = {
   name: "pm_pitfalls_get_questions",
   description:
-    "Returns the canonical 20 PM-pitfall questions (id + text) so the host can render them faithfully before collecting answers. Host MUST use these exact 20 questions or render the ui://working-from-lenny/pitfalls resource; never substitute generic PM questions, since the scoring is positional against this list.",
+    "Entry tool for the PM Pitfalls audit. Calling this triggers the host to mount the ui://working-from-lenny/pitfalls resource (an interactive iframe with the 20 questions, auto-advance, and submit). If your host mounts the UI, that IS the questionnaire — do NOT additionally render the 20 questions in chat as a duplicate surface; the user will answer in the iframe, which calls pm_pitfalls_score directly. The returned `questions` array is provided only as a fallback for hosts that cannot mount ui:// resources. Scoring is positional against this list — if you do render questions in chat (only when ui:// is unavailable), use these exact 20 verbatim; never substitute generic PM questions.",
   inputSchema: PitfallGetQuestionsInput,
   outputSchema: PitfallGetQuestionsOutput,
   annotations: { readOnlyHint: true },
+  uiResourceUri: "ui://working-from-lenny/pitfalls",
 };
 
 type Input = z.infer<typeof PitfallGetQuestionsInput>;

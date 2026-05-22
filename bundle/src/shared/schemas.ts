@@ -17,6 +17,13 @@ export const PitfallGetQuestionsOutput = z.object({
 
 export const PitfallScoreInput = z.object({
   answers: z.array(AnswerEnum).length(20),
+  /**
+   * Optional. Forwarded into the persisted narration brief's
+   * `inputs.user_context` so downstream rendering can match the user's
+   * role/stage. Empty by default; iframe never passes one, chat-side
+   * Claude may.
+   */
+  user_context: z.string().default(""),
 });
 
 export const PitfallScoreOutput = z.object({
@@ -25,6 +32,13 @@ export const PitfallScoreOutput = z.object({
   exemplar_quotes: z.array(z.string()).length(3),
   all_never: z.boolean(),
   questions: z.array(PitfallQuestion).length(20),
+  /**
+   * Set only when score's persistence side-effect failed. Presence indicates
+   * `pm_pitfalls_get_pending_narration` will return `no_pending` for this
+   * audit and the user should be directed to retake or to ask the host chat
+   * to render via `pm_pitfalls_narrate` directly. Absence = handoff is ready.
+   */
+  persistence_warning: z.string().optional(),
 });
 
 export const PitfallNarrateInput = z.object({
@@ -111,6 +125,20 @@ export const PitfallDriftOutput = z.object({
   one_line_read: z.string(),
   audit_count: z.number().int().min(1),
 });
+
+export const PitfallGetPendingNarrationInput = z.object({}).strict();
+
+export const PitfallGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: PitfallNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
 
 export const PitfallStateV1 = z.object({
   schema_version: z.literal(1),

@@ -3,12 +3,12 @@
     "uri": "ui://working-from-lenny/pitfalls",
     "name": "PM Pitfalls Self-Audit",
     "description": "Twenty corpus-derived PM pitfalls. User rates each, gets back the three highest-leverage to fix this quarter with personalized narration.",
-    "mimeType": "text/html"
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
       "name": "pm_pitfalls_get_questions",
-      "description": "Returns the canonical 20 PM-pitfall questions (id + text). Host MUST use these exact questions or render the ui://working-from-lenny/pitfalls resource; never substitute generic PM questions, since the scoring is positional against this list.",
+      "description": "Entry tool for the PM Pitfalls audit. Calling this triggers the host to mount the ui://working-from-lenny/pitfalls resource (an interactive iframe with the 20 questions, auto-advance, and submit). If your host mounts the UI, that IS the questionnaire — do NOT additionally render the 20 questions in chat as a duplicate surface; the user will answer in the iframe, which calls pm_pitfalls_score directly. The returned `questions` array is provided only as a fallback for hosts that cannot mount ui:// resources. Scoring is positional against this list — if you do render questions in chat (only when ui:// is unavailable), use these exact 20 verbatim; never substitute generic PM questions.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -31,11 +31,16 @@
           },
           "note": { "type": "string" }
         }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://working-from-lenny/pitfalls"
+        }
       }
     },
     {
       "name": "pm_pitfalls_score",
-      "description": "Deterministic. Returns the user's score (0-20), the three highest-leverage pitfall IDs given their twenty answers, the pre-written exemplar quote per pick, AND the canonical 20 questions. Answers are interpreted positionally against the canonical pitfalls — call pm_pitfalls_get_questions or render ui://working-from-lenny/pitfalls first; never substitute generic PM questions.",
+      "description": "Scores the user's PM-pitfalls audit and prepares their personalized narration brief. Returns the score (0-20), the three highest-leverage pitfall IDs, the pre-written exemplar quote per pick, and the canonical 20 questions. Answers are interpreted positionally against the canonical pitfalls — call pm_pitfalls_get_questions or render ui://working-from-lenny/pitfalls first; never substitute generic PM questions. AFTER receiving this score result, call pm_pitfalls_get_pending_narration to fetch the corpus-grounded narration brief, then render it for the user following its `directive` and `voice_rules`. Do not summarize the score on its own — the personalized narration is the user's deliverable. Optional `user_context` (role/stage/company size) flows into the persisted brief; pass it through if you have it. If the returned `persistence_warning` field is set, the brief could not be persisted — surface the warning to the user and recommend they retake the audit.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -52,6 +57,11 @@
             "minItems": 20,
             "maxItems": 20,
             "description": "Twenty answers in pitfall-ID order (1 through 20)."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. Role/stage/company-size context forwarded into the persisted narration brief's inputs.user_context for downstream rendering. Empty by default; iframe submission never sets one, chat-side Claude may.",
+            "default": ""
           }
         },
         "required": [
@@ -95,13 +105,17 @@
                 "text": { "type": "string" }
               }
             }
+          },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when score's persistence side-effect failed. Presence indicates pm_pitfalls_get_pending_narration will return no_pending for this audit and the host should surface the message to the user, recommending they retake."
           }
         }
       }
     },
     {
       "name": "pm_pitfalls_narrate",
-      "description": "Packages a corpus-grounded narration brief for the user's top three pitfalls. Returns voice rules, structure, picks (pitfall text + exemplar quote + corpus anchors), and the corpus chunks themselves. The host chat model renders the user-facing narration from this brief.",
+      "description": "Packages a corpus-grounded narration brief for the user's top three pitfalls. Returns voice rules, structure, picks (pitfall text + exemplar quote + corpus anchors), and the corpus chunks themselves. Pure compute — no persistence side-effect. The host chat model renders the user-facing narration from this brief. To pick up the brief that score saved for the chat-side handoff, call pm_pitfalls_get_pending_narration instead.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -231,6 +245,36 @@
             "description": "Map of anchor slug to corpus chunk text."
           }
         }
+      }
+    },
+    {
+      "name": "pm_pitfalls_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM Pitfalls 'personalized read', 'narration', 'audit results writeup', or any follow-up to an audit just taken — including any phrasing like 'narrate my pitfalls', 'give me my personalized read', 'show me my results', 'I completed the audit', or any message coming from the embedded widget. Do NOT respond with 'you haven't taken the audit' without calling this tool first: the audit state lives on disk (persisted by pm_pitfalls_score on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior audit-taking but a brief is waiting on disk. Returns the narration brief saved by the most recent pm_pitfalls_score call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/pitfalls resource to take the audit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
       }
     },
     {

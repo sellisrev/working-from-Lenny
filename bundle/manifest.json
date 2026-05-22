@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.1.0",
+  "version": "0.1.11",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -19,7 +19,6 @@
       "command": "node",
       "args": ["${__dirname}/dist/server.js"],
       "env": {
-        "WFL_DATA_DIR": "${user_config_dir}/working-from-lenny",
         "WFL_BUNDLE_ROOT": "${__dirname}"
       }
     }
@@ -31,15 +30,19 @@
     },
     {
       "name": "pm_pitfalls_score",
-      "description": "Deterministic. Returns the user's score (0-20), three highest-leverage pitfall IDs, and the canonical 20 questions for downstream rendering."
+      "description": "Scores the user's audit and persists the corpus-grounded narration brief for chat-side rendering. AFTER calling score, render the user's personalized narration by calling pm_pitfalls_get_pending_narration."
     },
     {
       "name": "pm_pitfalls_narrate",
-      "description": "Packages a corpus-grounded narration brief for the user's top three pitfalls. Pass through the user's 20 answers so the brief can ground specific claims in actual answers rather than guesses. Host chat model renders the user-facing prose."
+      "description": "Packages a corpus-grounded narration brief for the user's top three pitfalls. Pure compute — no persistence. The embedded UI and chat-side Claude don't normally need this directly; call pm_pitfalls_get_pending_narration to retrieve the brief score already saved."
     },
     {
       "name": "pm_pitfalls_drift",
       "description": "Stateful. Returns the user's calibration drift across re-audits. Persists answers locally between runs."
+    },
+    {
+      "name": "pm_pitfalls_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM Pitfalls 'personalized read', 'narration', or follow-up to an audit just taken — including messages from the embedded widget. Do NOT respond 'you haven't taken the audit' without calling this tool first; the audit state lives on disk, not in chat history."
     }
   ],
   "prompts_generated": false,

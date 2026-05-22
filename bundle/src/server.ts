@@ -10,14 +10,14 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { ToolMeta } from "./shared/types";
-import { SamplingUnavailableError } from "./shared/types";
-import { configureSampling } from "./lib/sampling";
-import { bundleRoot } from "./lib/paths";
+import { bundleRoot, dataDir } from "./lib/paths";
 
 import * as questionsTool from "./tools/pm-pitfalls/questions";
 import * as scoreTool from "./tools/pm-pitfalls/score";
 import * as narrateTool from "./tools/pm-pitfalls/narrate";
 import * as driftTool from "./tools/pm-pitfalls/drift";
+import * as getPendingTool from "./tools/pm-pitfalls/get-pending";
+import { cleanupOrphanedTmp } from "./tools/pm-pitfalls/pending";
 
 interface RegisteredTool {
   meta: ToolMeta;
@@ -37,6 +37,7 @@ const TOOLS: RegisteredTool[] = [
   scoreTool as unknown as RegisteredTool,
   narrateTool as unknown as RegisteredTool,
   driftTool as unknown as RegisteredTool,
+  getPendingTool as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -45,12 +46,14 @@ const RESOURCES: ResourceEntry[] = [
     name: "PM Pitfalls Self-Audit",
     description:
       "Twenty corpus-derived PM pitfalls. User rates each, gets back the three highest-leverage to fix this quarter.",
-    mimeType: "text/html",
+    mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "pitfalls.html"),
   },
 ];
 
-// stderr logging is what appears in Claude Desktop's extension log file.
+// stderr logging is what appears in interactive runs / smoke. Desktop pipes
+// only its own host-side `[Working from Lenny]` lines, not server stderr —
+// see STATUS.md "Note on Claude Desktop server-stderr logging".
 function logErr(label: string, detail: unknown): void {
   try {
     const body =
@@ -83,8 +86,16 @@ process.on("exit", (code) => {
 async function main(): Promise<void> {
   logErr(
     "boot",
-    `node=${process.version} platform=${process.platform} cwd=${process.cwd()} bundleRoot=${process.env.WFL_BUNDLE_ROOT ?? "<unset>"} dataDir=${process.env.WFL_DATA_DIR ?? "<unset>"}`,
+    `node=${process.version} platform=${process.platform} cwd=${process.cwd()} bundleRoot=${bundleRoot()} dataDir=${dataDir()} WFL_DATA_DIR_env=${process.env.WFL_DATA_DIR ?? "<unset>"}`,
   );
+
+  // Hygiene: drop any orphaned .tmp left behind by an interrupted prior write
+  // (process kill between writeFile and rename). Best-effort, non-fatal.
+  try {
+    await cleanupOrphanedTmp();
+  } catch (err) {
+    logErr("cleanup-tmp failed (non-fatal)", err);
+  }
 
   const server = new Server(
     {
@@ -98,13 +109,6 @@ async function main(): Promise<void> {
       },
     },
   );
-
-  configureSampling(server, {
-    api_key: process.env.api_key,
-    api_provider:
-      (process.env.api_provider as "anthropic" | "gemini" | "openai" | undefined) ??
-      "anthropic",
-  });
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = TOOLS.map((t) => {
@@ -120,6 +124,9 @@ async function main(): Promise<void> {
       };
       if (t.meta.annotations) {
         entry.annotations = t.meta.annotations;
+      }
+      if (t.meta.uiResourceUri) {
+        entry._meta = { ui: { resourceUri: t.meta.uiResourceUri } };
       }
       return entry;
     });
@@ -152,17 +159,6 @@ async function main(): Promise<void> {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
     } catch (err) {
-      if (err instanceof SamplingUnavailableError) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text",
-              text: `Inference unavailable. ${err.message}`,
-            },
-          ],
-        };
-      }
       return {
         isError: true,
         content: [

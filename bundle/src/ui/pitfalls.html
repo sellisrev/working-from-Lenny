@@ -12,6 +12,7 @@
 
   <h1 class="app-title">PM Pitfalls Self-Audit</h1>
   <p class="app-tagline">Twenty pitfalls. Most PMs are guilty of seven. The honest ones admit nine.</p>
+  <p class="pitfalls-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
 
   <form class="pitfalls-form" id="pitfalls-form" novalidate>
     <div class="pitfalls-progress">
@@ -38,9 +39,15 @@
     <p class="pitfalls-score" id="pitfalls-score-text"></p>
     <p class="pitfalls-picks-header" id="pitfalls-picks-header"></p>
     <ol class="pitfalls-picks" id="pitfalls-picks-list"></ol>
-    <p class="pitfalls-narrate-hint">
-      For a personalized read of your top three, ask Claude in the chat: <strong>"narrate my pitfalls"</strong>.
-      The assistant uses your answers and a corpus brief to render the diagnosis.
+    <p class="pitfalls-narrate-hint" id="pitfalls-narrate-hint">
+      <span id="pitfalls-narrate-hint-auto">Queueing your personalized read in chat…</span>
+      <span id="pitfalls-narrate-hint-staged" style="display:none;">
+        Your personalized read is queued in chat below. If your host doesn't auto-submit (Claude Desktop stages messages for review), click <strong>Send</strong> to see it.
+      </span>
+      <span id="pitfalls-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. For a personalized read of your top three, ask Claude in the chat:
+        <strong>"narrate my pitfalls"</strong>. The assistant uses your answers and a corpus brief to render the diagnosis.
+      </span>
     </p>
     <div class="pitfalls-actions">
       <button type="button" class="pitfalls-btn" id="pitfalls-drift-btn">Compare to my last audit</button>
@@ -183,6 +190,7 @@
     if (current === 19 && allAnswered) {
       nextBtn.textContent = "See my three to fix this quarter";
       nextBtn.dataset.mode = "submit";
+      nextBtn.disabled = false;
     } else {
       nextBtn.textContent = "Next →";
       nextBtn.dataset.mode = "next";
@@ -263,6 +271,9 @@
       .catch(function (err) { showError(err.message || String(err)); })
       .then(function () {
         nextBtn.disabled = false;
+        // Restore the submit-state button text after a failed score so the
+        // user can retry. updateProgress() recomputes mode/text from current
+        // page + answered count.
         updateProgress();
       });
   }
@@ -305,6 +316,53 @@
     var out = $("pitfalls-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(scored);
+  }
+
+  function requestNarration(scored) {
+    var auto = $("pitfalls-narrate-hint-auto");
+    var staged = $("pitfalls-narrate-hint-staged");
+    var fallback = $("pitfalls-narrate-hint-fallback");
+
+    // score reports persistence failures via persistence_warning rather than
+    // throwing (so the user still sees their score+picks). If it's set, the
+    // chat-side handoff CANNOT work because get-pending will return
+    // no_pending; show the fallback hint instead of staging a message that
+    // will hit "you haven't taken the audit" later.
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    // Send the chat-side trigger. The ui/message response shape is
+    // host-defined; the spec doesn't guarantee an isError field or any
+    // particular result content. Treat promise-rejection as the only
+    // failure signal and any resolved value as "host accepted the message"
+    // (auto-submitted by ChatGPT, staged for review by Desktop). The hint
+    // text covers both cases honestly.
+    window.mcp.sendMessage(
+      "I just completed the PM Pitfalls audit in the embedded widget. " +
+        "Please call pm_pitfalls_get_pending_narration to fetch my saved " +
+        "brief and render my personalized read."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
   }
 
   function handleDrift() {

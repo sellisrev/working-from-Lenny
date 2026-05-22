@@ -8,8 +8,10 @@ import * as questionsTool from "../src/tools/pm-pitfalls/questions";
 import * as scoreTool from "../src/tools/pm-pitfalls/score";
 import * as narrateTool from "../src/tools/pm-pitfalls/narrate";
 import * as driftTool from "../src/tools/pm-pitfalls/drift";
+import * as getPendingTool from "../src/tools/pm-pitfalls/get-pending";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
+import { dataDir } from "../src/lib/paths";
 
 interface CaseResult {
   name: string;
@@ -35,6 +37,7 @@ async function main(): Promise<void> {
   await checkDriftGoldens();
   await checkUiBuild();
   await checkInstalledLayout();
+  await checkDataDirResolution();
 
   const fetchCalls = getFetchCalls();
   record(
@@ -96,7 +99,7 @@ async function checkManifest(): Promise<void> {
 }
 
 async function checkSchemas(): Promise<void> {
-  const tools = [questionsTool, scoreTool, narrateTool, driftTool];
+  const tools = [questionsTool, scoreTool, narrateTool, driftTool, getPendingTool];
   for (const t of tools) {
     try {
       const inJson = zodToJsonSchema(t.meta.inputSchema as never, {
@@ -140,7 +143,7 @@ async function checkScoreGoldens(): Promise<void> {
 
   for (const c of fixtures.score_cases) {
     try {
-      const result = await scoreTool.invoke(c.input, undefined as never);
+      const result = await scoreTool.invoke({ ...c.input, user_context: "" });
       const parsed = scoreTool.meta.outputSchema!.parse(result) as {
         score_display: number;
         top_three_pitfall_ids: number[];
@@ -207,10 +210,10 @@ async function checkDriftGoldens(): Promise<void> {
 
   for (const c of fixtures.drift_cases) {
     try {
-      const result = (await driftTool.invoke(
-        { user_id: c.user_id, current_audit: c.current_audit } as never,
-        undefined as never,
-      )) as Record<string, unknown>;
+      const result = (await driftTool.invoke({
+        user_id: c.user_id,
+        current_audit: c.current_audit,
+      } as never)) as Record<string, unknown>;
       driftTool.meta.outputSchema!.parse(result);
 
       const checks: string[] = [];
@@ -319,6 +322,64 @@ async function checkInstalledLayout(): Promise<void> {
       process.env.WFL_BUNDLE_ROOT = originalBundleRoot;
     }
     await fs.rm(installRoot, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Regression guard for the 0.1.6/0.1.7 ship-bug where manifest.json referenced
+ * the non-existent `${user_config_dir}` template variable. Desktop passed the
+ * literal string through, the server tried to mkdir
+ * `C:\WINDOWS\System32\${user_config_dir}` and failed with EPERM. Three
+ * properties must hold:
+ *   1. With WFL_DATA_DIR unset, dataDir() returns a platform-conventional path
+ *      (under APPDATA on Windows, ~/Library/Application Support on macOS,
+ *      XDG_DATA_HOME on Linux) — NOT a literal-string-with-`${...}` and NOT
+ *      relative.
+ *   2. With WFL_DATA_DIR containing an unexpanded `${...}`, dataDir() falls
+ *      back to the platform default rather than honoring the bad value.
+ *   3. With WFL_DATA_DIR set to a real absolute path, dataDir() honors it.
+ */
+async function checkDataDirResolution(): Promise<void> {
+  const original = process.env.WFL_DATA_DIR;
+  try {
+    delete process.env.WFL_DATA_DIR;
+    const unsetPath = dataDir();
+    const unsetOk =
+      typeof unsetPath === "string" &&
+      unsetPath.length > 0 &&
+      !unsetPath.includes("${") &&
+      path.isAbsolute(unsetPath) &&
+      unsetPath.endsWith("working-from-lenny");
+    record(
+      "dataDir(): unset env → platform-conventional absolute path",
+      unsetOk,
+      unsetOk ? undefined : `got ${unsetPath}`,
+    );
+
+    process.env.WFL_DATA_DIR = "${user_config_dir}/working-from-lenny";
+    const templatePath = dataDir();
+    const templateOk =
+      !templatePath.includes("${") && path.isAbsolute(templatePath);
+    record(
+      "dataDir(): literal ${...} env ignored, falls back to platform default",
+      templateOk,
+      templateOk ? undefined : `got ${templatePath}`,
+    );
+
+    const realPath = path.join(os.tmpdir(), "wfl-validate-override");
+    process.env.WFL_DATA_DIR = realPath;
+    const honoredPath = dataDir();
+    record(
+      "dataDir(): real WFL_DATA_DIR override is honored",
+      honoredPath === realPath,
+      honoredPath === realPath ? undefined : `got ${honoredPath}`,
+    );
+  } finally {
+    if (original === undefined) {
+      delete process.env.WFL_DATA_DIR;
+    } else {
+      process.env.WFL_DATA_DIR = original;
+    }
   }
 }
 

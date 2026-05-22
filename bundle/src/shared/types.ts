@@ -1,9 +1,6 @@
 import type { z } from "zod";
 
-export type ToolHandler<TInput, TOutput> = (
-  args: TInput,
-  ctx: ToolContext,
-) => Promise<TOutput>;
+export type ToolHandler<TInput, TOutput> = (args: TInput) => Promise<TOutput>;
 
 export interface ToolMeta {
   name: string;
@@ -14,6 +11,14 @@ export interface ToolMeta {
     readOnlyHint?: boolean;
     [key: string]: unknown;
   };
+  /**
+   * MCP Apps binding: when set, the host mounts this `ui://` resource to
+   * render the tool's result. Spec ref: `_meta.ui.resourceUri` on tool
+   * definition (ext-apps draft). Set on the entry tool that introduces the
+   * UI; tools called internally by the UI via window.mcp.callTool do NOT
+   * declare this.
+   */
+  uiResourceUri?: string;
 }
 
 export interface ToolModule {
@@ -27,31 +32,4 @@ export interface ResourceModule {
   description: string;
   mimeType: string;
   read(): Promise<string>;
-}
-
-export interface ToolContext {
-  /** Calls the host's sampling endpoint with a typed-output expectation. */
-  sample: (opts: SampleOptions) => Promise<string>;
-  /** Loads a per-tool JSON state file (schema-versioned). */
-  loadState: <T>(slug: string, userId: string, defaultValue: T) => Promise<T>;
-  /** Saves a per-tool JSON state file (schema-versioned). */
-  saveState: <T>(slug: string, userId: string, data: T) => Promise<void>;
-  /** Loads `apps/<id>/prompt.md`, extracting LLM-relevant blocks. */
-  loadPrompt: (appId: string) => Promise<string>;
-  /** Loads named corpus chunks by topic slug. */
-  loadCorpusChunks: (slugs: string[]) => Promise<Record<string, string>>;
-}
-
-export interface SampleOptions {
-  systemPrompt?: string;
-  messages: Array<{ role: "user" | "assistant"; content: string }>;
-  maxTokens?: number;
-  temperature?: number;
-}
-
-export class SamplingUnavailableError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SamplingUnavailableError";
-  }
 }
