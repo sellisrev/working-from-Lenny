@@ -19,6 +19,13 @@ import * as driftTool from "./tools/pm-pitfalls/drift";
 import * as getPendingTool from "./tools/pm-pitfalls/get-pending";
 import { cleanupOrphanedTmp } from "./tools/pm-pitfalls/pending";
 
+import * as horoscopeGetQuiz from "./tools/53-pm-horoscope/get-quiz";
+import * as horoscopeScoreQuiz from "./tools/53-pm-horoscope/score-quiz";
+import * as horoscopeRead from "./tools/53-pm-horoscope/read";
+import * as horoscopeNarrate from "./tools/53-pm-horoscope/narrate";
+import * as horoscopeGetPending from "./tools/53-pm-horoscope/get-pending";
+import { cleanupOrphanedTmp as cleanupHoroscopeTmp } from "./tools/53-pm-horoscope/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -38,6 +45,11 @@ const TOOLS: RegisteredTool[] = [
   narrateTool as unknown as RegisteredTool,
   driftTool as unknown as RegisteredTool,
   getPendingTool as unknown as RegisteredTool,
+  horoscopeGetQuiz as unknown as RegisteredTool,
+  horoscopeScoreQuiz as unknown as RegisteredTool,
+  horoscopeRead as unknown as RegisteredTool,
+  horoscopeNarrate as unknown as RegisteredTool,
+  horoscopeGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -48,6 +60,14 @@ const RESOURCES: ResourceEntry[] = [
       "Twenty corpus-derived PM pitfalls. User rates each, gets back the three highest-leverage to fix this quarter.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "pitfalls.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/horoscope",
+    name: "PM Horoscope",
+    description:
+      "Six-question quiz maps the user to one of twelve corpus-derived PM archetypes and renders today's deterministic horoscope reading.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "horoscope.html"),
   },
 ];
 
@@ -95,6 +115,11 @@ async function main(): Promise<void> {
     await cleanupOrphanedTmp();
   } catch (err) {
     logErr("cleanup-tmp failed (non-fatal)", err);
+  }
+  try {
+    await cleanupHoroscopeTmp();
+  } catch (err) {
+    logErr("cleanup-tmp horoscope failed (non-fatal)", err);
   }
 
   const server = new Server(

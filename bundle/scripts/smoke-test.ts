@@ -98,6 +98,14 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
   const checks = [
     path.join(installRoot, "dist", "server.js"),
     path.join(installRoot, "dist", "ui", "pitfalls.html"),
+    path.join(installRoot, "dist", "ui", "horoscope.html"),
+    path.join(
+      installRoot,
+      "dist",
+      "tools",
+      "53-pm-horoscope",
+      "horoscope-data.json",
+    ),
     path.join(installRoot, "apps", "44-pm-pitfalls", "prompt.md"),
     path.join(installRoot, "knowledge", "topics", "pm-pitfalls.md"),
   ];
@@ -138,6 +146,15 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkNarrateIsPureCompute(client, dataDir);
     await checkCorruptedPendingFileSurfacesAsNoPendingWithReason(client, dataDir);
     await checkDriftFirstThenSecond(client);
+    await checkHoroscopeListsTools(client);
+    await checkHoroscopeGetPendingDescription(client);
+    await checkHoroscopeIframeStagedMessage(installRoot);
+    await checkHoroscopeResource(client);
+    await checkHoroscopeGetQuiz(client);
+    await checkHoroscopeChatSidePathPersists(client, dataDir);
+    await checkHoroscopePendingAfterScoreReturnsBrief(client);
+    await checkHoroscopeReadPersists(client, dataDir);
+    await checkHoroscopeNarrateIsPureCompute(client, dataDir);
   } finally {
     await client.close();
   }
@@ -148,6 +165,11 @@ async function checkListTools(client: Client): Promise<void> {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name).sort();
     const expected = [
+      "pm_horoscope_get_pending_narration",
+      "pm_horoscope_get_quiz",
+      "pm_horoscope_narrate",
+      "pm_horoscope_read",
+      "pm_horoscope_score_quiz",
       "pm_pitfalls_drift",
       "pm_pitfalls_get_pending_narration",
       "pm_pitfalls_get_questions",
@@ -156,7 +178,7 @@ async function checkListTools(client: Client): Promise<void> {
     ];
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
-      "list_tools returns five pm-pitfalls tools",
+      "list_tools returns pm-pitfalls + pm-horoscope tools",
       namesOk,
       namesOk ? undefined : `got ${JSON.stringify(names)}`,
     );
@@ -803,6 +825,466 @@ async function checkDriftFirstThenSecond(client: Client): Promise<void> {
   } catch (err) {
     record("drift", false, (err as Error).message);
   }
+}
+
+// ───────────────────────────────────────────────────────────
+// #53 PM Horoscope smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkHoroscopeListsTools(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const entries = Object.fromEntries(
+      result.tools.map((t) => [
+        t.name,
+        t as { _meta?: { ui?: { resourceUri?: string } } },
+      ]),
+    );
+    const entryUri = entries["pm_horoscope_get_quiz"]?._meta?.ui?.resourceUri;
+    const expectedUri = "ui://working-from-lenny/horoscope";
+    record(
+      "horoscope: get_quiz binds ui:// via _meta.ui.resourceUri",
+      entryUri === expectedUri,
+      entryUri === expectedUri ? undefined : `got ${String(entryUri)}`,
+    );
+    const internalToolsClean = [
+      "pm_horoscope_score_quiz",
+      "pm_horoscope_read",
+      "pm_horoscope_narrate",
+      "pm_horoscope_get_pending_narration",
+    ].filter((n) => entries[n]?._meta?.ui?.resourceUri !== undefined);
+    record(
+      "horoscope: internal tools do NOT declare ui binding",
+      internalToolsClean.length === 0,
+      internalToolsClean.length === 0
+        ? undefined
+        : `unexpected binding on: ${internalToolsClean.join(", ")}`,
+    );
+  } catch (err) {
+    record("horoscope: list_tools binding", false, (err as Error).message);
+  }
+}
+
+async function checkHoroscopeGetPendingDescription(
+  client: Client,
+): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const tool = result.tools.find(
+      (t) => t.name === "pm_horoscope_get_pending_narration",
+    );
+    if (!tool) {
+      record(
+        "horoscope: get_pending description tool exists",
+        false,
+        "tool missing",
+      );
+      return;
+    }
+    const desc = tool.description ?? "";
+    const lower = desc.toLowerCase();
+    const checks: { name: string; pass: boolean }[] = [
+      { name: "must-call directive", pass: lower.includes("must call") },
+      {
+        name: "covers 'personalized reading'",
+        pass: lower.includes("personalized reading"),
+      },
+      {
+        name: "forbids 'you haven't taken the quiz'",
+        pass: lower.includes("haven't taken the quiz"),
+      },
+      { name: "states audit lives on disk", pass: lower.includes("on disk") },
+      { name: "mentions embedded widget", pass: lower.includes("embedded widget") },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "horoscope: get_pending description forbids short-circuit failure mode",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "horoscope: get_pending description guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkHoroscopeIframeStagedMessage(
+  installRoot: string,
+): Promise<void> {
+  try {
+    const distHtml = path.join(installRoot, "dist", "ui", "horoscope.html");
+    const body = await fs.readFile(distHtml, "utf8");
+    const checks: { name: string; pass: boolean }[] = [
+      {
+        name: "message states completion",
+        pass: body.includes("I just completed the PM Horoscope quiz"),
+      },
+      {
+        name: "message names the tool explicitly",
+        pass: body.includes("pm_horoscope_get_pending_narration"),
+      },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "horoscope: iframe staged message names completion + tool explicitly",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "horoscope: iframe staged message guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkHoroscopeResource(client: Client): Promise<void> {
+  try {
+    const list = await client.listResources();
+    const uri = "ui://working-from-lenny/horoscope";
+    const found = list.resources.find((r) => r.uri === uri);
+    if (!found) {
+      record(
+        "horoscope: list_resources includes horoscope UI",
+        false,
+        `uris: ${list.resources.map((r) => r.uri).join(", ")}`,
+      );
+      return;
+    }
+    const read = await client.readResource({ uri });
+    const first = read.contents[0];
+    const text = first && "text" in first ? first.text : undefined;
+    const ok =
+      first?.mimeType === "text/html;profile=mcp-app" &&
+      typeof text === "string" &&
+      text.includes("window.mcp") &&
+      !text.includes("<!-- include:");
+    record(
+      "horoscope: read_resource(horoscope UI) returns inlined HTML with window.mcp",
+      ok,
+      ok ? undefined : `mime=${first?.mimeType} len=${text?.length ?? 0}`,
+    );
+  } catch (err) {
+    record("horoscope: read_resource", false, (err as Error).message);
+  }
+}
+
+async function checkHoroscopeGetQuiz(client: Client): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pm_horoscope_get_quiz",
+      arguments: {},
+    });
+    if (result.isError) {
+      record("horoscope: call get_quiz", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      Array.isArray(parsed.questions) &&
+      parsed.questions.length === 6 &&
+      Array.isArray(parsed.archetype_slugs) &&
+      parsed.archetype_slugs.length === 12 &&
+      parsed.questions.every(
+        (q: { id: number; text: string; options: { id: number; text: string }[] }) =>
+          typeof q.id === "number" &&
+          typeof q.text === "string" &&
+          Array.isArray(q.options) &&
+          q.options.length >= 2,
+      );
+    record(
+      "horoscope: get_quiz returns 6 questions + 12 archetype slugs",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record("horoscope: call get_quiz", false, (err as Error).message);
+  }
+}
+
+async function checkHoroscopeChatSidePathPersists(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  try {
+    const before = await client.callTool({
+      name: "pm_horoscope_get_pending_narration",
+      arguments: {},
+    });
+    if (before.isError) {
+      record(
+        "horoscope: get_pending before quiz returns no error",
+        false,
+        contentText(before),
+      );
+      return;
+    }
+    const parsedBefore = JSON.parse(contentText(before));
+    record(
+      "horoscope: get_pending before quiz returns status=no_pending",
+      parsedBefore.status === "no_pending" &&
+        typeof parsedBefore.note === "string",
+      JSON.stringify(parsedBefore).slice(0, 200),
+    );
+  } catch (err) {
+    record(
+      "horoscope: get_pending before quiz",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  // Use realistic mixed answers so we don't accidentally exercise an edge
+  // case (all-same picks → all-same archetype).
+  const answers = [0, 1, 2, 3, 0, 1];
+  try {
+    const result = await client.callTool({
+      name: "pm_horoscope_score_quiz",
+      arguments: { answers, date: "2026-05-22" },
+    });
+    if (result.isError) {
+      record(
+        "horoscope: score_quiz call",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      typeof parsed.archetype_id === "number" &&
+      typeof parsed.archetype_slug === "string" &&
+      typeof parsed.archetype_name === "string" &&
+      typeof parsed.next_archetype_id === "number" &&
+      parsed.next_archetype_id !== parsed.archetype_id &&
+      typeof parsed.date === "string" &&
+      parsed.reading &&
+      typeof parsed.reading.aspect === "string" &&
+      typeof parsed.reading.prediction === "string" &&
+      typeof parsed.reading.nudge === "string" &&
+      typeof parsed.reading.topic === "string" &&
+      parsed.persistence_warning === undefined;
+    record(
+      "horoscope: score_quiz returns valid archetype + reading, no persistence_warning",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record("horoscope: score_quiz invocation", false, (err as Error).message);
+    return;
+  }
+
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "pm-horoscope-pending.json",
+  );
+  const exists = fsSync.existsSync(expectedFile);
+  record(
+    "horoscope: score_quiz wrote pending file to expected path",
+    exists,
+    exists ? expectedFile : `missing: ${expectedFile}`,
+  );
+  if (exists) {
+    try {
+      const raw = await fs.readFile(expectedFile, "utf8");
+      const file = JSON.parse(raw);
+      const briefOk =
+        file?.data?.brief?.type === "narration_brief" &&
+        file?.data?.brief?.inputs?.archetype_id >= 1 &&
+        file?.data?.brief?.inputs?.archetype_id <= 12 &&
+        typeof file?.data?.brief?.inputs?.reading?.aspect === "string" &&
+        typeof file?.data?.brief?.inputs?.reading?.prediction === "string";
+      record(
+        "horoscope: pending file contains a valid grounded brief",
+        briefOk,
+        briefOk ? undefined : JSON.stringify(file).slice(0, 300),
+      );
+    } catch (err) {
+      record(
+        "horoscope: pending file parses",
+        false,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+async function checkHoroscopePendingAfterScoreReturnsBrief(
+  client: Client,
+): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pm_horoscope_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "horoscope: user-types-narrate get_pending returns ready",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.status === "ready" &&
+      typeof parsed.saved_at === "string" &&
+      parsed.brief?.type === "narration_brief" &&
+      parsed.brief?.audience === "user" &&
+      typeof parsed.brief?.directive === "string" &&
+      Array.isArray(parsed.brief?.voice_rules) &&
+      parsed.brief?.inputs?.reading?.aspect &&
+      typeof parsed.brief?.corpus === "object";
+    record(
+      "horoscope: user-types-narrate get_pending returns grounded brief after score",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record(
+      "horoscope: user-types-narrate get_pending after score",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkHoroscopeReadPersists(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pm_horoscope_read",
+      arguments: {
+        archetype: "saying-no",
+        date: "2026-05-22",
+      },
+    });
+    if (result.isError) {
+      record("horoscope: read call", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const readOk =
+      parsed.archetype_slug === "saying-no" &&
+      parsed.archetype_id === 9 &&
+      parsed.date === "2026-05-22" &&
+      typeof parsed.reading?.aspect === "string" &&
+      parsed.persistence_warning === undefined;
+    record(
+      "horoscope: read returns archetype + reading for direct pick (no persistence_warning)",
+      readOk,
+      readOk ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+
+    // The read should have overwritten the pending file with the
+    // direct-pick brief.
+    const pendingResult = await client.callTool({
+      name: "pm_horoscope_get_pending_narration",
+      arguments: {},
+    });
+    const pendingParsed = JSON.parse(contentText(pendingResult));
+    const overwriteOk =
+      pendingParsed.status === "ready" &&
+      pendingParsed.brief?.inputs?.archetype_slug === "saying-no" &&
+      pendingParsed.brief?.inputs?.date === "2026-05-22";
+    record(
+      "horoscope: read overwrites pending (last-write-wins, archetype + date match the read)",
+      overwriteOk,
+      overwriteOk ? undefined : JSON.stringify(pendingParsed).slice(0, 300),
+    );
+
+    // Defensive: confirm the file actually exists at the expected path.
+    const expectedFile = path.join(
+      dataDir,
+      "_pending",
+      "pm-horoscope-pending.json",
+    );
+    record(
+      "horoscope: read wrote pending file to expected path",
+      fsSync.existsSync(expectedFile),
+      fsSync.existsSync(expectedFile) ? expectedFile : `missing: ${expectedFile}`,
+    );
+  } catch (err) {
+    record("horoscope: read path", false, (err as Error).message);
+  }
+}
+
+async function checkHoroscopeNarrateIsPureCompute(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "pm-horoscope-pending.json",
+  );
+  let beforeContent: string;
+  try {
+    beforeContent = await fs.readFile(expectedFile, "utf8");
+  } catch (err) {
+    record(
+      "horoscope: narrate-pure-compute pre-read pending file",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+  const beforeMtime = (await fs.stat(expectedFile)).mtimeMs;
+
+  try {
+    const result = await client.callTool({
+      name: "pm_horoscope_narrate",
+      arguments: {
+        archetype: "top-1-percent",
+        date: "2026-12-01",
+      },
+    });
+    if (result.isError) {
+      record(
+        "horoscope: narrate-pure-compute returns brief",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const briefOk =
+      parsed.type === "narration_brief" &&
+      parsed.inputs?.archetype_slug === "top-1-percent" &&
+      parsed.inputs?.date === "2026-12-01";
+    record(
+      "horoscope: narrate-pure-compute returns brief for arbitrary archetype + date",
+      briefOk,
+      briefOk ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record(
+      "horoscope: narrate-pure-compute invocation",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  const afterContent = await fs.readFile(expectedFile, "utf8");
+  const afterMtime = (await fs.stat(expectedFile)).mtimeMs;
+  const untouched =
+    beforeContent === afterContent && beforeMtime === afterMtime;
+  record(
+    "horoscope: narrate-pure-compute pending file untouched by narrate",
+    untouched,
+    untouched
+      ? undefined
+      : `mtime ${beforeMtime} → ${afterMtime}; content equal=${beforeContent === afterContent}`,
+  );
 }
 
 function contentText(result: unknown): string {

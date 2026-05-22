@@ -9,6 +9,18 @@ import * as scoreTool from "../src/tools/pm-pitfalls/score";
 import * as narrateTool from "../src/tools/pm-pitfalls/narrate";
 import * as driftTool from "../src/tools/pm-pitfalls/drift";
 import * as getPendingTool from "../src/tools/pm-pitfalls/get-pending";
+import * as horoscopeGetQuiz from "../src/tools/53-pm-horoscope/get-quiz";
+import * as horoscopeScoreQuiz from "../src/tools/53-pm-horoscope/score-quiz";
+import * as horoscopeRead from "../src/tools/53-pm-horoscope/read";
+import * as horoscopeNarrate from "../src/tools/53-pm-horoscope/narrate";
+import * as horoscopeGetPending from "../src/tools/53-pm-horoscope/get-pending";
+import {
+  ARCHETYPES,
+  ARCHETYPE_CONTENT,
+  QUIZ_QUESTIONS,
+  composeReading,
+  scoreQuiz,
+} from "../src/tools/53-pm-horoscope/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -35,6 +47,7 @@ async function main(): Promise<void> {
   await checkSchemas();
   await checkScoreGoldens();
   await checkDriftGoldens();
+  await checkHoroscopeData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -99,7 +112,18 @@ async function checkManifest(): Promise<void> {
 }
 
 async function checkSchemas(): Promise<void> {
-  const tools = [questionsTool, scoreTool, narrateTool, driftTool, getPendingTool];
+  const tools = [
+    questionsTool,
+    scoreTool,
+    narrateTool,
+    driftTool,
+    getPendingTool,
+    horoscopeGetQuiz,
+    horoscopeScoreQuiz,
+    horoscopeRead,
+    horoscopeNarrate,
+    horoscopeGetPending,
+  ];
   for (const t of tools) {
     try {
       const inJson = zodToJsonSchema(t.meta.inputSchema as never, {
@@ -234,25 +258,145 @@ async function checkDriftGoldens(): Promise<void> {
 }
 
 async function checkUiBuild(): Promise<void> {
-  const distHtml = path.join(bundleRoot, "dist", "ui", "pitfalls.html");
-  if (!fsSync.existsSync(distHtml)) {
-    record(
-      "ui built",
-      false,
-      "dist/ui/pitfalls.html missing - run pnpm run build first",
-    );
-    return;
+  for (const slug of ["pitfalls", "horoscope"]) {
+    const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
+    if (!fsSync.existsSync(distHtml)) {
+      record(
+        `ui built: ${slug}`,
+        false,
+        `dist/ui/${slug}.html missing - run pnpm run build first`,
+      );
+      continue;
+    }
+    const body = await fs.readFile(distHtml, "utf8");
+    if (body.includes("<!-- include:")) {
+      record(
+        `ui includes inlined: ${slug}`,
+        false,
+        "raw include directive still present",
+      );
+      continue;
+    }
+    if (!body.includes("window.mcp")) {
+      record(
+        `ui mcp helper present: ${slug}`,
+        false,
+        "mcp-rpc.js was not inlined",
+      );
+      continue;
+    }
+    record(`ui inlined: ${slug}`, true);
   }
-  const body = await fs.readFile(distHtml, "utf8");
-  if (body.includes("<!-- include:")) {
-    record("ui includes inlined", false, "raw include directive still present");
-    return;
+}
+
+/**
+ * Confirms the deterministic engine + quiz data load correctly and that
+ * `composeReading()` produces stable output across all 12 archetypes for a
+ * fixed date. Catches the regression class where the bundled JSON drifts
+ * from horoscope-data.json (typo'd slug, lost an aspect entry, etc).
+ */
+async function checkHoroscopeData(): Promise<void> {
+  // Shape: 12 archetypes, each with 30 predictions, 20 nudges, 11 aspects, 5 topics.
+  let shapeOk = ARCHETYPES.length === 12;
+  for (const a of ARCHETYPES) {
+    const c = ARCHETYPE_CONTENT[a.id];
+    if (
+      !c ||
+      c.predictions.length !== 30 ||
+      c.nudges.length !== 20 ||
+      Object.keys(c.aspects).length !== 11 ||
+      c.topics.length !== 5
+    ) {
+      shapeOk = false;
+      break;
+    }
   }
-  if (!body.includes("window.mcp")) {
-    record("ui mcp helper present", false, "mcp-rpc.js was not inlined");
-    return;
+  record(
+    "horoscope: 12 archetypes × {30 preds, 20 nudges, 11 aspects, 5 topics}",
+    shapeOk,
+  );
+
+  // Each archetype's aspects keys cover every other archetype id (i.e. 11 of
+  // the 12 ids, excluding self).
+  let aspectsCoverageOk = true;
+  for (const a of ARCHETYPES) {
+    const c = ARCHETYPE_CONTENT[a.id]!;
+    const keys = Object.keys(c.aspects)
+      .map(Number)
+      .sort((x, y) => x - y);
+    const expected = ARCHETYPES.map((x) => x.id)
+      .filter((id) => id !== a.id)
+      .sort((x, y) => x - y);
+    if (JSON.stringify(keys) !== JSON.stringify(expected)) {
+      aspectsCoverageOk = false;
+      break;
+    }
   }
-  record("ui inlined", true);
+  record(
+    "horoscope: each archetype's aspects cover all other 11 archetypes",
+    aspectsCoverageOk,
+  );
+
+  // composeReading: deterministic for a fixed (archetype, date) pair.
+  const r1 = composeReading(1, "2026-05-22");
+  const r2 = composeReading(1, "2026-05-22");
+  record(
+    "horoscope: composeReading is deterministic",
+    JSON.stringify(r1) === JSON.stringify(r2),
+  );
+  record(
+    "horoscope: composeReading(1, 2026-05-22) has all four slots populated",
+    typeof r1.aspect === "string" &&
+      typeof r1.prediction === "string" &&
+      typeof r1.nudge === "string" &&
+      typeof r1.topic === "string" &&
+      r1.aspect.length > 0 &&
+      r1.prediction.length > 0 &&
+      r1.nudge.length > 0 &&
+      r1.topic.length > 0,
+  );
+
+  // composeReading: across a full year the engine should cycle through most
+  // of the 11 possible aspect partners. djb2 is not a uniform hash, so we
+  // don't demand perfect coverage — at least 9/11 over 365 days proves the
+  // engine varies rather than locking to a single partner.
+  const aspects = new Set<number>();
+  const start = new Date("2026-01-01T00:00:00Z");
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(start.getTime() + i * 86400000);
+    const iso = d.toISOString().slice(0, 10);
+    aspects.add(composeReading(1, iso).aspect_partner_id);
+  }
+  record(
+    "horoscope: composeReading covers ≥9 of 11 aspect partners over a year",
+    aspects.size >= 9,
+    `distinct partners across 2026: ${aspects.size}`,
+  );
+
+  // Quiz shape.
+  record(
+    "horoscope: quiz has 6 questions",
+    QUIZ_QUESTIONS.length === 6,
+  );
+
+  // Quiz scoring: every uniform-pick produces *some* archetype (not a crash).
+  for (let optIdx = 0; optIdx < 4; optIdx++) {
+    try {
+      const result = scoreQuiz([optIdx, optIdx, optIdx, optIdx, optIdx, optIdx]);
+      const ok = result.archetype_id >= 1 && result.archetype_id <= 12;
+      record(
+        `horoscope: scoreQuiz uniform-pick option ${optIdx} produces valid archetype`,
+        ok,
+        ok ? undefined : JSON.stringify(result),
+      );
+    } catch (err) {
+      record(
+        `horoscope: scoreQuiz uniform-pick option ${optIdx}`,
+        false,
+        (err as Error).message,
+      );
+    }
+  }
 }
 
 /**

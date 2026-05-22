@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -43,6 +43,26 @@
     {
       "name": "pm_pitfalls_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their PM Pitfalls 'personalized read', 'narration', or follow-up to an audit just taken — including messages from the embedded widget. Do NOT respond 'you haven't taken the audit' without calling this tool first; the audit state lives on disk, not in chat history."
+    },
+    {
+      "name": "pm_horoscope_get_quiz",
+      "description": "Returns the six-question PM Horoscope archetype quiz and triggers the host to mount the ui://working-from-lenny/horoscope iframe. Use this to discover the user's archetype; if they already know it, call pm_horoscope_read instead."
+    },
+    {
+      "name": "pm_horoscope_score_quiz",
+      "description": "Scores the six-question archetype quiz and persists today's horoscope brief. AFTER calling score_quiz, render the user's personalized reading by calling pm_horoscope_get_pending_narration."
+    },
+    {
+      "name": "pm_horoscope_read",
+      "description": "Fetches today's PM Horoscope reading for a known archetype slug and persists the corpus-grounded narration brief. AFTER calling read, render the user's personalized reading by calling pm_horoscope_get_pending_narration."
+    },
+    {
+      "name": "pm_horoscope_narrate",
+      "description": "Packages a corpus-grounded narration brief for an archetype's daily horoscope reading. Pure compute — no persistence. The embedded UI and chat-side Claude don't normally need this directly; call pm_horoscope_get_pending_narration to retrieve the brief score_quiz or read already saved."
+    },
+    {
+      "name": "pm_horoscope_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM Horoscope 'personalized reading', 'narration', or follow-up to a quiz or archetype pick — including messages from the embedded widget. Do NOT respond 'you haven't picked an archetype' without calling this tool first; the audit state lives on disk, not in chat history."
     }
   ],
   "prompts_generated": false,

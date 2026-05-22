@@ -91,6 +91,41 @@ async function readManifestVersion(): Promise<string> {
   return parsed.version;
 }
 
+async function copyToolDataFiles(): Promise<void> {
+  // Per-tool data lives as .json files alongside the .ts under src/tools/.
+  // tsc does not copy non-TS files to outDir, so mirror them by hand. Keeps
+  // the runtime require('./horoscope-data.json') working in dist/.
+  const srcTools = path.resolve(BUNDLE_ROOT, "src", "tools");
+  const distTools = path.resolve(BUNDLE_ROOT, "dist", "tools");
+  await mirrorJsonFiles(srcTools, distTools);
+}
+
+async function mirrorJsonFiles(srcDir: string, distDir: string): Promise<void> {
+  let entries;
+  try {
+    entries = await fs.readdir(srcDir, { withFileTypes: true });
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return;
+    throw err;
+  }
+  for (const entry of entries) {
+    const srcPath = path.join(srcDir, entry.name);
+    const distPath = path.join(distDir, entry.name);
+    if (entry.isDirectory()) {
+      await mirrorJsonFiles(srcPath, distPath);
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".json")) {
+      await fs.mkdir(distDir, { recursive: true });
+      await fs.copyFile(srcPath, distPath);
+      // eslint-disable-next-line no-console
+      console.log(
+        `  data: copied ${path.relative(BUNDLE_ROOT, srcPath)} -> ${path.relative(BUNDLE_ROOT, distPath)}`,
+      );
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const version = await readManifestVersion();
   const entries = await fs.readdir(SRC_UI, { withFileTypes: true });
@@ -99,11 +134,11 @@ async function main(): Promise<void> {
   );
   if (htmls.length === 0) {
     console.warn("No HTML files in src/ui/");
-    return;
   }
   for (const h of htmls) {
     await buildOne(path.join(SRC_UI, h.name), version);
   }
+  await copyToolDataFiles();
 }
 
 main().catch((err) => {

@@ -2,13 +2,155 @@
   "resource": {
     "uri": "ui://working-from-lenny/horoscope",
     "name": "PM Horoscope",
-    "description": "Daily reading based on twelve corpus-derived PM archetypes. Deterministic, no LLM call.",
-    "mimeType": "text/html"
+    "description": "Six-question quiz maps the user to one of twelve corpus-derived PM archetypes and renders today's deterministic horoscope reading.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
+      "name": "pm_horoscope_get_quiz",
+      "description": "Entry tool for the PM Horoscope. Calling this triggers the host to mount the ui://working-from-lenny/horoscope resource (an interactive iframe with the six-question archetype quiz and today's reading). If your host mounts the UI, that IS the quiz — do NOT additionally render the six questions in chat as a duplicate surface; the user will answer in the iframe, which calls pm_horoscope_score_quiz directly. The returned `questions` array is provided only as a fallback for hosts that cannot mount ui:// resources. Scoring is positional against this list — if you do render questions in chat (only when ui:// is unavailable), use these six verbatim; never substitute generic personality questions. If the user already knows their archetype, call pm_horoscope_read instead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "questions": {
+            "type": "array",
+            "minItems": 6,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 6 },
+                "text": { "type": "string" },
+                "options": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 6,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "minimum": 0, "maximum": 3 },
+                      "text": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "archetype_slugs": {
+            "type": "array",
+            "minItems": 12,
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "enum": [
+                "bet-defender",
+                "theatre-director",
+                "cornered-resource",
+                "pivot-hanged",
+                "customer-adjacent",
+                "founder-mode-returnee",
+                "stakeholder-pleaser",
+                "top-1-percent",
+                "saying-no",
+                "eval-forward",
+                "strategy-skeptic",
+                "empathy-tourist"
+              ]
+            }
+          },
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://working-from-lenny/horoscope"
+        }
+      }
+    },
+    {
+      "name": "pm_horoscope_score_quiz",
+      "description": "Scores the six-question archetype quiz and prepares the user's personalized horoscope brief. Returns the primary archetype, the runner-up (in case the primary doesn't fit), and today's deterministic reading (aspect / prediction / nudge / lucky topic). Answers are interpreted positionally against the six canonical questions — call pm_horoscope_get_quiz or render ui://working-from-lenny/horoscope first; never substitute generic personality questions. AFTER receiving this result, call pm_horoscope_get_pending_narration to fetch the corpus-grounded narration brief and render it for the user following its `directive` and `voice_rules`. Do not summarize the reading on its own — the personalized narration is the user's deliverable. Optional `user_context` (role / stage / company size) flows into the persisted brief; pass it through if you have it. Optional `date` (ISO YYYY-MM-DD) overrides the default of today; useful for previewing another day. If the returned `persistence_warning` field is set, the brief could not be persisted — surface the warning to the user and recommend they retake the quiz.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "minItems": 6,
+            "maxItems": 6,
+            "description": "Six 0-indexed option choices, one per canonical question."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. Role/stage/company-size context forwarded into the persisted narration brief.",
+            "default": ""
+          },
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Optional ISO YYYY-MM-DD. Defaults to today."
+          }
+        },
+        "required": ["answers"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "archetype_id": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "archetype_slug": {
+            "type": "string",
+            "enum": [
+              "bet-defender",
+              "theatre-director",
+              "cornered-resource",
+              "pivot-hanged",
+              "customer-adjacent",
+              "founder-mode-returnee",
+              "stakeholder-pleaser",
+              "top-1-percent",
+              "saying-no",
+              "eval-forward",
+              "strategy-skeptic",
+              "empathy-tourist"
+            ]
+          },
+          "archetype_name": { "type": "string" },
+          "archetype_virtue": { "type": "string" },
+          "archetype_pitfall": { "type": "string" },
+          "next_archetype_id": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "next_archetype_slug": { "type": "string" },
+          "next_archetype_name": { "type": "string" },
+          "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+          "reading": {
+            "type": "object",
+            "properties": {
+              "aspect_partner_id": { "type": "integer", "minimum": 1, "maximum": 12 },
+              "aspect_partner_name": { "type": "string" },
+              "aspect": { "type": "string" },
+              "prediction": { "type": "string" },
+              "nudge": { "type": "string" },
+              "topic": { "type": "string" }
+            }
+          },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when score_quiz's persistence side-effect failed. Presence indicates pm_horoscope_get_pending_narration will return no_pending for this audit and the host should surface the message to the user, recommending they retake."
+          }
+        }
+      }
+    },
+    {
       "name": "pm_horoscope_read",
-      "description": "Returns today's PM horoscope reading for a chosen archetype. Deterministic, composed from date + archetype.",
+      "description": "Fetches today's PM Horoscope reading for a chosen archetype and prepares the user's personalized narration brief. Use this when the user already knows their archetype (from a prior quiz or by direct pick); for users who don't know yet, call pm_horoscope_get_quiz to render the six-question quiz instead. Returns the archetype context (virtue / pitfall / corpus anchors) and today's deterministic reading (aspect partner / aspect line / prediction / nudge / lucky topic). AFTER receiving this result, call pm_horoscope_get_pending_narration to fetch the corpus-grounded narration brief and render it for the user following its `directive` and `voice_rules`. Do not summarize the reading on its own — the personalized narration is the user's deliverable. Optional `date` (ISO YYYY-MM-DD) overrides the default of today; useful for previewing another day. Optional `user_context` flows through to the persisted brief.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -27,73 +169,174 @@
               "eval-forward",
               "strategy-skeptic",
               "empathy-tourist"
-            ],
-            "description": "User's archetype, set once via quiz or direct pick."
+            ]
           },
           "date": {
             "type": "string",
-            "format": "date",
-            "description": "ISO date. Defaults to today if omitted."
-          }
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "user_context": { "type": "string", "default": "" }
         },
         "required": ["archetype"]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "date": { "type": "string", "format": "date" },
-          "archetype": { "type": "string" },
-          "aspect": { "type": "string" },
-          "prediction": { "type": "string" },
-          "nudge": { "type": "string" },
-          "lucky_topic_file": { "type": "string" }
+          "archetype_id": { "type": "integer", "minimum": 1, "maximum": 12 },
+          "archetype_slug": { "type": "string" },
+          "archetype_name": { "type": "string" },
+          "archetype_virtue": { "type": "string" },
+          "archetype_pitfall": { "type": "string" },
+          "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+          "reading": {
+            "type": "object",
+            "properties": {
+              "aspect_partner_id": { "type": "integer" },
+              "aspect_partner_name": { "type": "string" },
+              "aspect": { "type": "string" },
+              "prediction": { "type": "string" },
+              "nudge": { "type": "string" },
+              "topic": { "type": "string" }
+            }
+          },
+          "persistence_warning": { "type": "string" }
         }
       }
     },
     {
-      "name": "pm_horoscope_quiz",
-      "description": "Returns the six-question archetype quiz. User answers map to one of twelve archetypes.",
+      "name": "pm_horoscope_narrate",
+      "description": "Packages a corpus-grounded narration brief for today's PM Horoscope reading. Returns voice rules, structure, the deterministic reading (aspect / prediction / nudge / topic), and the corpus chunks themselves. The host chat model renders the user-facing horoscope from this brief. Pure compute — no persistence side-effect. PREFER pm_horoscope_get_pending_narration after a pm_horoscope_score_quiz or pm_horoscope_read call (returns the brief that was already saved). Only call this tool directly if you need a brief without round-tripping through disk, or if you want to preview another day's reading without persisting it.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "answers": {
-            "type": "array",
-            "items": { "type": "integer" },
-            "minItems": 6,
-            "maxItems": 6,
-            "description": "Six integer answers, indices into each question's options."
-          }
-        }
+          "archetype": {
+            "type": "string",
+            "enum": [
+              "bet-defender",
+              "theatre-director",
+              "cornered-resource",
+              "pivot-hanged",
+              "customer-adjacent",
+              "founder-mode-returnee",
+              "stakeholder-pleaser",
+              "top-1-percent",
+              "saying-no",
+              "eval-forward",
+              "strategy-skeptic",
+              "empathy-tourist"
+            ]
+          },
+          "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["archetype"]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "archetype": { "type": "string" },
-          "next_archetype": { "type": "string", "description": "Second-closest archetype, in case the user disagrees with the primary." }
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "archetype_id": { "type": "integer", "minimum": 1, "maximum": 12 },
+              "archetype_slug": { "type": "string" },
+              "archetype_name": { "type": "string" },
+              "archetype_virtue": { "type": "string" },
+              "archetype_pitfall": { "type": "string" },
+              "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+              "reading": {
+                "type": "object",
+                "properties": {
+                  "aspect_partner_id": { "type": "integer" },
+                  "aspect_partner_name": { "type": "string" },
+                  "aspect": { "type": "string" },
+                  "prediction": { "type": "string" },
+                  "nudge": { "type": "string" },
+                  "topic": { "type": "string" }
+                }
+              },
+              "user_context": { "type": "string" }
+            }
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of anchor slug to corpus chunk text."
+          }
         }
+      }
+    },
+    {
+      "name": "pm_horoscope_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM Horoscope 'personalized reading', 'narration', 'today's reading', or any follow-up to a quiz just taken or an archetype just picked — including any phrasing like 'narrate my horoscope', 'render my horoscope', 'show me today's reading', 'I just took the horoscope quiz', or any message coming from the embedded widget. Do NOT respond with 'you haven't taken the quiz' or 'pick an archetype first' without calling this tool first: the audit state lives on disk (persisted by pm_horoscope_score_quiz or pm_horoscope_read on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior interaction but a brief is waiting on disk. Returns the narration brief saved by the most recent pm_horoscope_score_quiz or pm_horoscope_read call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/horoscope resource to take the quiz, or to pick an archetype and call pm_horoscope_read.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
       }
     }
   ],
   "ui": {
     "renderHint": "card",
-    "preferredWidth": 480,
-    "preferredHeight": 320
+    "preferredWidth": 560,
+    "preferredHeight": 720
   },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #53 PM Horoscope. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #53 PM Horoscope. Phase 2 .mcpb bundle target. Expanded from the pre-Path-4 two-tool draft (pm_horoscope_read + pm_horoscope_quiz) to the five-tool surface that mirrors the #44 PM Pitfalls worked example: entry → score (persists brief) → read (also persists brief, direct archetype path) → narrate (pure compute) → get_pending_narration (MUST CALL, reads disk). Tool descriptions verbatim-match the runtime `meta.description` strings in bundle/src/tools/53-pm-horoscope/.",
     "dev.workingfromlenny.app": {
       "id": 53,
       "name": "PM Horoscope",
       "phase": 2,
-      "type": "deterministic"
+      "type": "quiz + deterministic engine + LLM narration"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The deterministic engine produces aspect / prediction / nudge / topic (the spine); the host chat model renders the user-facing horoscope around that spine, following voice_rules and per_section_template.",
+      "worked_example": "bundle/src/tools/53-pm-horoscope/narrate.ts and bundle/src/lib/build-horoscope-brief.ts. Mirrors bundle/src/tools/pm-pitfalls/narrate.ts.",
+      "narration_tools": [
+        "pm_horoscope_narrate"
+      ]
     },
     "dev.workingfromlenny.open_questions": [
-      "Confirm `mimeType: text/html` is the right way to declare UI resource vs structured output.",
-      "Decide whether quiz state lives in the server (persistent across sessions) or in the host (cookie/local-storage)."
+      "Decide whether to add a per-user archetype-cache tool (so the user doesn't retake the quiz every install). Deferred to Phase 3 along with the rest of the stateful per-user-history apps."
     ],
     "dev.workingfromlenny.proposed_answers": [
-      "mimeType: text/html is correct for embedded UI resources rendered as cards in the host. The MCP Apps spec uses `text/html;profile=mcp-app` as the canonical MIME for UI bundles; clients negotiate this in their `mimeTypes` capability. The bare `text/html` here is the user-facing rendering hint at the resource level; the actual bundle payload should advertise the full `text/html;profile=mcp-app` profile when served.",
-      "Split by context. Web version: host-side (cookie or localStorage) for the chosen archetype. No server needed for a one-time selection, and the web version has no backend. MCP version: server data-dir under the bundle's own scope. There is no manifest-level consent flag — if the MCP version stores the archetype, surface it in the tool's description so the host's confirmation UI conveys the persistence to the user."
+      "Skipped for v0.2.0. The deterministic engine produces a different reading each day from (archetype, date); the iframe's quiz is short enough (6 questions, ~30 seconds) that retaking on a fresh install is acceptable. If users complain, revisit with a small archetype-only state file mirroring the pm_pitfalls_drift pattern."
     ],
     "dev.workingfromlenny.spec_validation": {
       "validated_on": "2026-05-18",
@@ -104,9 +347,8 @@
       ],
       "notes": [
         "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Canonical UI-bundle MIME is text/html;profile=mcp-app per the spec's mimeTypes negotiation.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook. The horoscope tools are read-only from the host's per-user perspective (overwrite-on-each-submission cache file, no per-user history), so they keep readOnlyHint at the default true.",
+        "Canonical UI-bundle MIME is text/html;profile=mcp-app per the spec's mimeTypes negotiation."
       ]
     }
   }

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM Horoscope</title>
+  <!-- include: styles.css -->
+  <style>
+    /* Horoscope-namespaced visuals. Shape mirrors pitfalls-* (paginated quiz +
+       output card) but the iframe is shorter (6 questions, not 20) and the
+       output renders the day's reading rather than a top-three list. */
+    .horoscope-page { display: none; }
+    .horoscope-page.active { display: block; }
+    .horoscope-card { padding: 0; }
+    .horoscope-q-num {
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-faint);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .horoscope-q-text {
+      font-size: 1.05rem;
+      font-weight: 500;
+      margin: 0 0 1.25rem;
+      line-height: 1.45;
+    }
+    .horoscope-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .horoscope-opt {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+      line-height: 1.45;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .horoscope-opt:hover { background: var(--border-soft); }
+    .horoscope-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .horoscope-opt.selected {
+      border-color: var(--accent);
+      background: var(--border-soft);
+    }
+    .horoscope-progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .horoscope-progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .horoscope-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.2s;
+    }
+    .horoscope-dots { display: flex; gap: 4px; }
+    .horoscope-dots .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    .horoscope-dots .dot.answered { background: var(--fg-muted); }
+    .horoscope-dots .dot.current { background: var(--accent); }
+    .horoscope-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+    }
+    .horoscope-counter { font-size: 0.875rem; color: var(--fg-muted); }
+    .horoscope-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .horoscope-btn:hover { background: var(--border-soft); }
+    .horoscope-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .horoscope-btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .horoscope-btn-primary:hover { background: #333; }
+    .horoscope-output { display: none; margin-top: 1.5rem; }
+    .horoscope-output.visible { display: block; }
+    .horoscope-archetype-name {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+    }
+    .horoscope-archetype-meta {
+      font-size: 0.875rem;
+      color: var(--fg-muted);
+      margin: 0 0 0.25rem;
+    }
+    .horoscope-archetype-next {
+      font-size: 0.875rem;
+      color: var(--fg-faint);
+      margin: 0 0 1.25rem;
+      font-style: italic;
+    }
+    .horoscope-reading {
+      border-top: 1px solid var(--border-soft);
+      padding-top: 1.25rem;
+      margin-top: 1.25rem;
+    }
+    .horoscope-reading-date {
+      font-size: 0.875rem;
+      color: var(--fg-muted);
+      margin: 0 0 0.75rem;
+    }
+    .horoscope-reading p { margin: 0 0 0.85rem; line-height: 1.65; }
+    .horoscope-reading-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      margin-bottom: 0.15rem;
+    }
+    .horoscope-topic {
+      background: var(--border-soft);
+      border-left: 3px solid var(--border);
+      padding: 0.6rem 1rem;
+      margin: 1rem 0 0;
+      font-size: 0.9rem;
+    }
+    .horoscope-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .horoscope-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .horoscope-validation {
+      display: none;
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--warn-text);
+    }
+    .horoscope-validation.visible { display: block; }
+    .horoscope-error {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .horoscope-error.visible { display: block; }
+    .horoscope-build-marker {
+      font-size: 11px;
+      color: var(--fg-faint);
+      margin-top: -8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">PM Horoscope</h1>
+  <p class="app-tagline">Mercury can do whatever Mercury wants. The Theatre Director, however, has a 9am.</p>
+  <p class="horoscope-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="horoscope-form" id="horoscope-form" novalidate>
+    <div class="horoscope-progress">
+      <div class="horoscope-progress-bar"><div class="horoscope-progress-fill" id="horoscope-progress-fill"></div></div>
+      <div class="horoscope-dots" id="horoscope-dots" aria-hidden="true"></div>
+    </div>
+
+    <div id="horoscope-pages" aria-live="polite"></div>
+
+    <div class="horoscope-nav">
+      <button type="button" class="horoscope-btn" id="horoscope-prev" disabled>← Back</button>
+      <span class="horoscope-counter" id="horoscope-counter">1 / 6</span>
+      <button type="button" class="horoscope-btn horoscope-btn-primary" id="horoscope-next">Next →</button>
+    </div>
+
+    <p class="horoscope-validation" id="horoscope-validation" role="alert">
+      Answer all six questions to see your archetype.
+    </p>
+  </form>
+
+  <div class="horoscope-error" id="horoscope-error" role="alert"></div>
+
+  <div class="horoscope-output" id="horoscope-output">
+    <h2 class="horoscope-archetype-name" id="horoscope-archetype-name"></h2>
+    <p class="horoscope-archetype-meta" id="horoscope-archetype-virtue"></p>
+    <p class="horoscope-archetype-meta" id="horoscope-archetype-pitfall"></p>
+    <p class="horoscope-archetype-next" id="horoscope-archetype-next"></p>
+
+    <div class="horoscope-reading">
+      <p class="horoscope-reading-date" id="horoscope-reading-date"></p>
+      <p class="horoscope-reading-label">Aspect</p>
+      <p id="horoscope-reading-aspect"></p>
+      <p class="horoscope-reading-label">Prediction</p>
+      <p id="horoscope-reading-prediction"></p>
+      <p class="horoscope-reading-label">Nudge</p>
+      <p id="horoscope-reading-nudge"></p>
+      <p class="horoscope-topic" id="horoscope-reading-topic"></p>
+    </div>
+
+    <p class="horoscope-narrate-hint" id="horoscope-narrate-hint">
+      <span id="horoscope-narrate-hint-auto">Queueing your personalized reading in chat…</span>
+      <span id="horoscope-narrate-hint-staged" style="display:none;">
+        Your personalized reading is queued in chat below. If your host doesn't auto-submit (Claude Desktop stages messages for review), click <strong>Send</strong> to see it.
+      </span>
+      <span id="horoscope-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. For a personalized reading, ask Claude in chat:
+        <strong>"narrate my horoscope"</strong>. The assistant uses your archetype + today's reading + a corpus brief to render it.
+      </span>
+    </p>
+
+    <div class="horoscope-actions">
+      <button type="button" class="horoscope-btn" id="horoscope-retake-btn">Retake quiz</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  // Quiz questions are loaded from pm_horoscope_get_quiz on init so the
+  // iframe and the server stay in sync. If the load fails we fall back to a
+  // stub error UI rather than guessing.
+  var QUESTIONS = null;
+  var ARCHETYPE_SLUGS = null;
+  var answers = [];
+  var current = 0;
+  var advanceTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function showError(msg) {
+    var el = $("horoscope-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("horoscope-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) {
+      throw new Error("Malformed tool result");
+    }
+    var first = result.content[0];
+    if (!first || first.type !== "text") {
+      throw new Error("Tool returned non-text content");
+    }
+    return JSON.parse(first.text);
+  }
+
+  function buildPages() {
+    var pagesEl = $("horoscope-pages");
+    var dotsEl = $("horoscope-dots");
+    pagesEl.innerHTML = "";
+    dotsEl.innerHTML = "";
+    QUESTIONS.forEach(function (q, i) {
+      var page = document.createElement("div");
+      page.className = "horoscope-page" + (i === 0 ? " active" : "");
+      page.id = "horoscope-page-" + i;
+
+      var card = document.createElement("div");
+      card.className = "horoscope-card";
+
+      var num = document.createElement("div");
+      num.className = "horoscope-q-num";
+      num.textContent = "Question " + (i + 1) + " of " + QUESTIONS.length;
+      card.appendChild(num);
+
+      var text = document.createElement("div");
+      text.className = "horoscope-q-text";
+      text.textContent = q.text;
+      card.appendChild(text);
+
+      var opts = document.createElement("div");
+      opts.className = "horoscope-options";
+      opts.setAttribute("role", "radiogroup");
+      opts.setAttribute("aria-label", "Question " + (i + 1) + " options");
+
+      q.options.forEach(function (opt) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "horoscope-opt";
+        btn.dataset.q = String(i);
+        btn.dataset.optId = String(opt.id);
+        btn.setAttribute("role", "radio");
+        btn.setAttribute("aria-checked", "false");
+        btn.textContent = opt.text;
+        btn.addEventListener("click", function () { pick(i, opt.id); });
+        opts.appendChild(btn);
+      });
+
+      card.appendChild(opts);
+      page.appendChild(card);
+      pagesEl.appendChild(page);
+
+      var dot = document.createElement("div");
+      dot.className = "dot" + (i === 0 ? " current" : "");
+      dot.id = "horoscope-dot-" + i;
+      dotsEl.appendChild(dot);
+    });
+    answers = new Array(QUESTIONS.length).fill(null);
+  }
+
+  function pick(qi, optId) {
+    answers[qi] = optId;
+    var page = $("horoscope-page-" + qi);
+    var buttons = page.querySelectorAll(".horoscope-opt");
+    buttons.forEach(function (b) {
+      var selected = Number(b.dataset.optId) === optId;
+      b.classList.toggle("selected", selected);
+      b.setAttribute("aria-checked", selected ? "true" : "false");
+    });
+    $("horoscope-dot-" + qi).classList.add("answered");
+    updateProgress();
+
+    if (advanceTimer) clearTimeout(advanceTimer);
+    if (qi < QUESTIONS.length - 1) {
+      advanceTimer = setTimeout(function () { navigate(1); }, 220);
+    }
+  }
+
+  function navigate(dir) {
+    var next = current + dir;
+    if (next < 0 || next > QUESTIONS.length - 1) return;
+    $("horoscope-page-" + current).classList.remove("active");
+    $("horoscope-dot-" + current).classList.remove("current");
+    current = next;
+    $("horoscope-page-" + current).classList.add("active");
+    $("horoscope-dot-" + current).classList.add("current");
+    updateProgress();
+    var firstOpt = $("horoscope-page-" + current).querySelector(".horoscope-opt");
+    if (firstOpt) firstOpt.focus({ preventScroll: true });
+  }
+
+  function updateProgress() {
+    var answered = answers.filter(function (a) { return a !== null; }).length;
+    var total = QUESTIONS.length;
+    $("horoscope-progress-fill").style.width = (answered / total * 100) + "%";
+    $("horoscope-counter").textContent = (current + 1) + " / " + total;
+    $("horoscope-prev").disabled = current === 0;
+
+    var nextBtn = $("horoscope-next");
+    var allAnswered = answered === total;
+    if (current === total - 1 && allAnswered) {
+      nextBtn.textContent = "Find my archetype";
+      nextBtn.dataset.mode = "submit";
+      nextBtn.disabled = false;
+    } else {
+      nextBtn.textContent = "Next →";
+      nextBtn.dataset.mode = "next";
+      nextBtn.disabled = current === total - 1 && !allAnswered;
+    }
+  }
+
+  function gatherAnswers() {
+    var unanswered = [];
+    for (var i = 0; i < QUESTIONS.length; i++) {
+      if (answers[i] === null) unanswered.push(i);
+    }
+    return { answers: answers.slice(), unanswered: unanswered };
+  }
+
+  function handleNext() {
+    var nextBtn = $("horoscope-next");
+    if (nextBtn.dataset.mode === "submit") {
+      handleSubmit();
+    } else {
+      navigate(1);
+    }
+  }
+
+  function handleSubmit() {
+    clearError();
+    var gathered = gatherAnswers();
+    if (gathered.unanswered.length > 0) {
+      $("horoscope-validation").classList.add("visible");
+      var firstMissing = gathered.unanswered[0];
+      if (current !== firstMissing) {
+        $("horoscope-page-" + current).classList.remove("active");
+        $("horoscope-dot-" + current).classList.remove("current");
+        current = firstMissing;
+        $("horoscope-page-" + current).classList.add("active");
+        $("horoscope-dot-" + current).classList.add("current");
+      }
+      updateProgress();
+      return;
+    }
+
+    $("horoscope-validation").classList.remove("visible");
+    var nextBtn = $("horoscope-next");
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Reading the stars…";
+
+    window.mcp.callTool("pm_horoscope_score_quiz", { answers: gathered.answers })
+      .then(function (result) {
+        var scored = parseToolResult(result);
+        renderScore(scored);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        nextBtn.disabled = false;
+        updateProgress();
+      });
+  }
+
+  function renderScore(scored) {
+    $("horoscope-archetype-name").textContent = scored.archetype_name;
+    $("horoscope-archetype-virtue").textContent = "Virtue: " + scored.archetype_virtue + ".";
+    $("horoscope-archetype-pitfall").textContent = "Pitfall: " + scored.archetype_pitfall + ".";
+    $("horoscope-archetype-next").textContent =
+      "If that doesn't fit, your runner-up was " + scored.next_archetype_name + ".";
+
+    $("horoscope-reading-date").textContent = scored.date;
+    $("horoscope-reading-aspect").textContent =
+      "Today, " + scored.reading.aspect + ".";
+    $("horoscope-reading-prediction").textContent = scored.reading.prediction;
+    $("horoscope-reading-nudge").textContent = scored.reading.nudge;
+    $("horoscope-reading-topic").innerHTML =
+      "<strong>Lucky topic:</strong> " + escHtml(scored.reading.topic);
+
+    var out = $("horoscope-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(scored);
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function requestNarration(scored) {
+    var auto = $("horoscope-narrate-hint-auto");
+    var staged = $("horoscope-narrate-hint-staged");
+    var fallback = $("horoscope-narrate-hint-fallback");
+
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just completed the PM Horoscope quiz in the embedded widget. " +
+        "Please call pm_horoscope_get_pending_narration to fetch my saved " +
+        "brief and render my personalized reading."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    if (advanceTimer) clearTimeout(advanceTimer);
+    answers = new Array(QUESTIONS.length).fill(null);
+    document.querySelectorAll(".horoscope-opt").forEach(function (b) {
+      b.classList.remove("selected");
+      b.setAttribute("aria-checked", "false");
+    });
+    document.querySelectorAll(".horoscope-dots .dot").forEach(function (d) {
+      d.classList.remove("answered");
+      d.classList.remove("current");
+    });
+    $("horoscope-dot-0").classList.add("current");
+    document.querySelectorAll(".horoscope-page").forEach(function (pg) {
+      pg.classList.remove("active");
+    });
+    $("horoscope-page-0").classList.add("active");
+    current = 0;
+    $("horoscope-validation").classList.remove("visible");
+    $("horoscope-output").classList.remove("visible");
+    clearError();
+    updateProgress();
+    document.getElementById("horoscope-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Bootstrap: load the canonical quiz from the server, then render.
+  window.mcp.callTool("pm_horoscope_get_quiz", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.questions) || parsed.questions.length === 0) {
+        throw new Error("Quiz returned no questions");
+      }
+      QUESTIONS = parsed.questions;
+      ARCHETYPE_SLUGS = parsed.archetype_slugs;
+      buildPages();
+      updateProgress();
+      $("horoscope-prev").addEventListener("click", function () { navigate(-1); });
+      $("horoscope-next").addEventListener("click", handleNext);
+      $("horoscope-retake-btn").addEventListener("click", handleRetake);
+    })
+    .catch(function (err) {
+      $("horoscope-form").style.display = "none";
+      showError("Could not load the quiz: " + (err && err.message ? err.message : String(err)));
+    });
+
+  // Mark ARCHETYPE_SLUGS used so linters don't strip the binding; the iframe
+  // doesn't directly consume the list today (the server returns the full
+  // archetype context inside the score result) but future per-archetype
+  // share links will need it.
+  void ARCHETYPE_SLUGS;
+})();
+</script>
+
+</body>
+</html>

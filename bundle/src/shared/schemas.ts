@@ -155,3 +155,146 @@ export const PitfallStateV1 = z.object({
 });
 
 export type PitfallStateV1 = z.infer<typeof PitfallStateV1>;
+
+// ───────────────────────────────────────────────────────────
+// #53 PM Horoscope schemas
+// ───────────────────────────────────────────────────────────
+
+export const HoroscopeArchetypeEnum = z.enum([
+  "bet-defender",
+  "theatre-director",
+  "cornered-resource",
+  "pivot-hanged",
+  "customer-adjacent",
+  "founder-mode-returnee",
+  "stakeholder-pleaser",
+  "top-1-percent",
+  "saying-no",
+  "eval-forward",
+  "strategy-skeptic",
+  "empathy-tourist",
+]);
+export type HoroscopeArchetypeSlug = z.infer<typeof HoroscopeArchetypeEnum>;
+
+export const HoroscopeIsoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "date must be ISO YYYY-MM-DD");
+
+export const HoroscopeQuizOption = z.object({
+  id: z.number().int().min(0).max(3),
+  text: z.string(),
+});
+
+export const HoroscopeQuizQuestion = z.object({
+  id: z.number().int().min(1).max(6),
+  text: z.string(),
+  options: z.array(HoroscopeQuizOption).min(2).max(6),
+});
+
+export const HoroscopeGetQuizInput = z.object({}).strict();
+
+export const HoroscopeGetQuizOutput = z.object({
+  questions: z.array(HoroscopeQuizQuestion).length(6),
+  archetype_slugs: z.array(HoroscopeArchetypeEnum).length(12),
+  note: z.string(),
+});
+
+export const HoroscopeReading = z.object({
+  aspect_partner_id: z.number().int().min(1).max(12),
+  aspect_partner_name: z.string(),
+  aspect: z.string(),
+  prediction: z.string(),
+  nudge: z.string(),
+  topic: z.string(),
+});
+
+const HoroscopeArchetypeDetailFields = {
+  archetype_id: z.number().int().min(1).max(12),
+  archetype_slug: HoroscopeArchetypeEnum,
+  archetype_name: z.string(),
+  archetype_virtue: z.string(),
+  archetype_pitfall: z.string(),
+} as const;
+
+export const HoroscopeScoreQuizInput = z.object({
+  answers: z
+    .array(z.number().int().min(0).max(3))
+    .length(6),
+  user_context: z.string().default(""),
+  date: HoroscopeIsoDate.optional(),
+});
+
+export const HoroscopeScoreQuizOutput = z.object({
+  ...HoroscopeArchetypeDetailFields,
+  next_archetype_id: z.number().int().min(1).max(12),
+  next_archetype_slug: HoroscopeArchetypeEnum,
+  next_archetype_name: z.string(),
+  date: HoroscopeIsoDate,
+  reading: HoroscopeReading,
+  persistence_warning: z.string().optional(),
+});
+
+export const HoroscopeReadInput = z.object({
+  archetype: HoroscopeArchetypeEnum,
+  date: HoroscopeIsoDate.optional(),
+  user_context: z.string().default(""),
+});
+
+export const HoroscopeReadOutput = z.object({
+  ...HoroscopeArchetypeDetailFields,
+  date: HoroscopeIsoDate,
+  reading: HoroscopeReading,
+  persistence_warning: z.string().optional(),
+});
+
+export const HoroscopeNarrateInput = z.object({
+  archetype: HoroscopeArchetypeEnum,
+  date: HoroscopeIsoDate.optional(),
+  user_context: z.string().default(""),
+});
+
+/**
+ * Path 4 narration-brief contract for #53 PM Horoscope. The bundle packages
+ * the deterministic reading (aspect / prediction / nudge / topic) + archetype
+ * context + corpus chunks + voice rules; the host chat model renders the
+ * user-facing horoscope.
+ */
+export const HoroscopeNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    archetype_id: z.number().int().min(1).max(12),
+    archetype_slug: HoroscopeArchetypeEnum,
+    archetype_name: z.string(),
+    archetype_virtue: z.string(),
+    archetype_pitfall: z.string(),
+    date: HoroscopeIsoDate,
+    reading: HoroscopeReading,
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const HoroscopeGetPendingNarrationInput = z.object({}).strict();
+
+export const HoroscopeGetPendingNarrationOutput = z.discriminatedUnion(
+  "status",
+  [
+    z.object({
+      status: z.literal("ready"),
+      saved_at: z.string(),
+      brief: HoroscopeNarrateOutput,
+    }),
+    z.object({
+      status: z.literal("no_pending"),
+      note: z.string(),
+    }),
+  ],
+);
