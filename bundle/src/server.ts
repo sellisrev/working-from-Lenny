@@ -63,6 +63,12 @@ import * as evalNarrate from "./tools/6-ai-eval-coverage/narrate";
 import * as evalGetPending from "./tools/6-ai-eval-coverage/get-pending";
 import { cleanupOrphanedTmp as cleanupEvalTmp } from "./tools/6-ai-eval-coverage/pending";
 
+import * as nsmGetForm from "./tools/9-nsm-finder/get-form";
+import * as nsmRun from "./tools/9-nsm-finder/run";
+import * as nsmNarrate from "./tools/9-nsm-finder/narrate";
+import * as nsmGetPending from "./tools/9-nsm-finder/get-pending";
+import { cleanupOrphanedTmp as cleanupNsmTmp } from "./tools/9-nsm-finder/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -112,6 +118,10 @@ const TOOLS: RegisteredTool[] = [
   evalScore as unknown as RegisteredTool,
   evalNarrate as unknown as RegisteredTool,
   evalGetPending as unknown as RegisteredTool,
+  nsmGetForm as unknown as RegisteredTool,
+  nsmRun as unknown as RegisteredTool,
+  nsmNarrate as unknown as RegisteredTool,
+  nsmGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -178,6 +188,14 @@ const RESOURCES: ResourceEntry[] = [
       "Three-input wizard (feature one-liner / audience / failure modes). Seven fixed eval categories (correctness / refusal / latency / hallucination / jailbreak / regression / drift), deterministic 0-100 coverage score, plus 2-3 starter eval prompts per missing or partial category.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "ai-eval-coverage.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/nsm-finder",
+    name: "North Star Metric Finder",
+    description:
+      "Multi-field wizard (business shape / monetization / revenue band / stage / friction / primary user action, plus optional 'what makes you unusual' and a dashboard paste). Deterministic business-shape → NSM-family mapping; three candidate NSMs with per-candidate critique (vanity risk, leading-vs-lagging, gameability, break case) + 3-5 leading input metrics + optional dashboard audit.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "nsm-finder.html"),
   },
 ];
 
@@ -260,6 +278,11 @@ async function main(): Promise<void> {
     await cleanupEvalTmp();
   } catch (err) {
     logErr("cleanup-tmp eval failed (non-fatal)", err);
+  }
+  try {
+    await cleanupNsmTmp();
+  } catch (err) {
+    logErr("cleanup-tmp nsm failed (non-fatal)", err);
   }
 
   const server = new Server(

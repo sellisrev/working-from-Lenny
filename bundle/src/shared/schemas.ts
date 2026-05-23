@@ -920,3 +920,118 @@ export const EvalGetPendingNarrationOutput = z.discriminatedUnion("status", [
     note: z.string(),
   }),
 ]);
+
+// ───────────────────────────────────────────────────────────
+// #9 North Star Metric Finder schemas
+// ───────────────────────────────────────────────────────────
+
+export const NSMBusinessShapeEnum = z.enum([
+  "b2c-subscription",
+  "b2c-transactional",
+  "b2b-plg",
+  "b2b-sales-led",
+  "marketplace",
+  "prosumer",
+]);
+export const NSMMonetizationEnum = z.enum([
+  "pay-per-use",
+  "subscription",
+  "freemium-to-paid",
+  "seat-based",
+  "consumption-based",
+  "ad-supported",
+  "other",
+]);
+export const NSMRevenueBandEnum = z.enum([
+  "pre-revenue",
+  "0-100k",
+  "100k-1m",
+  "1m-10m",
+  "10m-100m",
+  "100m-plus",
+]);
+export const NSMStageEnum = z.enum(["pre-pmf", "early-pmf", "scaling", "mature"]);
+export const NSMMarketplaceSideEnum = z.enum(["supply", "demand", "both"]);
+export type NSMBusinessShape = z.infer<typeof NSMBusinessShapeEnum>;
+
+export const NSMInputs = z.object({
+  business_shape: NSMBusinessShapeEnum,
+  business_unusual: z.string().max(200).default(""),
+  primary_user_action: z.string().min(1).max(200),
+  monetization: z.array(NSMMonetizationEnum).min(1),
+  revenue_band: NSMRevenueBandEnum,
+  friction_top: z.string().min(1).max(200),
+  stage: NSMStageEnum,
+  marketplace_side: NSMMarketplaceSideEnum.optional(),
+  dashboard_paste: z.string().max(2000).default(""),
+});
+export type NSMInputsT = z.infer<typeof NSMInputs>;
+
+export const NSMGetFormInput = z.object({}).strict();
+export const NSMGetFormOutput = z.object({
+  fields: z.array(z.object({
+    key: z.string(),
+    label: z.string(),
+    kind: z.enum(["enum", "multi-enum", "text", "textarea"]),
+    required: z.boolean(),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+    placeholder: z.string().optional(),
+    max_length: z.number().int().positive().optional(),
+    only_when: z.object({ key: z.string(), equals: z.string() }).optional(),
+  })),
+  nsm_families: z.array(z.object({
+    business_shape: NSMBusinessShapeEnum,
+    family: z.string(),
+  })).length(6),
+  note: z.string(),
+});
+
+export const NSMRunInput = z.object({
+  inputs: NSMInputs,
+  user_context: z.string().default(""),
+});
+
+export const NSMRunOutput = z.object({
+  inputs: NSMInputs,
+  nsm_family: z.string(),
+  has_dashboard: z.boolean(),
+  persistence_warning: z.string().optional(),
+});
+
+export const NSMNarrateInput = z.object({
+  inputs: NSMInputs,
+  user_context: z.string().default(""),
+});
+
+export const NSMNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    user_inputs: NSMInputs,
+    nsm_family: z.string(),
+    has_dashboard: z.boolean(),
+    dashboard_lines: z.array(z.string()),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const NSMGetPendingNarrationInput = z.object({}).strict();
+export const NSMGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: NSMNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

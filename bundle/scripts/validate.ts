@@ -64,6 +64,16 @@ import * as evalScore from "../src/tools/6-ai-eval-coverage/score-coverage";
 import * as evalNarrate from "../src/tools/6-ai-eval-coverage/narrate";
 import * as evalGetPending from "../src/tools/6-ai-eval-coverage/get-pending";
 import { CATEGORIES as EVAL_CATEGORIES } from "../src/tools/6-ai-eval-coverage/data";
+import * as nsmGetForm from "../src/tools/9-nsm-finder/get-form";
+import * as nsmRun from "../src/tools/9-nsm-finder/run";
+import * as nsmNarrate from "../src/tools/9-nsm-finder/narrate";
+import * as nsmGetPending from "../src/tools/9-nsm-finder/get-pending";
+import {
+  FIELDS as NSM_FIELDS,
+  NSM_FAMILIES,
+  resolveNsmFamily,
+  parseDashboardLines,
+} from "../src/tools/9-nsm-finder/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -97,6 +107,7 @@ async function main(): Promise<void> {
   await checkFounderData();
   await checkStrategyData();
   await checkEvalData();
+  await checkNsmData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -197,6 +208,10 @@ async function checkSchemas(): Promise<void> {
     evalScore,
     evalNarrate,
     evalGetPending,
+    nsmGetForm,
+    nsmRun,
+    nsmNarrate,
+    nsmGetPending,
   ];
   for (const t of tools) {
     try {
@@ -341,6 +356,7 @@ async function checkUiBuild(): Promise<void> {
     "founder-pm-hire",
     "strategy-pressure-test",
     "ai-eval-coverage",
+    "nsm-finder",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
@@ -1043,6 +1059,125 @@ async function checkEvalData(): Promise<void> {
     );
   } catch (err) {
     record("eval: score happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #9 NSM Finder shape + family-resolution goldens + schema validation.
+ */
+async function checkNsmData(): Promise<void> {
+  record(
+    "nsm: 9 fields defined (incl. conditional marketplace_side + optional business_unusual + dashboard)",
+    NSM_FIELDS.length === 9,
+    `got ${NSM_FIELDS.length}`,
+  );
+
+  record(
+    "nsm: 6 business shapes in family map",
+    NSM_FAMILIES.length === 6,
+  );
+
+  // Family-resolution goldens
+  record(
+    "nsm: b2c-subscription → retained value-moments",
+    resolveNsmFamily("b2c-subscription") === "Weekly/monthly retained value-moments",
+  );
+  record(
+    "nsm: marketplace(supply) → suppliers × listings",
+    resolveNsmFamily("marketplace", "supply") === "Active suppliers × listings per supplier",
+  );
+  record(
+    "nsm: marketplace(demand) → matched-transaction per buyer cohort",
+    resolveNsmFamily("marketplace", "demand") === "Matched-transaction rate per buyer cohort",
+  );
+  record(
+    "nsm: marketplace(both) → liquidity rate × repeat",
+    resolveNsmFamily("marketplace", "both") === "Liquidity rate (matched / posted) × repeat frequency",
+  );
+  record(
+    "nsm: marketplace unspecified side defaults to liquidity (both)",
+    resolveNsmFamily("marketplace") === "Liquidity rate (matched / posted) × repeat frequency",
+  );
+
+  // dashboard-line parsing
+  record(
+    "nsm: parseDashboardLines splits + trims + drops empties",
+    JSON.stringify(parseDashboardLines("  WAU  \n\nRevenue\n  Sign-ups  \n")) ===
+      JSON.stringify(["WAU", "Revenue", "Sign-ups"]),
+  );
+  record(
+    "nsm: parseDashboardLines on empty/whitespace-only → []",
+    parseDashboardLines("").length === 0 && parseDashboardLines("   \n\n  ").length === 0,
+  );
+
+  // Schema: missing required field rejects.
+  const missingShape = nsmRun.meta.inputSchema.safeParse({
+    inputs: {
+      primary_user_action: "x",
+      monetization: ["subscription"],
+      revenue_band: "100k-1m",
+      friction_top: "y",
+      stage: "scaling",
+    },
+  });
+  record("nsm: run inputSchema rejects missing business_shape", !missingShape.success);
+
+  // Schema: empty monetization rejects.
+  const emptyMon = nsmRun.meta.inputSchema.safeParse({
+    inputs: {
+      business_shape: "b2b-plg",
+      primary_user_action: "x",
+      monetization: [],
+      revenue_band: "100k-1m",
+      friction_top: "y",
+      stage: "scaling",
+    },
+  });
+  record("nsm: run inputSchema rejects empty monetization", !emptyMon.success);
+
+  // Schema: oversized friction_top rejects.
+  const longFriction = nsmRun.meta.inputSchema.safeParse({
+    inputs: {
+      business_shape: "b2b-plg",
+      primary_user_action: "x",
+      monetization: ["subscription"],
+      revenue_band: "100k-1m",
+      friction_top: "y".repeat(201),
+      stage: "scaling",
+    },
+  });
+  record("nsm: run inputSchema rejects friction_top > 200 chars", !longFriction.success);
+
+  // Happy path: full inputs + a dashboard paste.
+  try {
+    const ok = (await nsmRun.invoke({
+      inputs: {
+        business_shape: "b2b-plg",
+        business_unusual: "",
+        primary_user_action: "publishing a doc",
+        monetization: ["freemium-to-paid", "seat-based"],
+        revenue_band: "1m-10m",
+        friction_top: "activation drops between sign-up and first publish",
+        stage: "scaling",
+        dashboard_paste: "WAU\nDocuments published per week\nSign-ups\n",
+      },
+      user_context: "",
+    } as never)) as {
+      nsm_family: string;
+      has_dashboard: boolean;
+      persistence_warning?: string;
+    };
+    const okOk =
+      ok.nsm_family === "Weekly active teams × retention shape" &&
+      ok.has_dashboard === true &&
+      ok.persistence_warning === undefined;
+    record(
+      "nsm: run happy path returns valid result + persists brief",
+      okOk,
+      okOk ? undefined : JSON.stringify(ok).slice(0, 200),
+    );
+  } catch (err) {
+    record("nsm: run happy path", false, (err as Error).message);
   }
 }
 

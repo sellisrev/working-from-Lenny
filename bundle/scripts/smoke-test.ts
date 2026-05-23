@@ -105,6 +105,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "founder-pm-hire.html"),
     path.join(installRoot, "dist", "ui", "strategy-pressure-test.html"),
     path.join(installRoot, "dist", "ui", "ai-eval-coverage.html"),
+    path.join(installRoot, "dist", "ui", "nsm-finder.html"),
     path.join(
       installRoot,
       "dist",
@@ -196,6 +197,7 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkFounderChain(client, dataDir);
     await checkStrategyChain(client, dataDir);
     await checkEvalChain(client, dataDir);
+    await checkNsmChain(client, dataDir);
   } finally {
     await client.close();
   }
@@ -241,6 +243,10 @@ async function checkListTools(client: Client): Promise<void> {
       "ai_eval_coverage_score",
       "ai_eval_coverage_narrate",
       "ai_eval_coverage_get_pending_narration",
+      "nsm_finder_get_form",
+      "nsm_finder_run",
+      "nsm_finder_narrate",
+      "nsm_finder_get_pending_narration",
     ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
@@ -2820,6 +2826,100 @@ async function checkEvalChain(client: Client, dataDir: string): Promise<void> {
   const afterMtime = (await fs.stat(file)).mtimeMs;
   record(
     "eval: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #9 North Star Metric Finder smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkNsmChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "nsm: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["nsm_finder_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/nsm-finder",
+  );
+  const desc = list.tools.find((t) => t.name === "nsm_finder_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "north star metric", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("nsm: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/nsm-finder" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "nsm: iframe staged ui/message names submission + tool",
+    text.includes("I just submitted the NSM Finder wizard in the embedded widget") &&
+      text.includes("nsm_finder_get_pending_narration"),
+  );
+
+  // get_form smoke: returns 9 fields + 6 nsm_families
+  const form = JSON.parse(contentText(await client.callTool({ name: "nsm_finder_get_form", arguments: {} })));
+  record(
+    "nsm: get_form returns 9 fields + 6 nsm_families",
+    Array.isArray(form.fields) && form.fields.length === 9 && Array.isArray(form.nsm_families) && form.nsm_families.length === 6,
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "nsm_finder_get_pending_narration", arguments: {} })));
+  record("nsm: get_pending pre-run → no_pending", before.status === "no_pending");
+
+  const runResult = JSON.parse(contentText(await client.callTool({
+    name: "nsm_finder_run",
+    arguments: {
+      inputs: {
+        business_shape: "marketplace",
+        marketplace_side: "both",
+        primary_user_action: "completing a posted-and-matched transaction",
+        monetization: ["consumption-based"],
+        revenue_band: "1m-10m",
+        friction_top: "supply side dormant for new categories",
+        stage: "scaling",
+        dashboard_paste: "Posted listings per week\nMatched transactions per week\nSign-ups",
+      },
+    },
+  })));
+  record(
+    "nsm: run returns liquidity NSM family + has_dashboard=true for marketplace(both)",
+    runResult.nsm_family === "Liquidity rate (matched / posted) × repeat frequency" &&
+      runResult.has_dashboard === true &&
+      runResult.persistence_warning === undefined,
+    JSON.stringify(runResult).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "nsm-finder-pending.json");
+  record("nsm: run wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "nsm_finder_get_pending_narration", arguments: {} })));
+  record(
+    "nsm: get_pending after run returns brief with normalized dashboard_lines",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.nsm_family === "Liquidity rate (matched / posted) × repeat frequency" &&
+      Array.isArray(after.brief?.inputs?.dashboard_lines) &&
+      after.brief.inputs.dashboard_lines.length === 3,
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "nsm_finder_narrate",
+    arguments: {
+      inputs: {
+        business_shape: "prosumer",
+        primary_user_action: "running a saved workout",
+        monetization: ["subscription"],
+        revenue_band: "100k-1m",
+        friction_top: "first-week drop-off",
+        stage: "early-pmf",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "nsm: narrate is pure compute (pending file untouched)",
     beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }

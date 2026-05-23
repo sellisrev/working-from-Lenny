@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -163,6 +163,22 @@
     {
       "name": "ai_eval_coverage_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their AI eval coverage scorecard, 'score my evals', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
+      "name": "nsm_finder_get_form",
+      "description": "Returns the multi-field NSM-finder wizard metadata (business shape / monetization / revenue band / stage / friction / primary user action + optional unusual + dashboard) and triggers the host to mount the ui://working-from-lenny/nsm-finder iframe."
+    },
+    {
+      "name": "nsm_finder_run",
+      "description": "Takes the NSM-finder inputs, resolves the business-shape → NSM-family mapping, and persists the corpus-grounded brief. AFTER calling run, render the FAMILY + three candidate sections (and dashboard audit when has_dashboard) by calling nsm_finder_get_pending_narration."
+    },
+    {
+      "name": "nsm_finder_narrate",
+      "description": "Packages a corpus-grounded NSM brief from the structured inputs. Pure compute — no persistence. Call nsm_finder_get_pending_narration to retrieve the brief run already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "nsm_finder_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their North Star Metric candidates, 'find my NSM', 'audit my dashboard', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
     }
   ],
   "prompts_generated": false,

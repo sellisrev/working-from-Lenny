@@ -2,258 +2,78 @@
   "resource": {
     "uri": "ui://working-from-lenny/nsm-finder",
     "name": "North Star Metric Finder",
-    "description": "Four-step wizard returns three candidate North Star metrics with arguments for and against, vanity-risk analysis, leading-vs-lagging, gameability, and an input-metric tree per candidate.",
-    "mimeType": "text/html"
+    "description": "Multi-field wizard (business shape / monetization / revenue band / stage / friction / primary user action, plus optional 'what makes you unusual' and a dashboard paste). Deterministic business-shape → NSM-family mapping; three candidate NSMs with per-candidate critique (vanity risk, leading-vs-lagging, gameability, break case) + 3-5 leading input metrics + optional dashboard audit.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
-      "name": "nsm_candidates",
-      "description": "LLM-narrated. Generates three candidate NSMs given structured wizard inputs.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "business_shape": {
-            "type": "string",
-            "enum": [
-              "B2C-subscription",
-              "B2C-transactional",
-              "B2B-PLG",
-              "B2B-sales-led",
-              "marketplace",
-              "prosumer"
-            ]
-          },
-          "business_unusual": {
-            "type": "string",
-            "maxLength": 200
-          },
-          "primary_user_action": {
-            "type": "string",
-            "maxLength": 200
-          },
-          "monetization": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "pay-per-use",
-                "subscription",
-                "freemium-to-paid",
-                "seat-based",
-                "consumption-based",
-                "ad-supported",
-                "other"
-              ]
-            }
-          },
-          "revenue_band": {
-            "type": "string",
-            "enum": [
-              "pre-revenue",
-              "$0-100k",
-              "$100k-1M",
-              "$1M-10M",
-              "$10M-100M",
-              "$100M+"
-            ]
-          },
-          "friction_top": {
-            "type": "string",
-            "maxLength": 200
-          },
-          "stage": {
-            "type": "string",
-            "enum": [
-              "pre-PMF",
-              "early-PMF",
-              "scaling",
-              "mature"
-            ]
-          },
-          "marketplace_side": {
-            "type": "string",
-            "enum": [
-              "supply",
-              "demand",
-              "both"
-            ],
-            "description": "Only applies when business_shape == marketplace. Routes which family of NSM candidates Pass 1 draws from. Omit for non-marketplace shapes."
-          }
-        },
-        "required": [
-          "business_shape",
-          "primary_user_action",
-          "monetization",
-          "stage"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "candidates": {
-            "type": "array",
-            "minItems": 3,
-            "maxItems": 3,
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "rationale": {
-                  "type": "string"
-                },
-                "vanity_risk": {
-                  "type": "string"
-                },
-                "leading_or_lagging": {
-                  "type": "string"
-                },
-                "gameability": {
-                  "type": "string"
-                },
-                "what_could_break_this": {
-                  "type": "string"
-                },
-                "input_metrics": {
-                  "type": "array",
-                  "minItems": 3,
-                  "maxItems": 5,
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      "name": "nsm_finder_get_form",
+      "description": "Entry tool for the North Star Metric Finder. Calling this triggers the host to mount the ui://working-from-lenny/nsm-finder resource (an interactive iframe with a multi-field wizard: business shape, primary user action, monetization, revenue band, stage, biggest friction, plus optional 'what makes you unusual' and a dashboard paste). If your host mounts the UI, that IS the input surface — do NOT additionally render the inputs in chat as a duplicate surface; the user will fill them in the iframe, which calls nsm_finder_run directly. The returned `fields` array is the fallback for hosts that cannot mount ui:// resources; `nsm_families` is the business-shape → NSM-family map. If the user already has all inputs in hand, call nsm_finder_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/nsm-finder" } }
     },
     {
-      "name": "nsm_dashboard_audit",
-      "description": "LLM-narrated. For each metric in the user's pasted dashboard, labels it closest-to-NSM, useful-input, or vanity-replace, with a one-line reason.",
+      "name": "nsm_finder_run",
+      "description": "Takes the structured NSM-finder inputs (business_shape, marketplace_side when applicable, primary_user_action, monetization, revenue_band, stage, friction_top, optional business_unusual + dashboard_paste) and persists the corpus-grounded NSM brief. The deterministic side just resolves the business-shape → NSM-family mapping and normalizes the dashboard lines; the three candidates + critique + input-metrics tree + optional dashboard audit come from the host chat model. AFTER receiving this result, call nsm_finder_get_pending_narration to fetch the brief and render the FAMILY + three candidate sections (and the dashboard audit, when has_dashboard is true). Do not render candidates on your own without the brief — the brief carries the voice rules (#9 sigh hook, no AI tells) and the closed corpus-anchor pool. If `persistence_warning` is set, surface it and ask the user to re-submit.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "dashboard_metrics": {
-            "type": "array",
-            "items": {
-              "type": "string"
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "business_shape": { "type": "string", "enum": ["b2c-subscription", "b2c-transactional", "b2b-plg", "b2b-sales-led", "marketplace", "prosumer"] },
+              "business_unusual": { "type": "string", "maxLength": 200, "default": "" },
+              "primary_user_action": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "monetization": {
+                "type": "array",
+                "items": { "type": "string", "enum": ["pay-per-use", "subscription", "freemium-to-paid", "seat-based", "consumption-based", "ad-supported", "other"] },
+                "minItems": 1
+              },
+              "revenue_band": { "type": "string", "enum": ["pre-revenue", "0-100k", "100k-1m", "1m-10m", "10m-100m", "100m-plus"] },
+              "friction_top": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "stage": { "type": "string", "enum": ["pre-pmf", "early-pmf", "scaling", "mature"] },
+              "marketplace_side": { "type": "string", "enum": ["supply", "demand", "both"] },
+              "dashboard_paste": { "type": "string", "maxLength": 2000, "default": "" }
             },
-            "minItems": 1,
-            "maxItems": 40
+            "required": ["business_shape", "primary_user_action", "monetization", "revenue_band", "friction_top", "stage"]
           },
-          "business_shape": {
-            "type": "string"
-          },
-          "stage": {
-            "type": "string"
-          }
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "dashboard_metrics",
-          "business_shape"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "verdicts": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "metric_name": {
-                  "type": "string"
-                },
-                "verdict": {
-                  "type": "string",
-                  "enum": [
-                    "closest-to-NSM",
-                    "useful-input",
-                    "vanity-replace"
-                  ]
-                },
-                "one_line_why": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
+        "required": ["inputs"]
       }
     },
     {
-      "name": "nsm_calibration",
-      "description": "MCP-only (stateful). Compares the user's chosen NSM against where it sits now. Has it moved? Has it surfaced the failure mode it was supposed to surface? Stores prior NSM picks + values locally across runs.",
+      "name": "nsm_finder_narrate",
+      "description": "Packages a corpus-grounded North Star Metric brief from the structured inputs. Returns voice rules, structure (FAMILY → CANDIDATE_1/2/3 → optional DASHBOARD_AUDIT), the resolved NSM family, normalized dashboard lines, and corpus chunks. Pure compute — no persistence side-effect. PREFER nsm_finder_get_pending_narration after a run call. Only call this tool directly if you need a brief without round-tripping through disk.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "string"
-          },
-          "current_nsm_value": {
-            "type": "number"
-          }
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "user_id",
-          "current_nsm_value"
-        ]
-      },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Calibration requires persisted prior picks + current value in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
+        "required": ["inputs"]
       }
+    },
+    {
+      "name": "nsm_finder_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their North Star Metric reading, 'render my NSM candidates', 'show me the three NSMs', or any follow-up to a submission just made — including any phrasing like 'pick my NSM', 'find my north star', 'audit my dashboard', 'I just filled in the NSM form', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by nsm_finder_run on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent nsm_finder_run call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/nsm-finder resource or call nsm_finder_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
     }
   ],
-  "ui": {
-    "renderHint": "card",
-    "preferredWidth": 720,
-    "preferredHeight": 900
-  },
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 820 },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #9 North Star Metric Finder. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #9 North Star Metric Finder. Phase 2 .mcpb bundle target. Path 4 four-tool shape. Deterministic side just resolves business-shape → NSM-family mapping and normalizes dashboard_paste; three candidates + critique + input-metrics tree + optional dashboard audit come from the host chat model. Per-user calibration history (re-run quarterly, drift report) deferred to a follow-up. Tool descriptions verbatim-match the runtime `meta.description` strings.",
     "dev.workingfromlenny.app": {
       "id": 9,
       "name": "North Star Metric Finder",
       "phase": 2,
-      "type": "wizard + LLM-narrated candidate critique"
+      "type": "wizard + deterministic mapping + LLM narration"
     },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
-      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
-      "narration_tools": [
-        "nsm_candidates",
-        "nsm_dashboard_audit"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
-    },
-    "dev.workingfromlenny.open_questions": [
-      "Should the input_metrics tree share a schema with #37 Activation Metric Finder so the two apps interoperate, or stay independent?",
-      "Dashboard audit: how to handle dashboards >40 metrics gracefully? Truncate with a 'audit the top 40' notice, or batch?",
-      "Calibration tool: who provides the current_nsm_value — pulled from a connected analytics tool, or user-entered? Latter is .mcpb-scope by default."
-    ],
-    "dev.workingfromlenny.proposed_answers": [
-      "Stay independent for Phase 2. The .mcpb format has no inter-bundle schema import mechanism; bundles are self-contained. Schema alignment between #9 and #37 is worth revisiting when both apps are production-ready and usage patterns are clear. For now the input_metrics array of strings is fit for purpose. Note this as a Phase 3 consideration for #37 spec work.",
-      "Truncate with a notice. 'I will audit the first 40; paste a second batch for the rest' is the right UX. Batching requires the host to sequence calls and merge results, which adds client-side complexity. The 40-metric cap is also a soft forcing function: if a team has 80 dashboard metrics, the real insight may be 'this is too many metrics to have' before the audit even runs. A one-line notice makes that implicit point.",
-      "User-entered for Phase 2. Pulling from a connected analytics tool requires a data-source integration that is out of scope. User entry of the current NSM value is sufficient for the calibration pattern. Flag the analytics integration as a Phase 3 consideration, same rationale as the mortality tool on #24 OKR Critique."
-    ],
-    "dev.workingfromlenny.spec_validation": {
-      "validated_on": "2026-05-18",
-      "sources": [
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
-        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
-      ],
-      "notes": [
-        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
-      ]
+      "summary": "Narration tools return a narration_brief. The wizard resolves the business-shape → NSM-family lookup; the brief carries the family + user inputs + normalized dashboard lines + corpus chunks (north-star-metric, activation-metric, growth-loops, pm-pitfalls). Host chat model renders the FAMILY + three candidates (each with vanity-risk / leading-vs-lagging / gameability / break-case / input-metrics slots) + optional dashboard audit.",
+      "worked_example": "bundle/src/tools/9-nsm-finder/narrate.ts and bundle/src/lib/build-nsm-brief.ts",
+      "narration_tools": ["nsm_finder_narrate"]
     }
   }
 }
