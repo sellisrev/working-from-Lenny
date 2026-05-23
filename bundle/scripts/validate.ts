@@ -21,6 +21,17 @@ import {
   composeReading,
   scoreQuiz,
 } from "../src/tools/53-pm-horoscope/data";
+import * as ladderGetQuestions from "../src/tools/3-pm-ladder/get-questions";
+import * as ladderScore from "../src/tools/3-pm-ladder/score";
+import * as ladderNarrate from "../src/tools/3-pm-ladder/narrate";
+import * as ladderGetPending from "../src/tools/3-pm-ladder/get-pending";
+import * as ladderCalibrate from "../src/tools/3-pm-ladder/calibrate";
+import {
+  DIMENSIONS as LADDER_DIMENSIONS,
+  QUESTIONS as LADDER_QUESTIONS,
+  scoreAssessment,
+  median,
+} from "../src/tools/3-pm-ladder/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -48,6 +59,7 @@ async function main(): Promise<void> {
   await checkScoreGoldens();
   await checkDriftGoldens();
   await checkHoroscopeData();
+  await checkLadderData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -123,6 +135,11 @@ async function checkSchemas(): Promise<void> {
     horoscopeRead,
     horoscopeNarrate,
     horoscopeGetPending,
+    ladderGetQuestions,
+    ladderScore,
+    ladderNarrate,
+    ladderGetPending,
+    ladderCalibrate,
   ];
   for (const t of tools) {
     try {
@@ -258,7 +275,7 @@ async function checkDriftGoldens(): Promise<void> {
 }
 
 async function checkUiBuild(): Promise<void> {
-  for (const slug of ["pitfalls", "horoscope"]) {
+  for (const slug of ["pitfalls", "horoscope", "ladder"]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
       record(
@@ -397,6 +414,125 @@ async function checkHoroscopeData(): Promise<void> {
       );
     }
   }
+}
+
+/**
+ * #3 PM Ladder shape + scoring engine guards. Confirms the 30 questions are
+ * distributed 6-per-dimension, that scoreAssessment computes per-dimension
+ * medians correctly, and that the widest-gap selection picks the lowest
+ * dimension. Catches the regression class where ladder-data.json drifts
+ * (renamed slug, lost a question, wrong dimension tag).
+ */
+async function checkLadderData(): Promise<void> {
+  // 5 dimensions, 30 questions, six per dimension.
+  const shape =
+    LADDER_DIMENSIONS.length === 5 && LADDER_QUESTIONS.length === 30;
+  record("ladder: 5 dimensions, 30 questions", shape);
+
+  const byDim: Record<string, number> = {};
+  for (const q of LADDER_QUESTIONS) {
+    byDim[q.dimension] = (byDim[q.dimension] ?? 0) + 1;
+  }
+  const perDimOk = LADDER_DIMENSIONS.every((d) => byDim[d.slug] === 6);
+  record(
+    "ladder: 6 questions per dimension",
+    perDimOk,
+    perDimOk ? undefined : JSON.stringify(byDim),
+  );
+
+  const idsOk = LADDER_QUESTIONS.every((q, i) => q.id === i + 1);
+  record(
+    "ladder: question IDs are 1-30 in order",
+    idsOk,
+  );
+
+  const optionsOk = LADDER_QUESTIONS.every(
+    (q) => Array.isArray(q.options) && q.options.length === 5,
+  );
+  record("ladder: every question has 5 option choices", optionsOk);
+
+  // median helper sanity (the prompt.md formula relies on it).
+  const m1 = median([1, 2, 3, 4, 5]);
+  const m2 = median([2, 2, 3, 3, 4, 4]);
+  record(
+    "ladder: median([1..5]) === 3 and median(six values) yields .5 midpoint",
+    m1 === 3 && m2 === 3,
+    `m1=${m1} m2=${m2}`,
+  );
+
+  // Scoring goldens.
+  // All-1 answers → all dimensions = 1 → effective = 1, target = 2, widest gap on first dim.
+  const allOnes = scoreAssessment(new Array(30).fill(1));
+  const allOnesOk =
+    allOnes.dimension_levels.scope === 1 &&
+    allOnes.dimension_levels.craft === 1 &&
+    allOnes.effective_level === 1 &&
+    allOnes.target_level === 2 &&
+    allOnes.widest_gap_dimension === "scope";
+  record(
+    "ladder: scoreAssessment([1×30]) → all-1 levels, effective=1, target=2",
+    allOnesOk,
+    allOnesOk ? undefined : JSON.stringify(allOnes),
+  );
+
+  // All-5 answers → all dimensions = 5 → effective = 5, target = 5, gap = 0.
+  const allFives = scoreAssessment(new Array(30).fill(5));
+  const allFivesOk =
+    allFives.effective_level === 5 &&
+    allFives.target_level === 5 &&
+    allFives.widest_gap_size === 0;
+  record(
+    "ladder: scoreAssessment([5×30]) → effective=5, target=5, no gap",
+    allFivesOk,
+    allFivesOk ? undefined : JSON.stringify(allFives),
+  );
+
+  // Six 3s per dimension → each dimension = 3, effective = 3, target = 4.
+  const allThrees = scoreAssessment(new Array(30).fill(3));
+  const allThreesOk =
+    allThrees.effective_level === 3 && allThrees.target_level === 4;
+  record(
+    "ladder: scoreAssessment([3×30]) → effective=3, target=4",
+    allThreesOk,
+    allThreesOk ? undefined : JSON.stringify(allThrees),
+  );
+
+  // Mixed: scope dimension lowest (all 1s), other dims at 4 → widest gap = scope.
+  const mixed = new Array(30).fill(4);
+  for (let i = 0; i < 6; i++) mixed[i] = 1; // scope is Q1-Q6
+  const mixedScored = scoreAssessment(mixed);
+  const mixedOk =
+    mixedScored.dimension_levels.scope === 1 &&
+    mixedScored.dimension_levels.ambiguity === 4 &&
+    mixedScored.widest_gap_dimension === "scope";
+  record(
+    "ladder: widest-gap selection picks the dimension with the largest target-gap",
+    mixedOk,
+    mixedOk ? undefined : JSON.stringify(mixedScored),
+  );
+
+  // Invalid input: wrong length should throw.
+  let threwOnShort = false;
+  try {
+    scoreAssessment(new Array(29).fill(3));
+  } catch {
+    threwOnShort = true;
+  }
+  record("ladder: scoreAssessment rejects wrong-length input", threwOnShort);
+
+  // Invalid input: out-of-range level should throw.
+  let threwOnOutOfRange = false;
+  try {
+    const bad = new Array(30).fill(3);
+    bad[0] = 7;
+    scoreAssessment(bad);
+  } catch {
+    threwOnOutOfRange = true;
+  }
+  record(
+    "ladder: scoreAssessment rejects out-of-range level (>5)",
+    threwOnOutOfRange,
+  );
 }
 
 /**

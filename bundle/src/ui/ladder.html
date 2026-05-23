@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM Ladder Self-Assessment</title>
+  <!-- include: styles.css -->
+  <style>
+    /* Ladder-namespaced visuals. Paginated 30-question wizard, six per
+       dimension. Dot trail is grouped by dimension so the user can see where
+       they are in the assessment without counting. */
+    .ladder-page { display: none; }
+    .ladder-page.active { display: block; }
+    .ladder-card { padding: 0; }
+    .ladder-q-num {
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-faint);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .ladder-q-dim {
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .ladder-q-text {
+      font-size: 1.05rem;
+      font-weight: 500;
+      margin: 0 0 1.25rem;
+      line-height: 1.45;
+    }
+    .ladder-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .ladder-opt {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+      line-height: 1.45;
+      transition: background 0.1s, border-color 0.1s;
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-start;
+    }
+    .ladder-opt:hover { background: var(--border-soft); }
+    .ladder-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .ladder-opt.selected {
+      border-color: var(--accent);
+      background: var(--border-soft);
+    }
+    .ladder-opt-level {
+      font-size: 0.75rem;
+      color: var(--fg-faint);
+      font-weight: 600;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .ladder-opt.selected .ladder-opt-level { color: var(--accent); }
+    .ladder-progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .ladder-progress-bar {
+      flex: 1;
+      min-width: 120px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .ladder-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.2s;
+    }
+    .ladder-dim-groups {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ladder-dim-group {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+    .ladder-dim-group .label {
+      font-size: 0.7rem;
+      color: var(--fg-faint);
+      margin-right: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .ladder-dim-group .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    .ladder-dim-group .dot.answered { background: var(--fg-muted); }
+    .ladder-dim-group .dot.current { background: var(--accent); }
+    .ladder-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+      gap: 0.5rem;
+    }
+    .ladder-counter { font-size: 0.875rem; color: var(--fg-muted); }
+    .ladder-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .ladder-btn:hover { background: var(--border-soft); }
+    .ladder-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .ladder-btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .ladder-btn-primary:hover { background: #333; }
+    .ladder-output { display: none; margin-top: 1.5rem; }
+    .ladder-output.visible { display: block; }
+    .ladder-effective {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+    }
+    .ladder-effective-title {
+      font-size: 0.875rem;
+      color: var(--fg-muted);
+      margin: 0 0 1rem;
+    }
+    .ladder-dims-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+    }
+    .ladder-dims-table td {
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .ladder-dims-table td.label { color: var(--fg-muted); }
+    .ladder-dims-table td.value { text-align: right; font-weight: 500; }
+    .ladder-dims-table tr.widest td { color: var(--accent); }
+    .ladder-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .ladder-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .ladder-validation {
+      display: none;
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--warn-text);
+    }
+    .ladder-validation.visible { display: block; }
+    .ladder-error {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .ladder-error.visible { display: block; }
+    .ladder-build-marker {
+      font-size: 11px;
+      color: var(--fg-faint);
+      margin-top: -8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">PM Ladder Self-Assessment</h1>
+  <p class="app-tagline">If you scored Principal, the rubric was easier than the job.</p>
+  <p class="ladder-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="ladder-form" id="ladder-form" novalidate>
+    <div class="ladder-progress">
+      <div class="ladder-progress-bar"><div class="ladder-progress-fill" id="ladder-progress-fill"></div></div>
+      <div class="ladder-dim-groups" id="ladder-dim-groups" aria-hidden="true"></div>
+    </div>
+
+    <div id="ladder-pages" aria-live="polite"></div>
+
+    <div class="ladder-nav">
+      <button type="button" class="ladder-btn" id="ladder-prev" disabled>← Back</button>
+      <span class="ladder-counter" id="ladder-counter">1 / 30</span>
+      <button type="button" class="ladder-btn ladder-btn-primary" id="ladder-next">Next →</button>
+    </div>
+
+    <p class="ladder-validation" id="ladder-validation" role="alert">
+      Answer all thirty questions to see your gap report.
+    </p>
+  </form>
+
+  <div class="ladder-error" id="ladder-error" role="alert"></div>
+
+  <div class="ladder-output" id="ladder-output">
+    <h2 class="ladder-effective" id="ladder-effective"></h2>
+    <p class="ladder-effective-title" id="ladder-effective-title"></p>
+
+    <table class="ladder-dims-table" id="ladder-dims-table">
+      <tbody id="ladder-dims-body"></tbody>
+    </table>
+
+    <p class="ladder-narrate-hint" id="ladder-narrate-hint">
+      <span id="ladder-narrate-hint-auto">Queueing your gap report in chat…</span>
+      <span id="ladder-narrate-hint-staged" style="display:none;">
+        Your gap report is queued in chat below. If your host doesn't auto-submit (Claude Desktop stages messages for review), click <strong>Send</strong> to see it.
+      </span>
+      <span id="ladder-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. For your gap report, ask Claude in chat:
+        <strong>"narrate my ladder"</strong>. The assistant uses your dimension levels + a corpus brief to render it.
+      </span>
+    </p>
+
+    <div class="ladder-actions">
+      <button type="button" class="ladder-btn" id="ladder-retake-btn">Retake assessment</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  // Questions are loaded from pm_ladder_get_questions on init so the iframe
+  // and the server stay in sync. If the load fails we surface a stub error.
+  var QUESTIONS = null;
+  var DIMENSIONS = null;
+  var answers = [];
+  var current = 0;
+  var advanceTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function showError(msg) {
+    var el = $("ladder-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("ladder-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) {
+      throw new Error("Malformed tool result");
+    }
+    var first = result.content[0];
+    if (!first || first.type !== "text") {
+      throw new Error("Tool returned non-text content");
+    }
+    return JSON.parse(first.text);
+  }
+
+  function dimensionLabel(slug) {
+    if (slug === "scope") return "Scope";
+    if (slug === "ambiguity") return "Ambig.";
+    if (slug === "influence") return "Infl.";
+    if (slug === "judgment") return "Judg.";
+    if (slug === "craft") return "Craft";
+    return slug;
+  }
+
+  function dimensionFull(slug) {
+    if (slug === "scope") return "Scope";
+    if (slug === "ambiguity") return "Ambiguity";
+    if (slug === "influence") return "Influence";
+    if (slug === "judgment") return "Judgment";
+    if (slug === "craft") return "Craft";
+    return slug;
+  }
+
+  function buildPages() {
+    var pagesEl = $("ladder-pages");
+    var groupsEl = $("ladder-dim-groups");
+    pagesEl.innerHTML = "";
+    groupsEl.innerHTML = "";
+
+    // Build per-dimension dot groups so the user sees position by axis,
+    // not by sliding through 30 numbered dots.
+    var dimIndex = {};
+    DIMENSIONS.forEach(function (slug) {
+      var group = document.createElement("div");
+      group.className = "ladder-dim-group";
+      group.id = "ladder-dim-group-" + slug;
+
+      var label = document.createElement("span");
+      label.className = "label";
+      label.textContent = dimensionLabel(slug);
+      group.appendChild(label);
+      dimIndex[slug] = { group: group, count: 0 };
+      groupsEl.appendChild(group);
+    });
+
+    QUESTIONS.forEach(function (q, i) {
+      var page = document.createElement("div");
+      page.className = "ladder-page" + (i === 0 ? " active" : "");
+      page.id = "ladder-page-" + i;
+
+      var card = document.createElement("div");
+      card.className = "ladder-card";
+
+      var num = document.createElement("div");
+      num.className = "ladder-q-num";
+      num.textContent = "Question " + (i + 1) + " of " + QUESTIONS.length;
+      card.appendChild(num);
+
+      var dim = document.createElement("div");
+      dim.className = "ladder-q-dim";
+      dim.textContent = dimensionFull(q.dimension);
+      card.appendChild(dim);
+
+      var text = document.createElement("div");
+      text.className = "ladder-q-text";
+      text.textContent = q.text;
+      card.appendChild(text);
+
+      var opts = document.createElement("div");
+      opts.className = "ladder-options";
+      opts.setAttribute("role", "radiogroup");
+      opts.setAttribute("aria-label", "Question " + (i + 1) + " options");
+
+      q.options.forEach(function (optText, optIdx) {
+        var level = optIdx + 1;
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ladder-opt";
+        btn.dataset.q = String(i);
+        btn.dataset.level = String(level);
+        btn.setAttribute("role", "radio");
+        btn.setAttribute("aria-checked", "false");
+
+        var lvl = document.createElement("span");
+        lvl.className = "ladder-opt-level";
+        lvl.textContent = "L" + level;
+        btn.appendChild(lvl);
+
+        var body = document.createElement("span");
+        body.className = "ladder-opt-body";
+        body.textContent = optText;
+        btn.appendChild(body);
+
+        btn.addEventListener("click", function () { pick(i, level); });
+        opts.appendChild(btn);
+      });
+
+      card.appendChild(opts);
+      page.appendChild(card);
+      pagesEl.appendChild(page);
+
+      var dot = document.createElement("div");
+      dot.className = "dot" + (i === 0 ? " current" : "");
+      dot.id = "ladder-dot-" + i;
+      dot.dataset.q = String(i);
+      dimIndex[q.dimension].group.appendChild(dot);
+      dimIndex[q.dimension].count++;
+    });
+
+    answers = new Array(QUESTIONS.length).fill(null);
+  }
+
+  function pick(qi, level) {
+    answers[qi] = level;
+    var page = $("ladder-page-" + qi);
+    var buttons = page.querySelectorAll(".ladder-opt");
+    buttons.forEach(function (b) {
+      var selected = Number(b.dataset.level) === level;
+      b.classList.toggle("selected", selected);
+      b.setAttribute("aria-checked", selected ? "true" : "false");
+    });
+    $("ladder-dot-" + qi).classList.add("answered");
+    updateProgress();
+
+    if (advanceTimer) clearTimeout(advanceTimer);
+    if (qi < QUESTIONS.length - 1) {
+      advanceTimer = setTimeout(function () { navigate(1); }, 220);
+    }
+  }
+
+  function navigate(dir) {
+    var next = current + dir;
+    if (next < 0 || next > QUESTIONS.length - 1) return;
+    $("ladder-page-" + current).classList.remove("active");
+    $("ladder-dot-" + current).classList.remove("current");
+    current = next;
+    $("ladder-page-" + current).classList.add("active");
+    $("ladder-dot-" + current).classList.add("current");
+    updateProgress();
+    var firstOpt = $("ladder-page-" + current).querySelector(".ladder-opt");
+    if (firstOpt) firstOpt.focus({ preventScroll: true });
+  }
+
+  function updateProgress() {
+    var answered = answers.filter(function (a) { return a !== null; }).length;
+    var total = QUESTIONS.length;
+    $("ladder-progress-fill").style.width = (answered / total * 100) + "%";
+    $("ladder-counter").textContent = (current + 1) + " / " + total;
+    $("ladder-prev").disabled = current === 0;
+
+    var nextBtn = $("ladder-next");
+    var allAnswered = answered === total;
+    if (current === total - 1 && allAnswered) {
+      nextBtn.textContent = "Score me";
+      nextBtn.dataset.mode = "submit";
+      nextBtn.disabled = false;
+    } else {
+      nextBtn.textContent = "Next →";
+      nextBtn.dataset.mode = "next";
+      nextBtn.disabled = current === total - 1 && !allAnswered;
+    }
+  }
+
+  function gatherAnswers() {
+    var unanswered = [];
+    for (var i = 0; i < QUESTIONS.length; i++) {
+      if (answers[i] === null) unanswered.push(i);
+    }
+    return { answers: answers.slice(), unanswered: unanswered };
+  }
+
+  function handleNext() {
+    var nextBtn = $("ladder-next");
+    if (nextBtn.dataset.mode === "submit") {
+      handleSubmit();
+    } else {
+      navigate(1);
+    }
+  }
+
+  function handleSubmit() {
+    clearError();
+    var gathered = gatherAnswers();
+    if (gathered.unanswered.length > 0) {
+      $("ladder-validation").classList.add("visible");
+      var firstMissing = gathered.unanswered[0];
+      if (current !== firstMissing) {
+        $("ladder-page-" + current).classList.remove("active");
+        $("ladder-dot-" + current).classList.remove("current");
+        current = firstMissing;
+        $("ladder-page-" + current).classList.add("active");
+        $("ladder-dot-" + current).classList.add("current");
+      }
+      updateProgress();
+      return;
+    }
+
+    $("ladder-validation").classList.remove("visible");
+    var nextBtn = $("ladder-next");
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Scoring…";
+
+    window.mcp.callTool("pm_ladder_score", { answers: gathered.answers })
+      .then(function (result) {
+        var scored = parseToolResult(result);
+        renderScore(scored);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        nextBtn.disabled = false;
+        updateProgress();
+      });
+  }
+
+  function formatLevel(n) {
+    // Show .5 as ".5" but trim trailing zeros on integers.
+    if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+    return n.toFixed(1);
+  }
+
+  function renderScore(scored) {
+    // Minimal iframe output: the effective level + per-dimension table.
+    // The gap-report narration (3 behaviors + summary) is the chat-side
+    // deliverable; rendering it in the iframe would duplicate the model's
+    // job. Iframe answers "where are you" — chat answers "what to do."
+    $("ladder-effective").textContent =
+      "Effective level: " + formatLevel(scored.effective_level_display) +
+      "  (target " + scored.target_level + ")";
+    $("ladder-effective-title").textContent =
+      "Current: " + scored.level_names.current +
+      "  ·  Target: " + scored.level_names.target +
+      "  ·  Widest gap: " + dimensionFull(scored.widest_gap_dimension);
+
+    var body = $("ladder-dims-body");
+    body.innerHTML = "";
+    DIMENSIONS.forEach(function (slug) {
+      var tr = document.createElement("tr");
+      if (slug === scored.widest_gap_dimension) tr.className = "widest";
+      var td1 = document.createElement("td");
+      td1.className = "label";
+      td1.textContent = dimensionFull(slug);
+      var td2 = document.createElement("td");
+      td2.className = "value";
+      td2.textContent = formatLevel(scored.dimension_levels[slug]);
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      body.appendChild(tr);
+    });
+
+    var out = $("ladder-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(scored);
+  }
+
+  function requestNarration(scored) {
+    var auto = $("ladder-narrate-hint-auto");
+    var staged = $("ladder-narrate-hint-staged");
+    var fallback = $("ladder-narrate-hint-fallback");
+
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just completed the PM Ladder Self-Assessment in the embedded widget. " +
+        "Please call pm_ladder_get_pending_narration to fetch my saved " +
+        "brief and render my personalized gap report."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    if (advanceTimer) clearTimeout(advanceTimer);
+    answers = new Array(QUESTIONS.length).fill(null);
+    document.querySelectorAll(".ladder-opt").forEach(function (b) {
+      b.classList.remove("selected");
+      b.setAttribute("aria-checked", "false");
+    });
+    document.querySelectorAll(".ladder-dim-group .dot").forEach(function (d) {
+      d.classList.remove("answered");
+      d.classList.remove("current");
+    });
+    var firstDot = $("ladder-dot-0");
+    if (firstDot) firstDot.classList.add("current");
+    document.querySelectorAll(".ladder-page").forEach(function (pg) {
+      pg.classList.remove("active");
+    });
+    $("ladder-page-0").classList.add("active");
+    current = 0;
+    $("ladder-validation").classList.remove("visible");
+    $("ladder-output").classList.remove("visible");
+    clearError();
+    updateProgress();
+    document.getElementById("ladder-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Bootstrap: load the canonical 30 questions from the server, then render.
+  window.mcp.callTool("pm_ladder_get_questions", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.questions) || parsed.questions.length === 0) {
+        throw new Error("Assessment returned no questions");
+      }
+      QUESTIONS = parsed.questions;
+      DIMENSIONS = parsed.dimensions;
+      buildPages();
+      updateProgress();
+      $("ladder-prev").addEventListener("click", function () { navigate(-1); });
+      $("ladder-next").addEventListener("click", handleNext);
+      $("ladder-retake-btn").addEventListener("click", handleRetake);
+    })
+    .catch(function (err) {
+      $("ladder-form").style.display = "none";
+      showError("Could not load the assessment: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

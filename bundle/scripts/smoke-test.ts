@@ -99,12 +99,20 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "server.js"),
     path.join(installRoot, "dist", "ui", "pitfalls.html"),
     path.join(installRoot, "dist", "ui", "horoscope.html"),
+    path.join(installRoot, "dist", "ui", "ladder.html"),
     path.join(
       installRoot,
       "dist",
       "tools",
       "53-pm-horoscope",
       "horoscope-data.json",
+    ),
+    path.join(
+      installRoot,
+      "dist",
+      "tools",
+      "3-pm-ladder",
+      "ladder-data.json",
     ),
     path.join(installRoot, "apps", "44-pm-pitfalls", "prompt.md"),
     path.join(installRoot, "knowledge", "topics", "pm-pitfalls.md"),
@@ -155,6 +163,15 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkHoroscopePendingAfterScoreReturnsBrief(client);
     await checkHoroscopeReadPersists(client, dataDir);
     await checkHoroscopeNarrateIsPureCompute(client, dataDir);
+    await checkLadderListsTools(client);
+    await checkLadderGetPendingDescription(client);
+    await checkLadderIframeStagedMessage(installRoot);
+    await checkLadderResource(client);
+    await checkLadderGetQuestions(client);
+    await checkLadderChatSidePathPersists(client, dataDir);
+    await checkLadderPendingAfterScoreReturnsBrief(client);
+    await checkLadderNarrateIsPureCompute(client, dataDir);
+    await checkLadderCalibrateReturnsBrief(client);
   } finally {
     await client.close();
   }
@@ -170,6 +187,11 @@ async function checkListTools(client: Client): Promise<void> {
       "pm_horoscope_narrate",
       "pm_horoscope_read",
       "pm_horoscope_score_quiz",
+      "pm_ladder_calibrate",
+      "pm_ladder_get_pending_narration",
+      "pm_ladder_get_questions",
+      "pm_ladder_narrate",
+      "pm_ladder_score",
       "pm_pitfalls_drift",
       "pm_pitfalls_get_pending_narration",
       "pm_pitfalls_get_questions",
@@ -1285,6 +1307,471 @@ async function checkHoroscopeNarrateIsPureCompute(
       ? undefined
       : `mtime ${beforeMtime} → ${afterMtime}; content equal=${beforeContent === afterContent}`,
   );
+}
+
+// ───────────────────────────────────────────────────────────
+// #3 PM Ladder smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkLadderListsTools(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const entries = Object.fromEntries(
+      result.tools.map((t) => [
+        t.name,
+        t as { _meta?: { ui?: { resourceUri?: string } } },
+      ]),
+    );
+    const entryUri =
+      entries["pm_ladder_get_questions"]?._meta?.ui?.resourceUri;
+    const expectedUri = "ui://working-from-lenny/ladder";
+    record(
+      "ladder: get_questions binds ui:// via _meta.ui.resourceUri",
+      entryUri === expectedUri,
+      entryUri === expectedUri ? undefined : `got ${String(entryUri)}`,
+    );
+    const internalToolsClean = [
+      "pm_ladder_score",
+      "pm_ladder_narrate",
+      "pm_ladder_get_pending_narration",
+      "pm_ladder_calibrate",
+    ].filter((n) => entries[n]?._meta?.ui?.resourceUri !== undefined);
+    record(
+      "ladder: internal tools do NOT declare ui binding",
+      internalToolsClean.length === 0,
+      internalToolsClean.length === 0
+        ? undefined
+        : `unexpected binding on: ${internalToolsClean.join(", ")}`,
+    );
+  } catch (err) {
+    record("ladder: list_tools binding", false, (err as Error).message);
+  }
+}
+
+async function checkLadderGetPendingDescription(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const tool = result.tools.find(
+      (t) => t.name === "pm_ladder_get_pending_narration",
+    );
+    if (!tool) {
+      record(
+        "ladder: get_pending description tool exists",
+        false,
+        "tool missing",
+      );
+      return;
+    }
+    const desc = tool.description ?? "";
+    const lower = desc.toLowerCase();
+    const checks: { name: string; pass: boolean }[] = [
+      { name: "must-call directive", pass: lower.includes("must call") },
+      { name: "covers 'gap report'", pass: lower.includes("gap report") },
+      {
+        name: "forbids 'you haven't taken the assessment'",
+        pass: lower.includes("haven't taken the assessment"),
+      },
+      { name: "states audit lives on disk", pass: lower.includes("on disk") },
+      { name: "mentions embedded widget", pass: lower.includes("embedded widget") },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "ladder: get_pending description forbids short-circuit failure mode",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "ladder: get_pending description guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkLadderIframeStagedMessage(
+  installRoot: string,
+): Promise<void> {
+  try {
+    const distHtml = path.join(installRoot, "dist", "ui", "ladder.html");
+    const body = await fs.readFile(distHtml, "utf8");
+    const checks: { name: string; pass: boolean }[] = [
+      {
+        name: "message states completion",
+        pass: body.includes("I just completed the PM Ladder Self-Assessment"),
+      },
+      {
+        name: "message names the tool explicitly",
+        pass: body.includes("pm_ladder_get_pending_narration"),
+      },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "ladder: iframe staged message names completion + tool explicitly",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "ladder: iframe staged message guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkLadderResource(client: Client): Promise<void> {
+  try {
+    const list = await client.listResources();
+    const uri = "ui://working-from-lenny/ladder";
+    const found = list.resources.find((r) => r.uri === uri);
+    if (!found) {
+      record(
+        "ladder: list_resources includes ladder UI",
+        false,
+        `uris: ${list.resources.map((r) => r.uri).join(", ")}`,
+      );
+      return;
+    }
+    const read = await client.readResource({ uri });
+    const first = read.contents[0];
+    const text = first && "text" in first ? first.text : undefined;
+    const ok =
+      first?.mimeType === "text/html;profile=mcp-app" &&
+      typeof text === "string" &&
+      text.includes("window.mcp") &&
+      !text.includes("<!-- include:");
+    record(
+      "ladder: read_resource(ladder UI) returns inlined HTML with window.mcp",
+      ok,
+      ok ? undefined : `mime=${first?.mimeType} len=${text?.length ?? 0}`,
+    );
+  } catch (err) {
+    record("ladder: read_resource", false, (err as Error).message);
+  }
+}
+
+async function checkLadderGetQuestions(client: Client): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pm_ladder_get_questions",
+      arguments: {},
+    });
+    if (result.isError) {
+      record("ladder: call get_questions", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      Array.isArray(parsed.questions) &&
+      parsed.questions.length === 30 &&
+      Array.isArray(parsed.dimensions) &&
+      parsed.dimensions.length === 5 &&
+      parsed.questions.every(
+        (q: {
+          id: number;
+          dimension: string;
+          text: string;
+          options: string[];
+        }, i: number) =>
+          q.id === i + 1 &&
+          typeof q.text === "string" &&
+          q.text.length > 0 &&
+          Array.isArray(q.options) &&
+          q.options.length === 5,
+      );
+    record(
+      "ladder: get_questions returns 30 canonical questions + 5 dimensions",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record("ladder: call get_questions", false, (err as Error).message);
+  }
+}
+
+async function checkLadderChatSidePathPersists(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  // Step 1: get_pending BEFORE any assessment. Expect no_pending.
+  try {
+    const result = await client.callTool({
+      name: "pm_ladder_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "ladder: get_pending before assessment returns no error",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    record(
+      "ladder: get_pending before assessment returns status=no_pending",
+      parsed.status === "no_pending" && typeof parsed.note === "string",
+      JSON.stringify(parsed).slice(0, 200),
+    );
+  } catch (err) {
+    record(
+      "ladder: get_pending before assessment",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  // Step 2: call score with mixed realistic answers. Effective ~3.
+  const answers = [
+    3, 3, 2, 3, 3, 4,    // scope: median 3
+    3, 4, 3, 3, 2, 3,    // ambiguity: median 3
+    2, 2, 3, 2, 2, 3,    // influence: median 2
+    3, 4, 4, 3, 3, 4,    // judgment: median 3
+    3, 3, 4, 3, 3, 4,    // craft: median 3
+  ];
+  try {
+    const result = await client.callTool({
+      name: "pm_ladder_score",
+      arguments: { answers },
+    });
+    if (result.isError) {
+      record(
+        "ladder: score call",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      typeof parsed.effective_level === "number" &&
+      typeof parsed.target_level === "number" &&
+      typeof parsed.widest_gap_dimension === "string" &&
+      parsed.dimension_levels &&
+      typeof parsed.dimension_levels.influence === "number" &&
+      parsed.persistence_warning === undefined;
+    record(
+      "ladder: score returns valid result with NO persistence_warning",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+    // Influence dim is lowest (medians: 2) so widest gap should be influence.
+    const widestOk = parsed.widest_gap_dimension === "influence";
+    record(
+      "ladder: widest_gap_dimension is the lowest-level dim (influence in this fixture)",
+      widestOk,
+      widestOk ? undefined : `got ${parsed.widest_gap_dimension}`,
+    );
+  } catch (err) {
+    record("ladder: score invocation", false, (err as Error).message);
+    return;
+  }
+
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "pm-ladder-pending.json",
+  );
+  const exists = fsSync.existsSync(expectedFile);
+  record(
+    "ladder: score wrote pending file to expected path",
+    exists,
+    exists ? expectedFile : `missing: ${expectedFile}`,
+  );
+
+  if (exists) {
+    try {
+      const raw = await fs.readFile(expectedFile, "utf8");
+      const file = JSON.parse(raw);
+      const briefOk =
+        file?.data?.brief?.type === "narration_brief" &&
+        Array.isArray(file?.data?.brief?.inputs?.dimensions) &&
+        file.data.brief.inputs.dimensions.length === 5 &&
+        Array.isArray(file?.data?.brief?.inputs?.full_assessment) &&
+        file.data.brief.inputs.full_assessment.length === 30;
+      record(
+        "ladder: pending file contains a valid grounded brief",
+        briefOk,
+        briefOk ? undefined : JSON.stringify(file).slice(0, 300),
+      );
+    } catch (err) {
+      record(
+        "ladder: pending file parses",
+        false,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+async function checkLadderPendingAfterScoreReturnsBrief(
+  client: Client,
+): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pm_ladder_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "ladder: user-types-narrate get_pending returns ready",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.status === "ready" &&
+      typeof parsed.saved_at === "string" &&
+      parsed.brief?.type === "narration_brief" &&
+      parsed.brief?.audience === "user" &&
+      typeof parsed.brief?.directive === "string" &&
+      Array.isArray(parsed.brief?.voice_rules) &&
+      Array.isArray(parsed.brief?.inputs?.dimensions) &&
+      parsed.brief.inputs.dimensions.length === 5 &&
+      Array.isArray(parsed.brief?.inputs?.full_assessment) &&
+      parsed.brief.inputs.full_assessment.length === 30 &&
+      typeof parsed.brief?.corpus === "object";
+    record(
+      "ladder: user-types-narrate get_pending returns grounded brief after score",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record(
+      "ladder: user-types-narrate get_pending after score",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkLadderNarrateIsPureCompute(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "pm-ladder-pending.json",
+  );
+  let beforeContent: string;
+  try {
+    beforeContent = await fs.readFile(expectedFile, "utf8");
+  } catch (err) {
+    record(
+      "ladder: narrate-pure-compute pre-read pending file",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+  const beforeMtime = (await fs.stat(expectedFile)).mtimeMs;
+
+  try {
+    const result = await client.callTool({
+      name: "pm_ladder_narrate",
+      arguments: {
+        dimension_levels: {
+          scope: 2,
+          ambiguity: 2,
+          influence: 2,
+          judgment: 2,
+          craft: 2,
+        },
+        user_context: "ladder narrate pure compute smoke",
+      },
+    });
+    if (result.isError) {
+      record(
+        "ladder: narrate-pure-compute returns brief",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const briefOk =
+      parsed.type === "narration_brief" &&
+      Array.isArray(parsed.inputs?.dimensions) &&
+      parsed.inputs.dimensions.length === 5 &&
+      parsed.inputs?.user_context === "ladder narrate pure compute smoke";
+    record(
+      "ladder: narrate-pure-compute returns brief for arbitrary dimension_levels",
+      briefOk,
+      briefOk ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record(
+      "ladder: narrate-pure-compute invocation",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  const afterContent = await fs.readFile(expectedFile, "utf8");
+  const afterMtime = (await fs.stat(expectedFile)).mtimeMs;
+  const untouched =
+    beforeContent === afterContent && beforeMtime === afterMtime;
+  record(
+    "ladder: narrate-pure-compute pending file untouched by narrate",
+    untouched,
+    untouched
+      ? undefined
+      : `mtime ${beforeMtime} → ${afterMtime}; content equal=${beforeContent === afterContent}`,
+  );
+}
+
+async function checkLadderCalibrateReturnsBrief(client: Client): Promise<void> {
+  const managerReview =
+    "Strong on craft and execution. Ships consistently, runs good design reviews. " +
+    "Needs to grow on influence — peers feel you escalate too fast rather than mediating. " +
+    "Strategy work has been thinner this cycle; would like to see a longer-horizon roadmap " +
+    "and more explicit kill-criteria on the bets you're carrying.";
+  try {
+    const result = await client.callTool({
+      name: "pm_ladder_calibrate",
+      arguments: {
+        dimension_levels: {
+          scope: 3,
+          ambiguity: 3,
+          influence: 4,
+          judgment: 3,
+          craft: 4,
+        },
+        manager_review_text: managerReview,
+        user_context: "calibrate smoke fixture",
+      },
+    });
+    if (result.isError) {
+      record("ladder: calibrate returns brief", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.type === "narration_brief" &&
+      parsed.audience === "user" &&
+      typeof parsed.directive === "string" &&
+      Array.isArray(parsed.voice_rules) &&
+      parsed.inputs?.manager_review_text === managerReview &&
+      typeof parsed.inputs?.dimension_levels?.influence === "number" &&
+      typeof parsed.corpus === "object";
+    record(
+      "ladder: calibrate returns Path 4 brief carrying manager review + levels",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record(
+      "ladder: calibrate invocation",
+      false,
+      (err as Error).message,
+    );
+  }
 }
 
 function contentText(result: unknown): string {

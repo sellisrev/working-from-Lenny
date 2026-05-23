@@ -298,3 +298,160 @@ export const HoroscopeGetPendingNarrationOutput = z.discriminatedUnion(
     }),
   ],
 );
+
+// ───────────────────────────────────────────────────────────
+// #3 PM Ladder Self-Assessment schemas
+// ───────────────────────────────────────────────────────────
+
+export const LadderDimensionEnum = z.enum([
+  "scope",
+  "ambiguity",
+  "influence",
+  "judgment",
+  "craft",
+]);
+export type LadderDimensionSlug = z.infer<typeof LadderDimensionEnum>;
+
+export const LadderLevel = z.number().int().min(1).max(5);
+
+/** The thirty questions in canonical order (Scope=1-6, Ambiguity=7-12, Influence=13-18, Judgment=19-24, Craft=25-30). */
+export const LadderQuestion = z.object({
+  id: z.number().int().min(1).max(30),
+  dimension: LadderDimensionEnum,
+  text: z.string(),
+  options: z.array(z.string()).length(5),
+});
+
+export const LadderGetQuestionsInput = z.object({}).strict();
+
+export const LadderGetQuestionsOutput = z.object({
+  questions: z.array(LadderQuestion).length(30),
+  dimensions: z.array(LadderDimensionEnum).length(5),
+  note: z.string(),
+});
+
+/**
+ * Per-dimension levels. May be fractional (median of six integer levels —
+ * with six values the median between the two middle picks is a .5 value).
+ */
+export const LadderDimensionLevels = z.object({
+  scope: z.number().min(1).max(5),
+  ambiguity: z.number().min(1).max(5),
+  influence: z.number().min(1).max(5),
+  judgment: z.number().min(1).max(5),
+  craft: z.number().min(1).max(5),
+});
+export type LadderDimensionLevelsT = z.infer<typeof LadderDimensionLevels>;
+
+export const LadderScoreInput = z.object({
+  /**
+   * Thirty answers in question-ID order. Each value is a level (1-5) — the
+   * 0-indexed option chosen for that question, plus one.
+   */
+  answers: z.array(LadderLevel).length(30),
+  user_context: z.string().default(""),
+});
+
+export const LadderScoreOutput = z.object({
+  dimension_levels: LadderDimensionLevels,
+  effective_level: LadderLevel,
+  /** Floored effective level when the cross-dimension median is fractional. */
+  effective_level_display: z.number().min(1).max(5),
+  target_level: LadderLevel,
+  widest_gap_dimension: LadderDimensionEnum,
+  widest_gap_size: z.number().min(0).max(4),
+  level_names: z.object({
+    current: z.string(),
+    target: z.string(),
+  }),
+  questions: z.array(LadderQuestion).length(30),
+  persistence_warning: z.string().optional(),
+});
+
+export const LadderNarrateInput = z.object({
+  dimension_levels: LadderDimensionLevels,
+  user_context: z.string().default(""),
+  /** Optional. The user's 30 answers in question order. Lets the brief ground commentary in actual picks. */
+  answers: z.array(LadderLevel).length(30).optional(),
+});
+
+export const LadderNarrationDimension = z.object({
+  dimension: LadderDimensionEnum,
+  level: z.number().min(1).max(5),
+  target_level: LadderLevel,
+  gap: z.number().min(0).max(4),
+  corpus_anchors: z.array(z.string()),
+});
+
+export const LadderFullAssessmentEntry = z.object({
+  question_id: z.number().int().min(1).max(30),
+  dimension: LadderDimensionEnum,
+  question_text: z.string(),
+  user_level: LadderLevel,
+});
+
+/** Path 4 narration brief for the gap report + three behaviors. */
+export const LadderNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    dimension_levels: LadderDimensionLevels,
+    effective_level: LadderLevel,
+    target_level: LadderLevel,
+    widest_gap_dimension: LadderDimensionEnum,
+    level_names: z.object({
+      current: z.string(),
+      target: z.string(),
+    }),
+    dimensions: z.array(LadderNarrationDimension).length(5),
+    user_context: z.string(),
+    full_assessment: z.array(LadderFullAssessmentEntry).length(30).optional(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const LadderGetPendingNarrationInput = z.object({}).strict();
+
+export const LadderGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: LadderNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+export const LadderCalibrateInput = z.object({
+  dimension_levels: LadderDimensionLevels,
+  manager_review_text: z.string().min(50).max(8000),
+  user_context: z.string().default(""),
+});
+
+/** Path 4 narration brief for the manager-calibration delta. Distinct from LadderNarrateOutput because the inputs and structure differ. */
+export const LadderCalibrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    dimension_levels: LadderDimensionLevels,
+    manager_review_text: z.string(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});

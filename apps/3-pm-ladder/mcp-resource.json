@@ -1,32 +1,82 @@
 {
   "resource": {
-    "uri": "ui://working-from-lenny/pm-ladder",
+    "uri": "ui://working-from-lenny/ladder",
     "name": "PM Ladder Self-Assessment",
-    "description": "Thirty questions across five PM career dimensions. Returns effective level, gap report, three behaviors for the quarter, and an optional manager-calibration delta.",
-    "mimeType": "text/html"
+    "description": "Thirty questions across five PM career dimensions (Scope / Ambiguity / Influence / Judgment / Craft). Returns the effective level, the per-dimension levels, the widest gap, and a corpus-grounded gap report.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
+      "name": "pm_ladder_get_questions",
+      "description": "Entry tool for the PM Ladder Self-Assessment. Calling this triggers the host to mount the ui://working-from-lenny/ladder resource (an interactive iframe with the 30 questions across five dimensions, paginated, with submit). If your host mounts the UI, that IS the questionnaire — do NOT additionally render the 30 questions in chat as a duplicate surface; the user will answer in the iframe, which calls pm_ladder_score directly. The returned `questions` array is provided only as a fallback for hosts that cannot mount ui:// resources. Scoring is positional against this list — if you do render questions in chat (only when ui:// is unavailable), use these exact 30 verbatim; never substitute generic PM-ladder questions. Each question maps to one of five dimensions (scope / ambiguity / influence / judgment / craft); each answer is a level 1-5 picked from a five-option bank.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "questions": {
+            "type": "array",
+            "minItems": 30,
+            "maxItems": 30,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 30 },
+                "dimension": {
+                  "type": "string",
+                  "enum": ["scope", "ambiguity", "influence", "judgment", "craft"]
+                },
+                "text": { "type": "string" },
+                "options": {
+                  "type": "array",
+                  "minItems": 5,
+                  "maxItems": 5,
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          },
+          "dimensions": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "enum": ["scope", "ambiguity", "influence", "judgment", "craft"]
+            }
+          },
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://working-from-lenny/ladder"
+        }
+      }
+    },
+    {
       "name": "pm_ladder_score",
-      "description": "Deterministic. Returns per-dimension levels, the overall effective level, and the widest-gap target dimension for the next level.",
+      "description": "Scores the user's PM Ladder Self-Assessment and prepares their personalized gap-report brief. Returns the per-dimension levels (1-5), the overall effective level, the target level (effective + 1), the widest-gap dimension, and the canonical 30 questions. Answers are interpreted positionally against the canonical questions — call pm_ladder_get_questions or render ui://working-from-lenny/ladder first; never substitute generic ladder questions. AFTER receiving this result, call pm_ladder_get_pending_narration to fetch the corpus-grounded narration brief and render it for the user following its `directive` and `voice_rules`. Do not summarize the scores on their own — the personalized gap report is the user's deliverable. Optional `user_context` (role / stage / company size) flows into the persisted brief; pass it through if you have it. If the returned `persistence_warning` field is set, the brief could not be persisted — surface the warning to the user and recommend they retake the assessment.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "answers": {
             "type": "array",
-            "items": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 5
-            },
+            "items": { "type": "integer", "minimum": 1, "maximum": 5 },
             "minItems": 30,
             "maxItems": 30,
-            "description": "Thirty answers in question-ID order. Each answer is a level (1-5)."
+            "description": "Thirty answers in question-ID order. Each value is a level (1-5) — the 0-indexed option chosen for that question, plus one."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. Role/stage/company-size context forwarded into the persisted narration brief.",
+            "default": ""
           }
         },
-        "required": [
-          "answers"
-        ]
+        "required": ["answers"]
       },
       "outputSchema": {
         "type": "object",
@@ -34,103 +84,159 @@
           "dimension_levels": {
             "type": "object",
             "properties": {
-              "scope": {
-                "type": "number"
-              },
-              "ambiguity": {
-                "type": "number"
-              },
-              "influence": {
-                "type": "number"
-              },
-              "judgment": {
-                "type": "number"
-              },
-              "craft": {
-                "type": "number"
-              }
+              "scope": { "type": "number", "minimum": 1, "maximum": 5 },
+              "ambiguity": { "type": "number", "minimum": 1, "maximum": 5 },
+              "influence": { "type": "number", "minimum": 1, "maximum": 5 },
+              "judgment": { "type": "number", "minimum": 1, "maximum": 5 },
+              "craft": { "type": "number", "minimum": 1, "maximum": 5 }
             }
           },
-          "effective_level": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 5
-          },
+          "effective_level": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "effective_level_display": { "type": "number", "minimum": 1, "maximum": 5 },
+          "target_level": { "type": "integer", "minimum": 1, "maximum": 5 },
           "widest_gap_dimension": {
-            "type": "string"
+            "type": "string",
+            "enum": ["scope", "ambiguity", "influence", "judgment", "craft"]
           },
-          "target_level": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 5
+          "widest_gap_size": { "type": "number", "minimum": 0, "maximum": 4 },
+          "level_names": {
+            "type": "object",
+            "properties": {
+              "current": { "type": "string" },
+              "target": { "type": "string" }
+            }
+          },
+          "questions": {
+            "type": "array",
+            "minItems": 30,
+            "maxItems": 30
+          },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when score's persistence side-effect failed. Presence indicates pm_ladder_get_pending_narration will return no_pending for this assessment and the host should surface the message to the user, recommending they retake."
           }
         }
       }
     },
     {
       "name": "pm_ladder_narrate",
-      "description": "LLM-narrated gap report and three behaviors to practice this quarter, anchored in corpus chunks.",
+      "description": "Packages a corpus-grounded gap-report brief from the user's per-dimension levels. Returns voice rules, structure, the dimensions + widest gap + level names, and the corpus chunks themselves. The host chat model renders the user-facing gap report from this brief. Pure compute — no persistence side-effect. PREFER pm_ladder_get_pending_narration after a pm_ladder_score call (returns the brief score already saved, always grounded in the user's actual answers). Only call this tool directly if you need a brief without round-tripping through disk, or when only the per-dimension levels are available (returns an ungrounded brief in that case). Pass `answers` (the 30 levels in question order) to make the brief grounded; omitting `answers` produces a general-to-the-levels brief.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "dimension_levels": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "scope": { "type": "number", "minimum": 1, "maximum": 5 },
+              "ambiguity": { "type": "number", "minimum": 1, "maximum": 5 },
+              "influence": { "type": "number", "minimum": 1, "maximum": 5 },
+              "judgment": { "type": "number", "minimum": 1, "maximum": 5 },
+              "craft": { "type": "number", "minimum": 1, "maximum": 5 }
+            },
+            "required": ["scope", "ambiguity", "influence", "judgment", "craft"]
           },
-          "effective_level": {
-            "type": "integer"
-          },
-          "target_level": {
-            "type": "integer"
+          "user_context": { "type": "string", "default": "" },
+          "answers": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "minItems": 30,
+            "maxItems": 30
           }
         },
-        "required": [
-          "dimension_levels",
-          "effective_level",
-          "target_level"
+        "required": ["dimension_levels"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": { "type": "object" },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of anchor slug to corpus chunk text."
+          }
+        }
+      }
+    },
+    {
+      "name": "pm_ladder_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM Ladder 'gap report', 'personalized read', 'narration', or any follow-up to the self-assessment just taken — including any phrasing like 'narrate my ladder', 'render my gap report', 'show me my levels', 'I just took the ladder assessment', or any message coming from the embedded widget. Do NOT respond with 'you haven't taken the assessment' without calling this tool first: the assessment state lives on disk (persisted by pm_ladder_score on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior assessment but a brief is waiting on disk. Returns the narration brief saved by the most recent pm_ladder_score call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/ladder resource to take the assessment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
         ]
       }
     },
     {
       "name": "pm_ladder_calibrate",
-      "description": "LLM-narrated calibration delta. Reads the user's self-scoring alongside their manager's last review and returns the dimensions of widest disagreement with discussion questions for the next 1:1.",
+      "description": "Packages a manager-calibration delta brief — the unique-to-this-tool wedge that distinguishes the PM Ladder from a static rubric. Takes the user's per-dimension levels (from a prior pm_ladder_score call) plus the verbatim text of their manager's last performance review, and returns a narration brief that identifies the 1-3 dimensions of widest divergence between the two views, with a discussion question per dimension for the next 1:1. Pure compute — no persistence side-effect. The host chat model renders the user-facing delta from the brief. Manager review text is forwarded into the brief and is NOT persisted to disk by the bundle. `manager_review_text` minimum 50 characters; the upper bound is 8000 characters which covers verbose orgs (typical written reviews run 1,500-4,000 chars).",
       "inputSchema": {
         "type": "object",
         "properties": {
           "dimension_levels": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "scope": { "type": "number", "minimum": 1, "maximum": 5 },
+              "ambiguity": { "type": "number", "minimum": 1, "maximum": 5 },
+              "influence": { "type": "number", "minimum": 1, "maximum": 5 },
+              "judgment": { "type": "number", "minimum": 1, "maximum": 5 },
+              "craft": { "type": "number", "minimum": 1, "maximum": 5 }
+            },
+            "required": ["scope", "ambiguity", "influence", "judgment", "craft"]
           },
           "manager_review_text": {
             "type": "string",
             "minLength": 50,
             "maxLength": 8000,
             "description": "The text of the user's last performance review from their manager."
-          }
+          },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "dimension_levels",
-          "manager_review_text"
-        ]
-      }
-    },
-    {
-      "name": "pm_ladder_drift",
-      "description": "MCP-only (stateful). Stores scoring across runs and reports drift versus prior runs. The tool stores state locally and is not read-only — hosts will surface a confirmation prompt on first invocation.",
-      "inputSchema": {
+        "required": ["dimension_levels", "manager_review_text"]
+      },
+      "outputSchema": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id"
-        ]
-      },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": { "type": "object" },
+          "inputs": { "type": "object" },
+          "corpus": { "type": "object" }
+        }
       }
     }
   ],
@@ -140,7 +246,7 @@
     "preferredHeight": 800
   },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #3 PM Ladder Self-Assessment. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #3 PM Ladder Self-Assessment. Phase 2 .mcpb bundle target. Expanded from the pre-Path-4 four-tool draft (pm_ladder_score + pm_ladder_narrate + pm_ladder_calibrate + pm_ladder_drift) to the Path 4 five-tool shape that mirrors the #44 PM Pitfalls + #53 PM Horoscope worked examples: entry (get_questions) → score (persists brief) → narrate (pure compute) → get_pending_narration (MUST CALL, reads disk) — plus pm_ladder_calibrate (the manager-review-delta differentiator, pure compute, no persistence). pm_ladder_drift (stateful per-user re-audit history) is deferred to a follow-up. Tool descriptions verbatim-match the runtime `meta.description` strings in bundle/src/tools/3-pm-ladder/.",
     "dev.workingfromlenny.app": {
       "id": 3,
       "name": "PM Ladder Self-Assessment",
@@ -150,20 +256,19 @@
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "worked_example": "bundle/src/tools/3-pm-ladder/narrate.ts + bundle/src/tools/3-pm-ladder/calibrate.ts and bundle/src/lib/build-ladder-brief.ts + bundle/src/lib/build-ladder-calibrate-brief.ts. Mirrors bundle/src/tools/pm-pitfalls/narrate.ts.",
       "narration_tools": [
         "pm_ladder_narrate",
         "pm_ladder_calibrate"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
+      ]
     },
     "dev.workingfromlenny.open_questions": [
-      "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars).",
-      "Decide how pm_ladder_drift signals to the host that it is stateful — readOnlyHint: false on the tool annotation is the only normative hook."
+      "Decide whether to add pm_ladder_drift in a follow-up. Mirrors pm_pitfalls_drift (stateful per-user re-audit history), but the ladder's scoring vector is larger (30 levels) and would benefit from per-dimension drift framing.",
+      "Confirm the 8000-char manager_review_text upper bound covers the typical written review (most are 1500-4000 chars)."
     ],
     "dev.workingfromlenny.proposed_answers": [
-      "8000 chars is safe. Typical written reviews run 1,500-4,000 chars; the 8000 cap is roughly double the high end, covering verbose orgs. It is not so large that it creates prompt-bloat risk when the review text feeds into the narration call. Keep 8000.",
-      "Use the tool-level annotations.readOnlyHint: false hint (now set above). The MCP Apps spec leaves consent UX to host discretion — there is no manifest-level data-retention or requires-consent flag. The host's confirmation UI handles per-call or install-time consent however that host chooses. Document persisted data in the tool description so the host's confirmation can convey it (dimension_levels + effective_level + timestamp per run; no full answer text)."
+      "Defer pm_ladder_drift until owner traffic signal on the ladder app justifies the stateful-per-user-history surface. The five-tool Path 4 shape is the cloned worked example; drift is the +1 not-yet-required surface.",
+      "8000 chars is safe. Typical written reviews run 1,500-4,000 chars; the 8000 cap is roughly double the high end, covering verbose orgs."
     ],
     "dev.workingfromlenny.spec_validation": {
       "validated_on": "2026-05-18",
@@ -174,8 +279,8 @@
       ],
       "notes": [
         "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook. The ladder tools are read-only from the host's per-user perspective (overwrite-on-each-submission cache file, no per-user history), so they keep readOnlyHint at the default true.",
+        "Canonical UI-bundle MIME is text/html;profile=mcp-app per the spec's mimeTypes negotiation."
       ]
     }
   }

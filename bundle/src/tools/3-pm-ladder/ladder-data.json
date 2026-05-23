@@ -1,0 +1,436 @@
+{
+  "dimensions": [
+    {
+      "slug": "scope",
+      "name": "Scope",
+      "summary": "The size and time-horizon of the work the PM owns end-to-end",
+      "corpus_anchors": [
+        "pm-career-ladders",
+        "becoming-senior-pm",
+        "pm-promotion"
+      ]
+    },
+    {
+      "slug": "ambiguity",
+      "name": "Ambiguity tolerance",
+      "summary": "Comfort and competence when the goal isn't pre-defined",
+      "corpus_anchors": [
+        "pm-career-ladders",
+        "becoming-senior-pm",
+        "decision-making-frameworks",
+        "saying-no",
+        "top-1-percent-pm"
+      ]
+    },
+    {
+      "slug": "influence",
+      "name": "Influence",
+      "summary": "Ability to move people who don't report to the PM",
+      "corpus_anchors": [
+        "pm-influence",
+        "pm-career-ladders",
+        "managing-up",
+        "coaching-product-people",
+        "public-speaking",
+        "communicating-tradeoffs"
+      ]
+    },
+    {
+      "slug": "judgment",
+      "name": "Judgment",
+      "summary": "Quality of decisions made under incomplete information",
+      "corpus_anchors": [
+        "decision-making-frameworks",
+        "evaluating-product-bets",
+        "pivots-art",
+        "saying-no",
+        "prioritization-frameworks",
+        "top-1-percent-pm"
+      ]
+    },
+    {
+      "slug": "craft",
+      "name": "Craft",
+      "summary": "Depth of skill in the trade itself (writing, research, data, AI literacy)",
+      "corpus_anchors": [
+        "prds-and-1-pagers",
+        "continuous-discovery",
+        "working-with-pms-as-data",
+        "product-design-craft",
+        "working-with-pms-as-designer",
+        "working-with-pms-as-engineer",
+        "evals-for-ai-products",
+        "ai-pm-skills"
+      ]
+    }
+  ],
+  "levels": [
+    { "level": 1, "title": "APM / Associate PM", "anchor": "Owns small slices; needs ambient direction" },
+    { "level": 2, "title": "PM", "anchor": "Owns features that ship in one sprint; informed by clear product direction" },
+    { "level": 3, "title": "Senior PM", "anchor": "Owns multi-sprint initiatives; sets product direction for a small surface" },
+    { "level": 4, "title": "Staff PM", "anchor": "Owns product lines or platform direction; influences strategy at the org level" },
+    { "level": 5, "title": "Principal PM", "anchor": "Owns bets that define the next 12-18 months; sets craft standards for the function" }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "dimension": "scope",
+      "text": "Largest decision you owned end-to-end in your most recent quarter.",
+      "options": [
+        "A feature flag, a copy change, or a single UI component.",
+        "A feature that shipped in one sprint, end-to-end.",
+        "A multi-team initiative that spanned the whole quarter.",
+        "A product line or platform direction that affected multiple teams.",
+        "A bet that defines where the business is going in the next 12-18 months."
+      ]
+    },
+    {
+      "id": 2,
+      "dimension": "scope",
+      "text": "Time horizon of your typical commitments.",
+      "options": [
+        "The current sprint. Two weeks out, at most.",
+        "This quarter. You think about what ships in the next three months.",
+        "Two or three quarters out. You carry strategy across planning seasons.",
+        "Six to twelve months out. You anchor the roadmap conversation for your area.",
+        "Twelve to eighteen months out. Your conviction shapes the company's long-range bets."
+      ]
+    },
+    {
+      "id": 3,
+      "dimension": "scope",
+      "text": "Number of teams affected by your typical work.",
+      "options": [
+        "Your own team, or a small pod. One surface, minimal coordination.",
+        "One or two teams. You coordinate occasionally with adjacent functions.",
+        "Three or more teams. You own the cross-team outcome.",
+        "An entire org area. Multiple squads, one direction.",
+        "The whole product org. Your work sets the direction others orient around."
+      ]
+    },
+    {
+      "id": 4,
+      "dimension": "scope",
+      "text": "Customer segment scope (a feature, a segment, or the whole market).",
+      "options": [
+        "One user flow or a narrow feature edge case.",
+        "A coherent feature set that one user persona cares about.",
+        "A customer segment or a recognized product surface.",
+        "Multiple segments, or a platform layer all customers depend on.",
+        "The market itself. Your work shapes how the company positions against competitors."
+      ]
+    },
+    {
+      "id": 5,
+      "dimension": "scope",
+      "text": "Strategic-to-tactical mix in your week.",
+      "options": [
+        "Mostly tactical. Tickets, standups, and responding to questions.",
+        "About 80% tactical, 20% looking ahead. You own the near-term roadmap.",
+        "Roughly half and half. You're in planning conversations as often as in execution.",
+        "More strategy than execution. You spend your week unblocking others more than shipping personally.",
+        "Primarily strategic. Your week is shaped by where the org needs direction, not by the sprint board."
+      ]
+    },
+    {
+      "id": 6,
+      "dimension": "scope",
+      "text": "Org-level visibility of your work (who reviews it).",
+      "options": [
+        "Your direct manager reviews your work before it ships.",
+        "Your team lead, with occasional skip-level review of key artifacts.",
+        "A director or VP reviews your roadmap before it goes to the broader team.",
+        "Senior leadership has input into your area. C-level is occasionally in the loop.",
+        "You present to execs and board-level stakeholders. Your work sets the reference point others are measured against."
+      ]
+    },
+    {
+      "id": 7,
+      "dimension": "ambiguity",
+      "text": "What you do when the goal isn't pre-defined.",
+      "options": [
+        "You wait for your manager to clarify the goal before starting.",
+        "You draft a rough problem statement and get your manager's sign-off before moving.",
+        "You define the goal yourself, write it up, and socialize it until stakeholders align.",
+        "You set the problem definition for a large surface and make it the team's north star across multiple squads.",
+        "You define the problem space others work within. When the org doesn't know what it's optimizing for, that's your question to answer."
+      ]
+    },
+    {
+      "id": 8,
+      "dimension": "ambiguity",
+      "text": "Default response when data is missing.",
+      "options": [
+        "You wait for data. You feel blocked making calls without numbers.",
+        "You make the call but hedge heavily and flag the gap upward.",
+        "You state your confidence level, name the assumption you're making, decide, and schedule a review.",
+        "You apply a reversibility test, sequence the decision, and commission the missing data in parallel.",
+        "You structure the sequence of bets so the easiest ones generate the data the harder ones need."
+      ]
+    },
+    {
+      "id": 9,
+      "dimension": "ambiguity",
+      "text": "How you handle conflicting requirements between two senior stakeholders.",
+      "options": [
+        "You escalate to your manager. Not sure how to proceed without their call.",
+        "You try to find a middle path that satisfies both. It often ends up serving neither.",
+        "You write a one-pager surfacing the tradeoffs and ask the stakeholders to decide together.",
+        "You mediate the conflict directly. It rarely needs to escalate; you anchor on the shared goal.",
+        "You mostly prevent these conflicts. The strategy is clear enough upstream that they rarely reach the team."
+      ]
+    },
+    {
+      "id": 10,
+      "dimension": "ambiguity",
+      "text": "Reaction time to a leadership pivot.",
+      "options": [
+        "You need significant re-explanation before the team can move. The disruption is visible.",
+        "It takes a sprint or two to reorient. The team can tell there was a direction change.",
+        "Within a week, you have a revised plan that integrates the pivot. The team is moving again.",
+        "You had a contingency sketch ready. The team barely notices the turn.",
+        "You helped shape the pivot. Your read of the market fed the leadership conversation. The team is already moving before the announcement."
+      ]
+    },
+    {
+      "id": 11,
+      "dimension": "ambiguity",
+      "text": "Comfort with shipping a product you're not 100% sure about.",
+      "options": [
+        "You wait for more research or more sign-offs before shipping with meaningful uncertainty.",
+        "You ship when directed to, but flag the uncertainty upward. You don't fully own the risk.",
+        "You set kill criteria and a rollback plan before shipping. Success metrics are defined up front.",
+        "You distinguish reversible from irreversible risk, ship fast on Type-2 decisions, and explain the logic to the team.",
+        "You define what 'good enough to ship' means for the current product stage. Teams use your framework."
+      ]
+    },
+    {
+      "id": 12,
+      "dimension": "ambiguity",
+      "text": "How you frame 'I don't know' out loud.",
+      "options": [
+        "You avoid saying it directly. You stay quiet or deflect when you don't have the answer.",
+        "You say it, but it sounds apologetic and you don't follow it with structure.",
+        "You say 'I don't know yet' and follow it with what you're doing to find out, and by when.",
+        "You separate what can be found out from what has to be decided under uncertainty, and use that to frame the next step.",
+        "You make it safe for everyone to say what they don't know. Decision logs and pre-mortems are team norms because of you."
+      ]
+    },
+    {
+      "id": 13,
+      "dimension": "influence",
+      "text": "How you handle disagreement with engineering leadership.",
+      "options": [
+        "You escalate to your manager. You're not confident taking disagreements directly to engineering leadership.",
+        "You raise your concern once. If it doesn't land, you defer and move on.",
+        "You make the case directly: data, reasoning, and a specific ask. You know when the argument is settled.",
+        "Engineering leads treat your perspective as input before finalizing direction. Disagreements rarely escalate; trust does the work.",
+        "Engineering leadership seeks your read proactively. When you push back, it shapes the outcome."
+      ]
+    },
+    {
+      "id": 14,
+      "dimension": "influence",
+      "text": "How exec stakeholders engage with your work (and at what cadence).",
+      "options": [
+        "Execs don't engage with your work directly. Your manager relays context when it matters.",
+        "An exec occasionally shows up to a review. It's not a regular pattern.",
+        "A director or VP reviews your roadmap quarterly and provides input before it goes to the broader team.",
+        "You have a standing exec forum for your area. C-level is in the loop on material decisions.",
+        "You present to C-level and board-level stakeholders on a regular cadence. Your work anchors what others bring to those rooms."
+      ]
+    },
+    {
+      "id": 15,
+      "dimension": "influence",
+      "text": "Cross-functional pull (does design, GTM, and data come to you proactively).",
+      "options": [
+        "Cross-functional partners wait for you to kick things off. They don't seek your input unless you ask.",
+        "An occasional proactive reach from one partner, usually for a handoff, not a planning conversation.",
+        "Design and engineering come to you proactively on direction. GTM occasionally loops you in early.",
+        "Multiple functions treat you as the first call on strategic decisions. You're in their planning cadences without needing to push.",
+        "Functions use your frame before starting their own planning. Your judgment is load-bearing across the org."
+      ]
+    },
+    {
+      "id": 16,
+      "dimension": "influence",
+      "text": "Mentorship reach (how many PMs you have ongoing coaching relationships with).",
+      "options": [
+        "None yet. You're still building the skills you'd coach others on.",
+        "One informal relationship — someone who reaches out occasionally for advice.",
+        "One or two ongoing relationships with more junior PMs. Regular check-ins, structured feedback, or shared artifacts.",
+        "Three or more active coaching relationships. You've seen PMs you coached get promoted.",
+        "You set the craft standard for the PM function. You coach the coaches and your development model shapes how junior PMs are grown in your org."
+      ]
+    },
+    {
+      "id": 17,
+      "dimension": "influence",
+      "text": "External visibility (talks, writing, hiring panels).",
+      "options": [
+        "No external footprint. Your work is fully internal.",
+        "One or two external moments — a conference talk, a post that traveled outside the company. Not a deliberate pattern.",
+        "You've spoken at one or two external venues, published publicly, or served on hiring advisory panels. People outside your company know your name.",
+        "Recognized by PM peers outside your company. Invited to podcast appearances, external events, or advisory roles on a recurring basis.",
+        "A reference point in the field. Your writing, talks, or frameworks are cited by others. You shape how PMs outside your company think about craft."
+      ]
+    },
+    {
+      "id": 18,
+      "dimension": "influence",
+      "text": "How you frame proposals (which audience do you build for).",
+      "options": [
+        "You write for your manager. The proposal's job is to get sign-off from one person.",
+        "You write for your immediate team and stakeholders. Your engineer and designer can follow the reasoning.",
+        "You write for multiple audiences in one doc. Engineering leads and business stakeholders each get the signal they need from the same artifact.",
+        "You write for senior leaders who don't have the product context. Strategic linkage is explicit; a VP can share it upward without translation.",
+        "Your proposals don't need translation at any level. You write at company scope by default; functional teams use your framing as their working context."
+      ]
+    },
+    {
+      "id": 19,
+      "dimension": "judgment",
+      "text": "How you make trade-offs under time pressure.",
+      "options": [
+        "You default to the safe option or delay the call. Picking wrong feels riskier than not deciding.",
+        "You escalate to your manager before moving. A hard call needs sign-off before you commit.",
+        "You apply the reversibility test: fast on Type-2 decisions, slower on Type-1. You decide and log the reasoning.",
+        "Your team has a shared framework for categorizing decisions. When pressure hits, the call usually doesn't need you in the room.",
+        "The upstream strategy is clear enough that genuine trade-off calls are rare. When they do come, the framework is already there."
+      ]
+    },
+    {
+      "id": 20,
+      "dimension": "judgment",
+      "text": "Calibration on your bets (do you track confidence at the time of decision).",
+      "options": [
+        "You don't formally track confidence. You learn by watching what worked.",
+        "You have a rough memory of how confident you were, but nothing written down.",
+        "You log key decisions and your confidence level when you make them. You review the log quarterly and look for patterns.",
+        "Every significant bet has defined kill criteria before it launches. You revisit the criteria at each major milestone.",
+        "Your decision log is a team artifact. Others calibrate their judgment against yours over time; the log is a reference, not a personal exercise."
+      ]
+    },
+    {
+      "id": 21,
+      "dimension": "judgment",
+      "text": "How you handle a failed launch.",
+      "options": [
+        "You focus on what went wrong in the build or the spec. Failure is a technical problem to fix.",
+        "You run a retrospective, document the learnings, and move on. The team's culture around failure is whatever it was before.",
+        "You separate the decision from the outcome. You document what you knew, what you assumed, and where the reasoning broke down, and share it openly.",
+        "The launch review process is designed for failure to be visible and safe to name. The post-mortem template exists before the launch does.",
+        "Kill criteria are defined before the bet launches. When you stop something, the reasoning is already documented and the team expected the possibility."
+      ]
+    },
+    {
+      "id": 22,
+      "dimension": "judgment",
+      "text": "Reaction to a clear signal that disconfirms your strategy.",
+      "options": [
+        "You surface it to your manager. You're not sure if it changes the direction; someone senior should weigh in.",
+        "You note it but attribute it to timing or execution. The strategy probably still holds.",
+        "You revisit the key assumptions explicitly. You document what the signal means for the bet and decide whether to hold, adjust, or stop.",
+        "You convene the right people within days. You don't let the signal age. The team re-examines the bet with the new data in the room.",
+        "You pre-defined how to weight this class of signal before the bet launched. The stop criteria are already documented; the signal triggers the review process."
+      ]
+    },
+    {
+      "id": 23,
+      "dimension": "judgment",
+      "text": "Stop-doing list quality (what you cut last quarter and why).",
+      "options": [
+        "You don't have a stop-doing list. Your work is what gets assigned to you.",
+        "Some things got deprioritized last quarter, but it was mostly sprint constraints, not a deliberate call.",
+        "You cut at least one initiative last quarter with a rationale you could articulate to stakeholders. The team knew it was a decision, not just a reprioritization.",
+        "Your stop-doing list is deliberate and visible. You can name what you killed and why, in terms of strategy, not capacity.",
+        "Your cuts are the most important decisions you make each quarter. When you stop something, the org reads it. The reasoning is public and shapes how others prioritize."
+      ]
+    },
+    {
+      "id": 24,
+      "dimension": "judgment",
+      "text": "Speed-vs-quality discernment (which call was wrong in your last 90 days).",
+      "options": [
+        "You can't easily name a specific instance where you explicitly traded speed for quality or vice versa.",
+        "You know in retrospect you either moved too slow or shipped something too rough, but you're not sure which pattern is the problem.",
+        "You can name a specific call from the last 90 days where you made an explicit speed-vs-quality tradeoff, and you know whether the call was right.",
+        "Your team has a shared frame for which calls are 'go fast' vs 'slow down and get it right.' You built the model; they use it.",
+        "Your team's default calibration on speed vs quality is part of how you run the product. New team members learn the frame from how you model it, not from a document."
+      ]
+    },
+    {
+      "id": 25,
+      "dimension": "craft",
+      "text": "Quality of your written artifacts (specs, decision docs).",
+      "options": [
+        "You write specs when asked. Format varies; you're still learning what belongs in one.",
+        "You follow a template and cover the required sections. The doc works for your immediate team.",
+        "Your specs are problem-first, have explicit success criteria and non-goals, and are short enough to be read. Stakeholders rarely ask what a doc is trying to accomplish.",
+        "Your artifacts are the reference point other teams use for their own planning. You rarely have to explain a document you wrote.",
+        "Your authoring discipline shapes how the team writes. When someone asks how to structure a decision doc, they use yours as the example."
+      ]
+    },
+    {
+      "id": 26,
+      "dimension": "craft",
+      "text": "Customer-research depth (frequency and shape).",
+      "options": [
+        "You read support tickets and aggregate feedback surveys. You haven't run your own customer interviews recently.",
+        "You run interviews for major features. You tend to ask customers what they want, not what they've done.",
+        "You run story-based interviews on a regular cadence — past behavior, not hypotheticals. Findings feed into your next planning cycle.",
+        "Discovery is a team cadence, not just your personal practice. Engineers and designers are in the room. You synthesize and bring findings into roadmap decisions.",
+        "Your discovery process is what the team uses. How you interview and synthesize is how the org does it. Your methods are the default, not just your own habit."
+      ]
+    },
+    {
+      "id": 27,
+      "dimension": "craft",
+      "text": "Data fluency (what you can run yourself vs ask for).",
+      "options": [
+        "You read dashboards and ask the data team for queries. You can't analyze data independently.",
+        "You can filter and pivot dashboards. You know which metric to look at; the data team builds the analysis you need.",
+        "You write basic SQL, build cohort cuts, and set up experiments with reasonable success criteria. You don't need the data team to walk you through the setup.",
+        "You and the data team co-author experiments. You frame hypotheses clearly, understand confound risk, and can push back on a misread A/B result.",
+        "Your data fluency sets the team's analytical standard. You're the PM others come to for experiment design, and your metric definitions are the ones the team runs on."
+      ]
+    },
+    {
+      "id": 28,
+      "dimension": "craft",
+      "text": "Design-quality literacy (can you red-line a design).",
+      "options": [
+        "You can tell when something looks off, but you can't name what's wrong or say how to fix it.",
+        "You give flow-level feedback: missing states, confusing labels, wrong behavior. Not craft-level feedback.",
+        "You review designs against the user need and give feedback a designer can act on. You hold back from specifying pixels; you name the problem, not the solution.",
+        "Your design reviews raise the quality bar. Designers find your feedback specific and directionally useful. You prototype quickly when you need to communicate intent.",
+        "Product coherence at the system level is partly your responsibility. You can name what erodes it and say no when something ships that doesn't fit. Designers treat your taste as a useful signal."
+      ]
+    },
+    {
+      "id": 29,
+      "dimension": "craft",
+      "text": "Engineering-system literacy (can you read a service map).",
+      "options": [
+        "You know what the product does but not how the systems under it work.",
+        "You know the rough architecture of your area and can discuss technical trade-offs in general terms.",
+        "You can read a service diagram, ask useful questions about latency and failure modes, and size build costs on roadmap items without needing engineering to do it for you.",
+        "Engineers include you in architecture discussions where the decision affects the product. You catch cross-system implications before they become scope creep.",
+        "You've shipped production features or built real prototypes against system constraints. Engineers treat you as a technical peer on product-adjacent decisions."
+      ]
+    },
+    {
+      "id": 30,
+      "dimension": "craft",
+      "text": "AI and eval literacy (do you ship AI features with an eval set).",
+      "options": [
+        "You use AI as a consumer. You haven't shipped an AI feature or written an eval.",
+        "You've shipped AI features but relied on spot checks and vibe testing to gauge quality. Evals aren't yet part of how you ship.",
+        "You can read traces, identify failure modes, and contribute to defining eval criteria. You don't ship AI features on vibe alone.",
+        "Your team has an eval suite that exists before each AI launch. You built the failure-mode taxonomy from real traces, and the team updates it as the model changes.",
+        "Your eval methodology is the standard the org uses. Other teams reference how you built yours. The pass-rate trend on your AI features is a documented artifact reviewed at every major milestone."
+      ]
+    }
+  ]
+}

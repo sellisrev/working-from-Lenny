@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -63,6 +63,26 @@
     {
       "name": "pm_horoscope_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their PM Horoscope 'personalized reading', 'narration', or follow-up to a quiz or archetype pick — including messages from the embedded widget. Do NOT respond 'you haven't picked an archetype' without calling this tool first; the audit state lives on disk, not in chat history."
+    },
+    {
+      "name": "pm_ladder_get_questions",
+      "description": "Returns the canonical 30 PM-ladder questions (six per dimension across Scope / Ambiguity / Influence / Judgment / Craft) and triggers the host to mount the ui://working-from-lenny/ladder iframe. Use this to start the self-assessment; scoring is positional against this exact list."
+    },
+    {
+      "name": "pm_ladder_score",
+      "description": "Scores the user's 30-question PM Ladder assessment and persists the corpus-grounded gap-report brief. Returns per-dimension levels (1-5), effective level, target level (effective + 1), and widest-gap dimension. AFTER calling score, render the user's personalized gap report by calling pm_ladder_get_pending_narration."
+    },
+    {
+      "name": "pm_ladder_narrate",
+      "description": "Packages a corpus-grounded gap-report brief from per-dimension levels. Pure compute — no persistence. The embedded UI and chat-side Claude don't normally need this directly; call pm_ladder_get_pending_narration to retrieve the brief score already saved."
+    },
+    {
+      "name": "pm_ladder_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM Ladder 'gap report', 'personalized read', 'narration', or follow-up to the self-assessment just taken — including messages from the embedded widget. Do NOT respond 'you haven't taken the assessment' without calling this tool first; the assessment state lives on disk, not in chat history."
+    },
+    {
+      "name": "pm_ladder_calibrate",
+      "description": "Packages a manager-calibration delta brief. Takes the user's per-dimension levels plus the verbatim text of their manager's last performance review, and returns a narration brief that identifies the 1-3 dimensions of widest divergence between the two views, with a discussion question per dimension for the next 1:1. Pure compute — no persistence; manager review text is forwarded into the brief and not saved to disk by the bundle."
     }
   ],
   "prompts_generated": false,

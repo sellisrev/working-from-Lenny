@@ -26,6 +26,13 @@ import * as horoscopeNarrate from "./tools/53-pm-horoscope/narrate";
 import * as horoscopeGetPending from "./tools/53-pm-horoscope/get-pending";
 import { cleanupOrphanedTmp as cleanupHoroscopeTmp } from "./tools/53-pm-horoscope/pending";
 
+import * as ladderGetQuestions from "./tools/3-pm-ladder/get-questions";
+import * as ladderScore from "./tools/3-pm-ladder/score";
+import * as ladderNarrate from "./tools/3-pm-ladder/narrate";
+import * as ladderGetPending from "./tools/3-pm-ladder/get-pending";
+import * as ladderCalibrate from "./tools/3-pm-ladder/calibrate";
+import { cleanupOrphanedTmp as cleanupLadderTmp } from "./tools/3-pm-ladder/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -50,6 +57,11 @@ const TOOLS: RegisteredTool[] = [
   horoscopeRead as unknown as RegisteredTool,
   horoscopeNarrate as unknown as RegisteredTool,
   horoscopeGetPending as unknown as RegisteredTool,
+  ladderGetQuestions as unknown as RegisteredTool,
+  ladderScore as unknown as RegisteredTool,
+  ladderNarrate as unknown as RegisteredTool,
+  ladderGetPending as unknown as RegisteredTool,
+  ladderCalibrate as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -68,6 +80,14 @@ const RESOURCES: ResourceEntry[] = [
       "Six-question quiz maps the user to one of twelve corpus-derived PM archetypes and renders today's deterministic horoscope reading.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "horoscope.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/ladder",
+    name: "PM Ladder Self-Assessment",
+    description:
+      "Thirty questions across five PM career dimensions (Scope / Ambiguity / Influence / Judgment / Craft). Returns the effective level, the per-dimension levels, the widest gap, and a corpus-grounded gap report.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "ladder.html"),
   },
 ];
 
@@ -120,6 +140,11 @@ async function main(): Promise<void> {
     await cleanupHoroscopeTmp();
   } catch (err) {
     logErr("cleanup-tmp horoscope failed (non-fatal)", err);
+  }
+  try {
+    await cleanupLadderTmp();
+  } catch (err) {
+    logErr("cleanup-tmp ladder failed (non-fatal)", err);
   }
 
   const server = new Server(
