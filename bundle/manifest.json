@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -83,6 +83,22 @@
     {
       "name": "pm_ladder_calibrate",
       "description": "Packages a manager-calibration delta brief. Takes the user's per-dimension levels plus the verbatim text of their manager's last performance review, and returns a narration brief that identifies the 1-3 dimensions of widest divergence between the two views, with a discussion question per dimension for the next 1:1. Pure compute — no persistence; manager review text is forwarded into the brief and not saved to disk by the bundle."
+    },
+    {
+      "name": "pmify_get_modes",
+      "description": "Returns the two PM-ify translation modes (pm-ify, de-pm-ify) and triggers the host to mount the ui://working-from-lenny/pmify iframe. Use this to start a translation; if the user already has text and a direction in hand, call pmify_translate directly."
+    },
+    {
+      "name": "pmify_translate",
+      "description": "Validates a text + mode (pm-ify or de-pm-ify) and persists a corpus-grounded translation brief. AFTER calling translate, render the translation + footnotes by calling pmify_get_pending_narration. 2,000-char input cap."
+    },
+    {
+      "name": "pmify_narrate",
+      "description": "Packages a corpus-grounded translation brief from a mode + text. Pure compute — no persistence. Call pmify_get_pending_narration to retrieve the brief translate already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "pmify_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM-ify translation, 'render my translation', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted anything' without calling this tool first; the submission state lives on disk, not in chat history."
     }
   ],
   "prompts_generated": false,

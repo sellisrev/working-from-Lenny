@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM-ify My Inbox</title>
+  <!-- include: styles.css -->
+  <style>
+    /* pmify-namespaced visuals. Single-page (no pagination): mode toggle +
+       textarea + translate button. Output card just confirms the handoff;
+       the chat-side narration renders the translation + footnotes. */
+    .pmify-card { padding: 0; }
+    .pmify-mode-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .pmify-mode-btn {
+      padding: 0.6rem 0.95rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+      line-height: 1.35;
+      flex: 1;
+      min-width: 180px;
+      text-align: left;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .pmify-mode-btn:hover { background: var(--border-soft); }
+    .pmify-mode-btn.selected {
+      border-color: var(--accent);
+      background: var(--border-soft);
+    }
+    .pmify-mode-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.1rem;
+    }
+    .pmify-mode-dir {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+    }
+    .pmify-text-label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-faint);
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .pmify-textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .pmify-textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .pmify-counter {
+      font-size: 0.75rem;
+      color: var(--fg-muted);
+      margin-top: 0.35rem;
+      text-align: right;
+    }
+    .pmify-counter.over { color: var(--warn-text); }
+    .pmify-example {
+      font-size: 0.8rem;
+      color: var(--fg-faint);
+      margin: 0.5rem 0 0;
+      font-style: italic;
+    }
+    .pmify-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .pmify-submit:hover { background: #333; }
+    .pmify-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .pmify-validation {
+      display: none;
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--warn-text);
+    }
+    .pmify-validation.visible { display: block; }
+    .pmify-output { display: none; margin-top: 1.5rem; }
+    .pmify-output.visible { display: block; }
+    .pmify-confirm {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 0.35rem;
+    }
+    .pmify-mode-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 2px 6px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .pmify-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .pmify-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .pmify-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .pmify-btn:hover { background: var(--border-soft); }
+    .pmify-error {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .pmify-error.visible { display: block; }
+    .pmify-build-marker {
+      font-size: 11px;
+      color: var(--fg-faint);
+      margin-top: -8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">PM-ify My Inbox</h1>
+  <p class="app-tagline">There is no Q3 in human relationships.</p>
+  <p class="pmify-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="pmify-form" id="pmify-form" novalidate>
+    <div class="pmify-mode-row" id="pmify-mode-row" role="radiogroup" aria-label="Translation direction"></div>
+    <p class="pmify-example" id="pmify-example"></p>
+
+    <label class="pmify-text-label" for="pmify-textarea">Paste the message</label>
+    <textarea class="pmify-textarea" id="pmify-textarea" rows="6" placeholder="Paste the message you want to translate." maxlength="2000"></textarea>
+    <div class="pmify-counter" id="pmify-counter">0 / 2000</div>
+
+    <button type="button" class="pmify-submit" id="pmify-submit" disabled>Translate</button>
+
+    <p class="pmify-validation" id="pmify-validation" role="alert"></p>
+  </form>
+
+  <div class="pmify-error" id="pmify-error" role="alert"></div>
+
+  <div class="pmify-output" id="pmify-output">
+    <span class="pmify-mode-tag" id="pmify-mode-tag"></span>
+    <p class="pmify-confirm" id="pmify-confirm">Your translation is on its way.</p>
+
+    <p class="pmify-narrate-hint" id="pmify-narrate-hint">
+      <span id="pmify-narrate-hint-auto">Queueing your translation in chat…</span>
+      <span id="pmify-narrate-hint-staged" style="display:none;">
+        Your translation is rendering in chat below.
+      </span>
+      <span id="pmify-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"pm-ify it"</strong> or <strong>"de-pm-ify it"</strong> — the assistant will translate using the corpus pattern pool.
+      </span>
+    </p>
+
+    <div class="pmify-actions">
+      <button type="button" class="pmify-btn" id="pmify-reset-btn">Translate another</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var MODES = null;
+  var selectedMode = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function showError(msg) {
+    var el = $("pmify-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("pmify-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) {
+      throw new Error("Malformed tool result");
+    }
+    var first = result.content[0];
+    if (!first || first.type !== "text") {
+      throw new Error("Tool returned non-text content");
+    }
+    return JSON.parse(first.text);
+  }
+
+  function buildModeButtons() {
+    var row = $("pmify-mode-row");
+    row.innerHTML = "";
+    MODES.forEach(function (m, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pmify-mode-btn";
+      btn.dataset.mode = m.slug;
+      btn.setAttribute("role", "radio");
+      btn.setAttribute("aria-checked", i === 0 ? "true" : "false");
+
+      var lbl = document.createElement("span");
+      lbl.className = "pmify-mode-label";
+      lbl.textContent = m.label;
+      btn.appendChild(lbl);
+
+      var dir = document.createElement("span");
+      dir.className = "pmify-mode-dir";
+      dir.textContent = m.direction;
+      btn.appendChild(dir);
+
+      btn.addEventListener("click", function () { selectMode(m.slug); });
+      row.appendChild(btn);
+    });
+    selectMode(MODES[0].slug);
+  }
+
+  function selectMode(slug) {
+    selectedMode = slug;
+    var modeDef = MODES.find(function (m) { return m.slug === slug; });
+    document.querySelectorAll(".pmify-mode-btn").forEach(function (b) {
+      var sel = b.dataset.mode === slug;
+      b.classList.toggle("selected", sel);
+      b.setAttribute("aria-checked", sel ? "true" : "false");
+    });
+    if (modeDef) {
+      $("pmify-example").textContent = "Example: " + modeDef.example;
+    }
+    updateSubmitState();
+  }
+
+  function updateSubmitState() {
+    var ta = $("pmify-textarea");
+    var len = ta.value.length;
+    var counter = $("pmify-counter");
+    counter.textContent = len + " / 2000";
+    counter.classList.toggle("over", len > 2000);
+    var hasText = ta.value.trim().length > 0;
+    var ok = hasText && len <= 2000 && selectedMode !== null;
+    $("pmify-submit").disabled = !ok;
+  }
+
+  function handleSubmit() {
+    clearError();
+    var text = $("pmify-textarea").value.trim();
+    if (text.length === 0) {
+      var v = $("pmify-validation");
+      v.textContent = "Paste a message before translating.";
+      v.classList.add("visible");
+      return;
+    }
+    if (text.length > 2000) {
+      var v2 = $("pmify-validation");
+      v2.textContent = "Message too long (" + text.length + " chars). Maximum 2,000.";
+      v2.classList.add("visible");
+      return;
+    }
+    $("pmify-validation").classList.remove("visible");
+
+    var btn = $("pmify-submit");
+    btn.disabled = true;
+    btn.textContent = "Translating…";
+
+    window.mcp.callTool("pmify_translate", { mode: selectedMode, text: text })
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderConfirm(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Translate";
+      });
+  }
+
+  function renderConfirm(parsed) {
+    var modeDef = MODES.find(function (m) { return m.slug === parsed.mode; });
+    $("pmify-mode-tag").textContent = modeDef ? modeDef.label : parsed.mode;
+    var out = $("pmify-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("pmify-narrate-hint-auto");
+    var staged = $("pmify-narrate-hint-staged");
+    var fallback = $("pmify-narrate-hint-fallback");
+
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just submitted a message to PM-ify My Inbox in the embedded widget. " +
+        "Please call pmify_get_pending_narration to fetch my saved brief and " +
+        "render my translation."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    $("pmify-textarea").value = "";
+    $("pmify-output").classList.remove("visible");
+    $("pmify-validation").classList.remove("visible");
+    clearError();
+    updateSubmitState();
+    $("pmify-textarea").focus();
+  }
+
+  // Bootstrap: load modes from the server.
+  window.mcp.callTool("pmify_get_modes", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.modes) || parsed.modes.length === 0) {
+        throw new Error("No modes returned");
+      }
+      MODES = parsed.modes;
+      buildModeButtons();
+      $("pmify-textarea").addEventListener("input", updateSubmitState);
+      $("pmify-submit").addEventListener("click", handleSubmit);
+      $("pmify-reset-btn").addEventListener("click", handleReset);
+    })
+    .catch(function (err) {
+      $("pmify-form").style.display = "none";
+      showError("Could not load the modes: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

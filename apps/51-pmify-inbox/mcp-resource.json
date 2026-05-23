@@ -2,22 +2,65 @@
   "resource": {
     "uri": "ui://working-from-lenny/pmify",
     "name": "PM-ify My Inbox",
-    "description": "Translate messages between plain English and corporate-PM-speak, with footnotes citing the bad-PM patterns each translation triggers.",
-    "mimeType": "text/html"
+    "description": "Translates messages between plain English and corporate-PM-speak. Mode picker (pm-ify vs de-pm-ify) + textarea; the host chat model renders the translation + 2-4 deadpan footnotes citing the bad-PM patterns each translation triggers.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
+      "name": "pmify_get_modes",
+      "description": "Entry tool for PM-ify My Inbox. Calling this triggers the host to mount the ui://working-from-lenny/pmify resource (an interactive iframe with a mode picker — pm-ify vs de-pm-ify — and a textarea). If your host mounts the UI, that IS the input surface — do NOT additionally render the mode picker in chat as a duplicate surface; the user will paste their text and pick a mode in the iframe, which calls pmify_translate directly. The returned `modes` array is provided only as a fallback for hosts that cannot mount ui:// resources. There are two modes: 'pm-ify' (plain English → corporate-PM-speak, e.g. translating a message from a family member into how a PM would write it to a sales VP) and 'de-pm-ify' (corporate-PM-speak → plain English, stripping the buried no out of a real work decline). If the user already has text in hand and tells you which way to translate, call pmify_translate directly.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "modes": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "properties": {
+                "slug": {
+                  "type": "string",
+                  "enum": ["pm-ify", "de-pm-ify"]
+                },
+                "label": { "type": "string" },
+                "direction": { "type": "string" },
+                "example": { "type": "string" }
+              }
+            }
+          },
+          "patterns": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "enum": ["pm-pitfalls", "spotting-bad-pm-behaviors", "saying-no"]
+            }
+          },
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://working-from-lenny/pmify"
+        }
+      }
+    },
+    {
       "name": "pmify_translate",
-      "description": "Translates a message in the chosen direction and footnotes it with corpus-grounded bad-PM citations.",
+      "description": "Takes a chunk of text and a translation mode (pm-ify or de-pm-ify) and prepares the user's translation brief. pm-ify converts plain English into the corporate-PM-speak the user would write to a sales VP (capacity language, Q2 deprioritization framing, async-by-default scheduling, at least one 'circling back'); de-pm-ify strips that voice back to how someone would say the same thing to a friend at a coffee shop. The deterministic side just validates the input and packages the pattern pool for footnoting; the translation itself comes from the host chat model. AFTER receiving this result, call pmify_get_pending_narration to fetch the corpus-grounded narration brief and render it for the user following its `directive` and `voice_rules`. Do not render a translation on your own without the brief — the brief carries the voice rules and pattern pool the output depends on. Maximum text length 2,000 characters. If the returned `persistence_warning` field is set, the brief could not be persisted — surface the warning to the user and recommend they re-submit.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "mode": {
             "type": "string",
-            "enum": [
-              "pm-ify",
-              "de-pm-ify"
-            ],
+            "enum": ["pm-ify", "de-pm-ify"],
             "description": "pm-ify: plain English → corporate-PM-speak. de-pm-ify: corporate-PM-speak → plain English."
           },
           "text": {
@@ -25,66 +68,114 @@
             "minLength": 1,
             "maxLength": 2000,
             "description": "The message to translate."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. Role/stage/company-size context forwarded into the persisted narration brief.",
+            "default": ""
           }
         },
-        "required": [
-          "mode",
-          "text"
-        ]
+        "required": ["mode", "text"]
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "translation": {
-            "type": "string"
+          "mode": {
+            "type": "string",
+            "enum": ["pm-ify", "de-pm-ify"]
           },
-          "footnotes": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "pattern_name": {
-                  "type": "string"
-                },
-                "diagnosis": {
-                  "type": "string"
-                },
-                "corpus_topic": {
-                  "type": "string",
-                  "description": "Topic file the pattern is anchored in."
-                }
-              }
-            },
-            "minItems": 2,
-            "maxItems": 4
+          "text": { "type": "string" },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when translate's persistence side-effect failed. Presence indicates pmify_get_pending_narration will return no_pending for this submission and the host should surface the message to the user, recommending they re-submit."
           }
         }
       }
     },
     {
-      "name": "pmify_history",
-      "description": "MCP-only (stateful). Returns the user's past translations. Stores translations locally across runs.",
+      "name": "pmify_narrate",
+      "description": "Packages a corpus-grounded translation brief for the user's pasted text + chosen mode. Returns voice rules, structure, the mode + user_text + closed pattern pool, and the corpus chunks themselves. The host chat model renders the user-facing translation + footnotes from this brief. Pure compute — no persistence side-effect. PREFER pmify_get_pending_narration after a pmify_translate call (returns the brief translate already saved). Only call this tool directly if you need a brief without round-tripping through disk.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "string"
+          "mode": {
+            "type": "string",
+            "enum": ["pm-ify", "de-pm-ify"]
           },
-          "limit": {
-            "type": "integer",
-            "default": 10,
-            "maximum": 100
-          }
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "user_id"
-        ]
+        "required": ["mode", "text"]
       },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "mode": { "type": "string", "enum": ["pm-ify", "de-pm-ify"] },
+              "user_text": { "type": "string" },
+              "pattern_pool": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["pm-pitfalls", "spotting-bad-pm-behaviors", "saying-no"]
+                }
+              },
+              "user_context": { "type": "string" }
+            }
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    },
+    {
+      "name": "pmify_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their PM-ify translation, 'render my translation', 'show me the PM version', 'show me the plain English version', or any follow-up to a translation just submitted — including any phrasing like 'translate it', 'pm-ify it', 'de-pm-ify it', 'I just pasted my email', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' or 'paste your text first' without calling this tool first: the submission state lives on disk (persisted by pmify_translate on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent pmify_translate call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/pmify resource to paste their text, or to call pmify_translate directly with their text and mode in hand.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
       }
     }
   ],
@@ -94,7 +185,7 @@
     "preferredHeight": 640
   },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #51 PM-ify My Inbox. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #51 PM-ify My Inbox. Phase 2 .mcpb bundle target. Rewritten from the pre-Path-4 two-tool draft (pmify_translate + pmify_history) to the Path 4 four-tool shape that mirrors the #44 PM Pitfalls + #53 PM Horoscope + #3 PM Ladder worked examples: entry (get_modes) → translate (persists brief) → narrate (pure compute) → get_pending_narration (MUST CALL, reads disk). pmify_history (stateful per-user translation log) is deferred to a follow-up, matching how drift was deferred for #3. Tool descriptions verbatim-match the runtime `meta.description` strings in bundle/src/tools/51-pmify-inbox/.",
     "dev.workingfromlenny.app": {
       "id": 51,
       "name": "PM-ify My Inbox",
@@ -103,20 +194,25 @@
     },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
-      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The deterministic engine has nothing to compute — the prompt itself is the product. The brief carries the user_text + mode + closed pattern pool + corpus chunks; the host chat model renders the user-facing translation + footnotes.",
+      "worked_example": "bundle/src/tools/51-pmify-inbox/narrate.ts and bundle/src/lib/build-pmify-brief.ts. Mirrors bundle/src/tools/pm-pitfalls/narrate.ts.",
       "narration_tools": [
-        "pmify_translate"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
+        "pmify_narrate"
+      ]
     },
+    "dev.workingfromlenny.anchor_substitutions": [
+      {
+        "missing": "process-vs-outcomes",
+        "decision": "Dropped from the closed pattern_pool 2026-05-23 — no knowledge/topics/process-vs-outcomes.md file exists. The Feature-Factory / busy-as-progress theme it would have covered is already inside pm-pitfalls.md and spotting-bad-pm-behaviors.md; the pool ships with 3 anchors (pm-pitfalls, spotting-bad-pm-behaviors, saying-no) rather than the 4 listed in prompt.md. If the corpus gains a process-vs-outcomes topic later, add it back to PATTERN_POOL in bundle/src/tools/51-pmify-inbox/data.ts and rev the schema enum."
+      }
+    ],
     "dev.workingfromlenny.open_questions": [
-      "Decide whether the tool should refuse very long inputs (>2000 chars) or truncate them — 2000 is a current guess.",
-      "Confirm structured footnotes (array of objects) is acceptable in MCP outputSchema, or whether the host renders better with a single markdown string."
+      "Decide whether to add pmify_history in a follow-up. Mirrors pm_pitfalls_drift (stateful per-user log of past translations). Defer until owner traffic signal justifies the per-user-history surface.",
+      "Confirm the 2,000-char input cap covers typical use. Most family-message inputs and most single work emails are well under 2,000; thread digests would exceed it. The iframe refuses with a clear message rather than silently truncating."
     ],
     "dev.workingfromlenny.proposed_answers": [
-      "Refuse with a clear message, not silent truncation. Truncating mid-sentence produces a garbled translation; a refused input with context ('Your message is 2,400 chars; try pasting one email at a time') is more useful. The 2,000-char cap is a reasonable starting point for a single email. Evaluate after beta whether users regularly paste longer inputs (threads, forwarded chains) and raise the cap if the data supports it.",
-      "Structured footnotes (array of objects) are acceptable in MCP outputSchema. Hosts with rich rendering (Claude desktop) can display footnotes as collapsible references. For hosts that render plain text, the narration layer can flatten footnotes to inline markdown. Keeping the structured form is correct: the host decides how to render it, and structure is recoverable from a flat string only with more parsing."
+      "Defer pmify_history to a follow-up. The four-tool Path 4 shape is the cloned worked example; history is the +1 stateful surface that mirrors drift on #44 and can be added once the app sees real use.",
+      "Keep 2,000-char cap. Refuse rather than truncate — see prompt.md's earlier proposed-answer rationale (2026-05-18). The iframe enforces the cap before the call so the user sees the validation message immediately."
     ],
     "dev.workingfromlenny.spec_validation": {
       "validated_on": "2026-05-18",
@@ -127,8 +223,8 @@
       ],
       "notes": [
         "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook. The pmify tools are read-only from the host's per-user perspective (overwrite-on-each-submission cache file, no per-user history), so they keep readOnlyHint at the default true.",
+        "Canonical UI-bundle MIME is text/html;profile=mcp-app per the spec's mimeTypes negotiation."
       ]
     }
   }

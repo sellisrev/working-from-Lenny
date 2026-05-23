@@ -32,6 +32,14 @@ import {
   scoreAssessment,
   median,
 } from "../src/tools/3-pm-ladder/data";
+import * as pmifyGetModes from "../src/tools/51-pmify-inbox/get-modes";
+import * as pmifyTranslate from "../src/tools/51-pmify-inbox/translate";
+import * as pmifyNarrate from "../src/tools/51-pmify-inbox/narrate";
+import * as pmifyGetPending from "../src/tools/51-pmify-inbox/get-pending";
+import {
+  MODES as PMIFY_MODES,
+  PATTERN_POOL as PMIFY_PATTERN_POOL,
+} from "../src/tools/51-pmify-inbox/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -60,6 +68,7 @@ async function main(): Promise<void> {
   await checkDriftGoldens();
   await checkHoroscopeData();
   await checkLadderData();
+  await checkPmifyData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -140,6 +149,10 @@ async function checkSchemas(): Promise<void> {
     ladderNarrate,
     ladderGetPending,
     ladderCalibrate,
+    pmifyGetModes,
+    pmifyTranslate,
+    pmifyNarrate,
+    pmifyGetPending,
   ];
   for (const t of tools) {
     try {
@@ -275,7 +288,7 @@ async function checkDriftGoldens(): Promise<void> {
 }
 
 async function checkUiBuild(): Promise<void> {
-  for (const slug of ["pitfalls", "horoscope", "ladder"]) {
+  for (const slug of ["pitfalls", "horoscope", "ladder", "pmify"]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
       record(
@@ -533,6 +546,99 @@ async function checkLadderData(): Promise<void> {
     "ladder: scoreAssessment rejects out-of-range level (>5)",
     threwOnOutOfRange,
   );
+}
+
+/**
+ * #51 PM-ify Inbox shape guards. Confirms two modes, pattern pool size + the
+ * three resolved corpus anchors, that translate validates input (text length
+ * cap), and that get_modes returns the expected payload.
+ */
+async function checkPmifyData(): Promise<void> {
+  record(
+    "pmify: 2 modes defined (pm-ify, de-pm-ify)",
+    PMIFY_MODES.length === 2 &&
+      PMIFY_MODES[0]!.slug === "pm-ify" &&
+      PMIFY_MODES[1]!.slug === "de-pm-ify",
+  );
+  record(
+    "pmify: 3 pattern pool anchors (process-vs-outcomes deferred per anchor_substitutions)",
+    PMIFY_PATTERN_POOL.length === 3 &&
+      PMIFY_PATTERN_POOL.includes("pm-pitfalls") &&
+      PMIFY_PATTERN_POOL.includes("spotting-bad-pm-behaviors") &&
+      PMIFY_PATTERN_POOL.includes("saying-no"),
+  );
+
+  // get_modes returns modes + patterns + note. Schema parse round-trip already
+  // validated in checkSchemas; this confirms the actual handler output shape.
+  try {
+    const result = (await pmifyGetModes.invoke({} as never)) as {
+      modes: Array<{ slug: string }>;
+      patterns: string[];
+      note: string;
+    };
+    const ok =
+      Array.isArray(result.modes) &&
+      result.modes.length === 2 &&
+      Array.isArray(result.patterns) &&
+      result.patterns.length === 3;
+    record(
+      "pmify: get_modes returns 2 modes + 3 patterns + note",
+      ok,
+      ok ? undefined : JSON.stringify(result).slice(0, 200),
+    );
+  } catch (err) {
+    record("pmify: get_modes call", false, (err as Error).message);
+  }
+
+  // translate's input schema enforces 1..2000 char text + closed mode enum.
+  // Server boundary parses against the schema before invoke runs, so the
+  // protection lives in zod — exercise the schema directly here.
+  const tooLong = pmifyTranslate.meta.inputSchema.safeParse({
+    mode: "pm-ify",
+    text: "x".repeat(2001),
+  });
+  record(
+    "pmify: translate inputSchema rejects text > 2000 chars",
+    !tooLong.success,
+  );
+
+  const empty = pmifyTranslate.meta.inputSchema.safeParse({
+    mode: "pm-ify",
+    text: "",
+  });
+  record(
+    "pmify: translate inputSchema rejects empty text",
+    !empty.success,
+  );
+
+  const badMode = pmifyTranslate.meta.inputSchema.safeParse({
+    mode: "invalid-mode",
+    text: "hi",
+  });
+  record(
+    "pmify: translate inputSchema rejects unknown mode",
+    !badMode.success,
+  );
+
+  // Happy path: well-formed input parses + invoke runs end-to-end.
+  try {
+    const okResult = (await pmifyTranslate.invoke({
+      mode: "de-pm-ify",
+      text: "Per our earlier sync, I'm going to push back on this ask.",
+      user_context: "",
+    } as never)) as { mode: string; text: string; persistence_warning?: string };
+    const okOk =
+      okResult.mode === "de-pm-ify" &&
+      typeof okResult.text === "string" &&
+      okResult.persistence_warning === undefined;
+    record(
+      "pmify: translate happy path returns valid result + persists brief",
+      okOk,
+      okOk ? undefined : JSON.stringify(okResult).slice(0, 200),
+    );
+  } catch (err) {
+    record("pmify: translate happy path", false, (err as Error).message);
+  }
 }
 
 /**

@@ -455,3 +455,91 @@ export const LadderCalibrateOutput = z.object({
   }),
   corpus: z.record(z.string()),
 });
+
+// ───────────────────────────────────────────────────────────
+// #51 PM-ify My Inbox schemas
+// ───────────────────────────────────────────────────────────
+
+export const PmifyModeEnum = z.enum(["pm-ify", "de-pm-ify"]);
+export type PmifyMode = z.infer<typeof PmifyModeEnum>;
+
+/**
+ * Footnote pattern names the translation should pull from. Each maps to a
+ * corpus topic (anchor slug) that the host model uses for grounding the
+ * single-line diagnosis. The pool is a closed set — if the model wants to
+ * cite a pattern not in the list, it should pick the closest one rather than
+ * invent.
+ */
+export const PmifyPatternEnum = z.enum([
+  "pm-pitfalls",
+  "spotting-bad-pm-behaviors",
+  "saying-no",
+]);
+export type PmifyPattern = z.infer<typeof PmifyPatternEnum>;
+
+export const PmifyGetModesInput = z.object({}).strict();
+
+export const PmifyGetModesOutput = z.object({
+  modes: z.array(
+    z.object({
+      slug: PmifyModeEnum,
+      label: z.string(),
+      direction: z.string(),
+      example: z.string(),
+    }),
+  ).length(2),
+  patterns: z.array(PmifyPatternEnum).length(3),
+  note: z.string(),
+});
+
+export const PmifyTranslateInput = z.object({
+  mode: PmifyModeEnum,
+  text: z.string().min(1).max(2000),
+  user_context: z.string().default(""),
+});
+
+export const PmifyTranslateOutput = z.object({
+  mode: PmifyModeEnum,
+  text: z.string(),
+  persistence_warning: z.string().optional(),
+});
+
+export const PmifyNarrateInput = z.object({
+  mode: PmifyModeEnum,
+  text: z.string().min(1).max(2000),
+  user_context: z.string().default(""),
+});
+
+/** Path 4 narration brief for the PM-ify translation + footnotes. */
+export const PmifyNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    mode: PmifyModeEnum,
+    user_text: z.string(),
+    pattern_pool: z.array(PmifyPatternEnum).length(3),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const PmifyGetPendingNarrationInput = z.object({}).strict();
+
+export const PmifyGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: PmifyNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

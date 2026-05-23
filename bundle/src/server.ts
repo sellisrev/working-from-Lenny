@@ -33,6 +33,12 @@ import * as ladderGetPending from "./tools/3-pm-ladder/get-pending";
 import * as ladderCalibrate from "./tools/3-pm-ladder/calibrate";
 import { cleanupOrphanedTmp as cleanupLadderTmp } from "./tools/3-pm-ladder/pending";
 
+import * as pmifyGetModes from "./tools/51-pmify-inbox/get-modes";
+import * as pmifyTranslate from "./tools/51-pmify-inbox/translate";
+import * as pmifyNarrate from "./tools/51-pmify-inbox/narrate";
+import * as pmifyGetPending from "./tools/51-pmify-inbox/get-pending";
+import { cleanupOrphanedTmp as cleanupPmifyTmp } from "./tools/51-pmify-inbox/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -62,6 +68,10 @@ const TOOLS: RegisteredTool[] = [
   ladderNarrate as unknown as RegisteredTool,
   ladderGetPending as unknown as RegisteredTool,
   ladderCalibrate as unknown as RegisteredTool,
+  pmifyGetModes as unknown as RegisteredTool,
+  pmifyTranslate as unknown as RegisteredTool,
+  pmifyNarrate as unknown as RegisteredTool,
+  pmifyGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -88,6 +98,14 @@ const RESOURCES: ResourceEntry[] = [
       "Thirty questions across five PM career dimensions (Scope / Ambiguity / Influence / Judgment / Craft). Returns the effective level, the per-dimension levels, the widest gap, and a corpus-grounded gap report.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "ladder.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/pmify",
+    name: "PM-ify My Inbox",
+    description:
+      "Translates messages between plain English and corporate-PM-speak. Mode picker (pm-ify vs de-pm-ify) + textarea; the host chat model renders the translation + 2-4 deadpan footnotes citing the bad-PM patterns each translation triggers.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "pmify.html"),
   },
 ];
 
@@ -145,6 +163,11 @@ async function main(): Promise<void> {
     await cleanupLadderTmp();
   } catch (err) {
     logErr("cleanup-tmp ladder failed (non-fatal)", err);
+  }
+  try {
+    await cleanupPmifyTmp();
+  } catch (err) {
+    logErr("cleanup-tmp pmify failed (non-fatal)", err);
   }
 
   const server = new Server(

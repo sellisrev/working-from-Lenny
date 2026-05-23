@@ -100,6 +100,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "pitfalls.html"),
     path.join(installRoot, "dist", "ui", "horoscope.html"),
     path.join(installRoot, "dist", "ui", "ladder.html"),
+    path.join(installRoot, "dist", "ui", "pmify.html"),
     path.join(
       installRoot,
       "dist",
@@ -172,6 +173,14 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkLadderPendingAfterScoreReturnsBrief(client);
     await checkLadderNarrateIsPureCompute(client, dataDir);
     await checkLadderCalibrateReturnsBrief(client);
+    await checkPmifyListsTools(client);
+    await checkPmifyGetPendingDescription(client);
+    await checkPmifyIframeStagedMessage(installRoot);
+    await checkPmifyResource(client);
+    await checkPmifyGetModes(client);
+    await checkPmifyChatSidePathPersists(client, dataDir);
+    await checkPmifyPendingAfterTranslateReturnsBrief(client);
+    await checkPmifyNarrateIsPureCompute(client, dataDir);
   } finally {
     await client.close();
   }
@@ -197,6 +206,10 @@ async function checkListTools(client: Client): Promise<void> {
       "pm_pitfalls_get_questions",
       "pm_pitfalls_narrate",
       "pm_pitfalls_score",
+      "pmify_get_modes",
+      "pmify_get_pending_narration",
+      "pmify_narrate",
+      "pmify_translate",
     ];
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
@@ -1772,6 +1785,385 @@ async function checkLadderCalibrateReturnsBrief(client: Client): Promise<void> {
       (err as Error).message,
     );
   }
+}
+
+// ───────────────────────────────────────────────────────────
+// #51 PM-ify My Inbox smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkPmifyListsTools(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const entries = Object.fromEntries(
+      result.tools.map((t) => [
+        t.name,
+        t as { _meta?: { ui?: { resourceUri?: string } } },
+      ]),
+    );
+    const entryUri = entries["pmify_get_modes"]?._meta?.ui?.resourceUri;
+    const expectedUri = "ui://working-from-lenny/pmify";
+    record(
+      "pmify: get_modes binds ui:// via _meta.ui.resourceUri",
+      entryUri === expectedUri,
+      entryUri === expectedUri ? undefined : `got ${String(entryUri)}`,
+    );
+    const internalToolsClean = [
+      "pmify_translate",
+      "pmify_narrate",
+      "pmify_get_pending_narration",
+    ].filter((n) => entries[n]?._meta?.ui?.resourceUri !== undefined);
+    record(
+      "pmify: internal tools do NOT declare ui binding",
+      internalToolsClean.length === 0,
+      internalToolsClean.length === 0
+        ? undefined
+        : `unexpected binding on: ${internalToolsClean.join(", ")}`,
+    );
+  } catch (err) {
+    record("pmify: list_tools binding", false, (err as Error).message);
+  }
+}
+
+async function checkPmifyGetPendingDescription(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const tool = result.tools.find(
+      (t) => t.name === "pmify_get_pending_narration",
+    );
+    if (!tool) {
+      record(
+        "pmify: get_pending description tool exists",
+        false,
+        "tool missing",
+      );
+      return;
+    }
+    const desc = tool.description ?? "";
+    const lower = desc.toLowerCase();
+    const checks: { name: string; pass: boolean }[] = [
+      { name: "must-call directive", pass: lower.includes("must call") },
+      { name: "covers 'translation'", pass: lower.includes("translation") },
+      {
+        name: "forbids 'you haven't submitted'",
+        pass: lower.includes("haven't submitted"),
+      },
+      { name: "states submission lives on disk", pass: lower.includes("on disk") },
+      { name: "mentions embedded widget", pass: lower.includes("embedded widget") },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "pmify: get_pending description forbids short-circuit failure mode",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "pmify: get_pending description guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkPmifyIframeStagedMessage(
+  installRoot: string,
+): Promise<void> {
+  try {
+    const distHtml = path.join(installRoot, "dist", "ui", "pmify.html");
+    const body = await fs.readFile(distHtml, "utf8");
+    const checks: { name: string; pass: boolean }[] = [
+      {
+        name: "message states submission",
+        pass: body.includes("I just submitted a message to PM-ify My Inbox"),
+      },
+      {
+        name: "message names the tool explicitly",
+        pass: body.includes("pmify_get_pending_narration"),
+      },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "pmify: iframe staged message names submission + tool explicitly",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "pmify: iframe staged message guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkPmifyResource(client: Client): Promise<void> {
+  try {
+    const list = await client.listResources();
+    const uri = "ui://working-from-lenny/pmify";
+    const found = list.resources.find((r) => r.uri === uri);
+    if (!found) {
+      record(
+        "pmify: list_resources includes pmify UI",
+        false,
+        `uris: ${list.resources.map((r) => r.uri).join(", ")}`,
+      );
+      return;
+    }
+    const read = await client.readResource({ uri });
+    const first = read.contents[0];
+    const text = first && "text" in first ? first.text : undefined;
+    const ok =
+      first?.mimeType === "text/html;profile=mcp-app" &&
+      typeof text === "string" &&
+      text.includes("window.mcp") &&
+      !text.includes("<!-- include:");
+    record(
+      "pmify: read_resource(pmify UI) returns inlined HTML with window.mcp",
+      ok,
+      ok ? undefined : `mime=${first?.mimeType} len=${text?.length ?? 0}`,
+    );
+  } catch (err) {
+    record("pmify: read_resource", false, (err as Error).message);
+  }
+}
+
+async function checkPmifyGetModes(client: Client): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pmify_get_modes",
+      arguments: {},
+    });
+    if (result.isError) {
+      record("pmify: call get_modes", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      Array.isArray(parsed.modes) &&
+      parsed.modes.length === 2 &&
+      parsed.modes[0].slug === "pm-ify" &&
+      parsed.modes[1].slug === "de-pm-ify" &&
+      Array.isArray(parsed.patterns) &&
+      parsed.patterns.length === 3 &&
+      typeof parsed.note === "string";
+    record(
+      "pmify: get_modes returns 2 modes + 3 patterns + note",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record("pmify: call get_modes", false, (err as Error).message);
+  }
+}
+
+async function checkPmifyChatSidePathPersists(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  // Step 1: get_pending BEFORE any submission. Expect no_pending.
+  try {
+    const result = await client.callTool({
+      name: "pmify_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "pmify: get_pending before submission returns no error",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    record(
+      "pmify: get_pending before submission returns status=no_pending",
+      parsed.status === "no_pending" && typeof parsed.note === "string",
+      JSON.stringify(parsed).slice(0, 200),
+    );
+  } catch (err) {
+    record(
+      "pmify: get_pending before submission",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  // Step 2: call translate. Persist brief.
+  try {
+    const result = await client.callTool({
+      name: "pmify_translate",
+      arguments: {
+        mode: "pm-ify",
+        text: "Hey honey, can you call your mother on Sunday? She's been worried.",
+      },
+    });
+    if (result.isError) {
+      record("pmify: translate call", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.mode === "pm-ify" &&
+      typeof parsed.text === "string" &&
+      parsed.persistence_warning === undefined;
+    record(
+      "pmify: translate returns valid result with NO persistence_warning",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record("pmify: translate invocation", false, (err as Error).message);
+    return;
+  }
+
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "pm-ify-inbox-pending.json",
+  );
+  const exists = fsSync.existsSync(expectedFile);
+  record(
+    "pmify: translate wrote pending file to expected path",
+    exists,
+    exists ? expectedFile : `missing: ${expectedFile}`,
+  );
+
+  if (exists) {
+    try {
+      const raw = await fs.readFile(expectedFile, "utf8");
+      const file = JSON.parse(raw);
+      const briefOk =
+        file?.data?.brief?.type === "narration_brief" &&
+        file?.data?.brief?.inputs?.mode === "pm-ify" &&
+        Array.isArray(file?.data?.brief?.inputs?.pattern_pool) &&
+        file.data.brief.inputs.pattern_pool.length === 3 &&
+        typeof file?.data?.brief?.inputs?.user_text === "string";
+      record(
+        "pmify: pending file contains a valid translation brief",
+        briefOk,
+        briefOk ? undefined : JSON.stringify(file).slice(0, 300),
+      );
+    } catch (err) {
+      record(
+        "pmify: pending file parses",
+        false,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+async function checkPmifyPendingAfterTranslateReturnsBrief(
+  client: Client,
+): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "pmify_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "pmify: user-types-narrate get_pending returns ready",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.status === "ready" &&
+      typeof parsed.saved_at === "string" &&
+      parsed.brief?.type === "narration_brief" &&
+      parsed.brief?.audience === "user" &&
+      typeof parsed.brief?.directive === "string" &&
+      Array.isArray(parsed.brief?.voice_rules) &&
+      parsed.brief?.inputs?.mode === "pm-ify" &&
+      typeof parsed.brief?.inputs?.user_text === "string" &&
+      typeof parsed.brief?.corpus === "object";
+    record(
+      "pmify: user-types-narrate get_pending returns grounded brief after translate",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record(
+      "pmify: user-types-narrate get_pending after translate",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkPmifyNarrateIsPureCompute(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "pm-ify-inbox-pending.json",
+  );
+  let beforeContent: string;
+  try {
+    beforeContent = await fs.readFile(expectedFile, "utf8");
+  } catch (err) {
+    record(
+      "pmify: narrate-pure-compute pre-read pending file",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+  const beforeMtime = (await fs.stat(expectedFile)).mtimeMs;
+
+  try {
+    const result = await client.callTool({
+      name: "pmify_narrate",
+      arguments: {
+        mode: "de-pm-ify",
+        text: "Per our earlier sync, I'm circling back to deprioritize this to Q3.",
+      },
+    });
+    if (result.isError) {
+      record(
+        "pmify: narrate-pure-compute returns brief",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const briefOk =
+      parsed.type === "narration_brief" &&
+      parsed.inputs?.mode === "de-pm-ify" &&
+      Array.isArray(parsed.inputs?.pattern_pool) &&
+      parsed.inputs.pattern_pool.length === 3;
+    record(
+      "pmify: narrate-pure-compute returns brief for arbitrary mode + text",
+      briefOk,
+      briefOk ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record(
+      "pmify: narrate-pure-compute invocation",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  const afterContent = await fs.readFile(expectedFile, "utf8");
+  const afterMtime = (await fs.stat(expectedFile)).mtimeMs;
+  const untouched =
+    beforeContent === afterContent && beforeMtime === afterMtime;
+  record(
+    "pmify: narrate-pure-compute pending file untouched by narrate",
+    untouched,
+    untouched
+      ? undefined
+      : `mtime ${beforeMtime} → ${afterMtime}; content equal=${beforeContent === afterContent}`,
+  );
 }
 
 function contentText(result: unknown): string {
