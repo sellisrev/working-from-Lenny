@@ -7,18 +7,54 @@
   <!-- include: styles.css -->
   <style>
     .aec-card { padding: 0; }
-    .aec-field { margin: 0.75rem 0; }
+    .aec-section {
+      border-top: 1px solid var(--border-soft);
+      margin-top: 1.1rem;
+      padding-top: 0.8rem;
+    }
+    .aec-section:first-of-type {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0;
+    }
+    .aec-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .aec-section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--fg);
+      margin: 0;
+    }
+    .aec-section-hint {
+      font-size: 0.75rem;
+      color: var(--fg-muted);
+      margin: 0.1rem 0 0.6rem;
+    }
+    .aec-section-toggle {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--fg-faint);
+    }
+    .aec-section-body { display: block; }
+    .aec-section.collapsed .aec-section-body { display: none; }
+    .aec-field { margin: 0.6rem 0; }
     .aec-field label {
       display: block;
       font-size: 0.85rem;
       color: var(--fg-muted);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.3rem;
       font-weight: 500;
     }
+    .aec-field-required { color: var(--accent); }
     .aec-input,
     .aec-textarea {
       width: 100%;
-      padding: 0.55rem 0.7rem;
+      padding: 0.5rem 0.65rem;
       border: 1px solid var(--border);
       border-radius: 6px;
       background: var(--bg);
@@ -31,9 +67,33 @@
       outline: 2px solid var(--accent);
       outline-offset: 1px;
     }
-    .aec-textarea { resize: vertical; min-height: 70px; }
-    .aec-counter { font-size: 0.75rem; color: var(--fg-muted); margin-top: 0.2rem; text-align: right; }
+    .aec-textarea { resize: vertical; min-height: 60px; }
+    .aec-textarea.tall { min-height: 160px; }
+    .aec-counter { font-size: 0.72rem; color: var(--fg-faint); margin-top: 0.15rem; text-align: right; }
     .aec-counter.invalid { color: var(--warn-text); }
+    .aec-file-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.4rem 0 0.6rem;
+      flex-wrap: wrap;
+    }
+    .aec-file-btn {
+      padding: 0.35rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .aec-file-btn:hover { background: var(--border-soft); }
+    .aec-file-input { display: none; }
+    .aec-file-status {
+      font-size: 0.75rem;
+      color: var(--fg-faint);
+    }
     .aec-submit {
       padding: 0.6rem 1.1rem;
       border: 1px solid var(--accent);
@@ -100,7 +160,7 @@
   <p class="aec-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
 
   <form class="aec-form" id="aec-form" novalidate>
-    <div id="aec-fields"></div>
+    <div id="aec-sections"></div>
     <button type="button" class="aec-submit" id="aec-submit" disabled>Score my coverage</button>
     <p class="aec-validation" id="aec-validation" role="alert"></p>
   </form>
@@ -134,6 +194,24 @@
   var FIELDS = null;
   var CATEGORIES = null;
 
+  var SECTION_META = {
+    feature: {
+      title: "Feature context",
+      hint: "Required. Three lines that tell us what's being evaluated and what could go wrong.",
+      collapsed: false,
+    },
+    practice: {
+      title: "Current eval practice (per category)",
+      hint: "Optional but worth filling. Leave a category blank if you don't currently test it — that's exactly the signal the scorecard uses.",
+      collapsed: false,
+    },
+    methodology: {
+      title: "Eval methodology / report",
+      hint: "Optional. Paste your eval doc, runbook, or methodology — or load a .md / .txt / .json file from disk. The scorecard reads it as additional evidence per category.",
+      collapsed: false,
+    },
+  };
+
   function $(id) { return document.getElementById(id); }
   function showError(m) { var e=$("aec-error"); e.textContent=m; e.classList.add("visible"); }
   function clearError() { var e=$("aec-error"); e.textContent=""; e.classList.remove("visible"); }
@@ -145,42 +223,154 @@
   }
 
   function buildForm() {
-    var c = $("aec-fields");
+    var c = $("aec-sections");
     c.innerHTML = "";
-    FIELDS.forEach(function (f) {
-      var wrap = document.createElement("div");
-      wrap.className = "aec-field";
-      var lbl = document.createElement("label");
-      lbl.setAttribute("for", "aec-field-" + f.key);
-      lbl.textContent = f.label;
-      wrap.appendChild(lbl);
-      var ta = document.createElement("textarea");
-      ta.className = "aec-textarea";
-      ta.id = "aec-field-" + f.key;
-      ta.dataset.key = f.key;
-      ta.dataset.max = String(f.max_length);
-      ta.rows = 2;
-      ta.placeholder = f.placeholder;
-      ta.maxLength = f.max_length;
-      ta.addEventListener("input", updateState);
-      wrap.appendChild(ta);
-      var counter = document.createElement("div");
-      counter.className = "aec-counter";
-      counter.id = "aec-counter-" + f.key;
-      counter.textContent = "0 / " + f.max_length;
-      wrap.appendChild(counter);
-      c.appendChild(wrap);
+    var bySection = { feature: [], practice: [], methodology: [] };
+    FIELDS.forEach(function (f) { bySection[f.section || "feature"].push(f); });
+
+    ["feature", "practice", "methodology"].forEach(function (sec) {
+      var meta = SECTION_META[sec];
+      var section = document.createElement("div");
+      section.className = "aec-section" + (meta.collapsed ? " collapsed" : "");
+      section.id = "aec-section-" + sec;
+
+      var header = document.createElement("div");
+      header.className = "aec-section-header";
+      var title = document.createElement("p");
+      title.className = "aec-section-title";
+      title.textContent = meta.title;
+      header.appendChild(title);
+      var toggle = document.createElement("span");
+      toggle.className = "aec-section-toggle";
+      toggle.textContent = meta.collapsed ? "expand" : "collapse";
+      header.appendChild(toggle);
+      header.addEventListener("click", function () {
+        section.classList.toggle("collapsed");
+        toggle.textContent = section.classList.contains("collapsed") ? "expand" : "collapse";
+      });
+      section.appendChild(header);
+
+      var hint = document.createElement("p");
+      hint.className = "aec-section-hint";
+      hint.textContent = meta.hint;
+      section.appendChild(hint);
+
+      var body = document.createElement("div");
+      body.className = "aec-section-body";
+
+      bySection[sec].forEach(function (f) {
+        body.appendChild(buildField(f));
+      });
+
+      section.appendChild(body);
+      c.appendChild(section);
     });
   }
 
+  function buildField(f) {
+    var wrap = document.createElement("div");
+    wrap.className = "aec-field";
+    var lbl = document.createElement("label");
+    lbl.setAttribute("for", "aec-field-" + f.key);
+    lbl.textContent = f.label;
+    if (f.required) {
+      var req = document.createElement("span");
+      req.className = "aec-field-required";
+      req.textContent = " *";
+      lbl.appendChild(req);
+    }
+    wrap.appendChild(lbl);
+
+    var el;
+    if (f.kind === "text") {
+      el = document.createElement("input");
+      el.type = "text";
+    } else {
+      el = document.createElement("textarea");
+      el.rows = f.max_length > 1000 ? 8 : 2;
+      if (f.max_length > 1000) el.className = "aec-textarea tall";
+    }
+    el.className = (el.className ? el.className + " " : "") + (f.kind === "text" ? "aec-input" : "aec-textarea");
+    el.id = "aec-field-" + f.key;
+    el.dataset.key = f.key;
+    el.dataset.max = String(f.max_length);
+    el.placeholder = f.placeholder;
+    el.maxLength = f.max_length;
+    el.addEventListener("input", updateState);
+    wrap.appendChild(el);
+
+    // File picker for fields that accept file uploads.
+    if (f.accepts_file) {
+      var row = document.createElement("div");
+      row.className = "aec-file-row";
+
+      var pickBtn = document.createElement("button");
+      pickBtn.type = "button";
+      pickBtn.className = "aec-file-btn";
+      pickBtn.textContent = "Load file…";
+
+      var fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.className = "aec-file-input";
+      fileInput.id = "aec-file-" + f.key;
+      fileInput.accept = ".md,.txt,.json,.csv,.log";
+
+      var status = document.createElement("span");
+      status.className = "aec-file-status";
+      status.id = "aec-file-status-" + f.key;
+      status.textContent = "Accepts .md / .txt / .json / .csv / .log up to " + f.max_length + " chars.";
+
+      pickBtn.addEventListener("click", function () { fileInput.click(); });
+      fileInput.addEventListener("change", function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var text = String(reader.result || "");
+          if (text.length > f.max_length) {
+            status.textContent = "File is " + text.length + " chars; truncating to " + f.max_length + ".";
+            text = text.slice(0, f.max_length);
+          } else {
+            status.textContent = "Loaded " + file.name + " (" + text.length + " chars).";
+          }
+          el.value = text;
+          updateState();
+        };
+        reader.onerror = function () {
+          status.textContent = "Could not read " + file.name + ".";
+        };
+        reader.readAsText(file);
+      });
+
+      row.appendChild(pickBtn);
+      row.appendChild(fileInput);
+      row.appendChild(status);
+      wrap.appendChild(row);
+    }
+
+    var counter = document.createElement("div");
+    counter.className = "aec-counter";
+    counter.id = "aec-counter-" + f.key;
+    counter.textContent = "0 / " + f.max_length;
+    wrap.appendChild(counter);
+
+    return wrap;
+  }
+
   function gather() {
-    var out = {};
+    var out = { practice: {}, methodology_paste: "" };
     var ok = true;
     FIELDS.forEach(function (f) {
       var el = $("aec-field-" + f.key);
-      var v = el.value.trim();
-      if (v.length === 0 || v.length > f.max_length) { ok = false; return; }
-      out[f.key] = v;
+      var v = (el.value || "").trim();
+      if (f.required && v.length === 0) ok = false;
+      if (v.length > f.max_length) ok = false;
+      // Map "practice.<slug>" → out.practice.<slug>; else flat.
+      if (f.key.indexOf("practice.") === 0) {
+        out.practice[f.key.slice("practice.".length)] = v;
+      } else {
+        out[f.key] = v;
+      }
     });
     return { feature: out, valid: ok };
   }
@@ -189,6 +379,7 @@
     FIELDS.forEach(function (f) {
       var el = $("aec-field-" + f.key);
       var counter = $("aec-counter-" + f.key);
+      if (!el || !counter) return;
       var len = el.value.length;
       counter.textContent = len + " / " + f.max_length;
       counter.classList.toggle("invalid", len > f.max_length);
@@ -202,7 +393,7 @@
     var g = gather();
     if (!g.valid) {
       var v = $("aec-validation");
-      v.textContent = "Fill in all three fields before scoring.";
+      v.textContent = "Fill in the three required Feature fields before scoring.";
       v.classList.add("visible");
       return;
     }
@@ -264,6 +455,10 @@
     FIELDS.forEach(function (f) {
       var el = $("aec-field-" + f.key);
       if (el) el.value = "";
+      var status = $("aec-file-status-" + f.key);
+      if (status && f.accepts_file) {
+        status.textContent = "Accepts .md / .txt / .json / .csv / .log up to " + f.max_length + " chars.";
+      }
     });
     $("aec-output").classList.remove("visible");
     $("aec-validation").classList.remove("visible");
@@ -280,6 +475,7 @@
       buildForm();
       $("aec-submit").addEventListener("click", handleSubmit);
       $("aec-reset-btn").addEventListener("click", handleReset);
+      updateState();
     })
     .catch(function (err) {
       $("aec-form").style.display = "none";

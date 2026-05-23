@@ -19,7 +19,7 @@ type Input = z.infer<typeof EvalGetPendingNarrationInput>;
 type Output = z.infer<typeof EvalGetPendingNarrationOutput>;
 
 const NO_PENDING_NOTE =
-  "No eval-coverage brief has been computed yet. The user needs to submit a feature description via the embedded UI (ui://working-from-lenny/ai-eval-coverage resource) or by calling ai_eval_coverage_score with feature {feature_one_liner, audience, failure_modes}.";
+  "No eval-coverage brief has been computed yet. The user needs to submit a feature description via the embedded UI (ui://working-from-lenny/ai-eval-coverage resource) or by calling ai_eval_coverage_score with feature {feature_one_liner, audience, failure_modes, optional practice {...}, optional methodology_paste}.";
 
 export const invoke: ToolHandler<Input, Output> = async () => {
   const result = await readPending();

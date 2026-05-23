@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OKR Critique</title>
+  <!-- include: styles.css -->
+  <style>
+    .okr-card { padding: 0; }
+    .okr-label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin: 0.7rem 0 0.3rem;
+      font-weight: 500;
+    }
+    .okr-textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .okr-textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .okr-counter { font-size: 0.72rem; color: var(--fg-faint); margin-top: 0.15rem; text-align: right; }
+    .okr-counter.invalid { color: var(--warn-text); }
+    .okr-pickers { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.5rem; }
+    .okr-picker label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.3rem;
+      font-weight: 500;
+    }
+    .okr-select {
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      box-sizing: border-box;
+    }
+    .okr-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .okr-submit:hover { background: #333; }
+    .okr-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .okr-validation { display: none; margin-top: 0.75rem; font-size: 0.875rem; color: var(--warn-text); }
+    .okr-validation.visible { display: block; }
+    .okr-output { display: none; margin-top: 1.5rem; }
+    .okr-output.visible { display: block; }
+    .okr-confirm { font-size: 1rem; font-weight: 500; margin: 0 0 0.35rem; }
+    .okr-parse {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin: 0.2rem 0;
+    }
+    .okr-parse .warn { color: var(--warn-text); }
+    .okr-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .okr-actions { display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .okr-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .okr-btn:hover { background: var(--border-soft); }
+    .okr-error {
+      display: none; margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .okr-error.visible { display: block; }
+    .okr-build-marker { font-size: 11px; color: var(--fg-faint); margin-top: -8px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">OKR Critique</h1>
+  <p class="app-tagline">Activity disguised as outcome. Outcome disguised as platitude. The actual outcome, still unspoken.</p>
+  <p class="okr-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="okr-form" id="okr-form" novalidate>
+    <label class="okr-label" for="okr-textarea">Paste your draft OKRs (100-3000 chars)</label>
+    <textarea class="okr-textarea" id="okr-textarea" rows="12" placeholder="Objective 1: ...&#10;  KR 1.1: ...&#10;  KR 1.2: ...&#10;Objective 2: ..." minlength="100" maxlength="3000"></textarea>
+    <div class="okr-counter" id="okr-counter">0 / 3000 (min 100)</div>
+
+    <div class="okr-pickers">
+      <div class="okr-picker">
+        <label for="okr-stance">Stance</label>
+        <select id="okr-stance" class="okr-select">
+          <option value="hybrid">Hybrid (apply both lenses)</option>
+          <option value="orthodox">Orthodox (OKRs are repairable)</option>
+          <option value="skeptical">Skeptical (OKRs may be theatre)</option>
+        </select>
+      </div>
+      <div class="okr-picker">
+        <label for="okr-level">Level</label>
+        <select id="okr-level" class="okr-select">
+          <option value="team">Team (≤3 objectives ideal)</option>
+          <option value="org">Org (≤5 objectives ideal; runs cross-team coherence)</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" class="okr-submit" id="okr-submit" disabled>Critique my OKRs</button>
+    <p class="okr-validation" id="okr-validation" role="alert"></p>
+  </form>
+
+  <div class="okr-error" id="okr-error" role="alert"></div>
+
+  <div class="okr-output" id="okr-output">
+    <p class="okr-confirm">Your critique is on its way.</p>
+    <p class="okr-parse" id="okr-parse"></p>
+    <p class="okr-parse" id="okr-too-many"></p>
+
+    <p class="okr-narrate-hint" id="okr-narrate-hint">
+      <span id="okr-narrate-hint-auto">Queueing your critique in chat…</span>
+      <span id="okr-narrate-hint-staged" style="display:none;">Your critique is rendering in chat below.</span>
+      <span id="okr-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"critique my OKRs"</strong>.
+      </span>
+    </p>
+
+    <div class="okr-actions">
+      <button type="button" class="okr-btn" id="okr-reset-btn">Critique another set</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  function $(id) { return document.getElementById(id); }
+  function showError(m) { var e=$("okr-error"); e.textContent=m; e.classList.add("visible"); }
+  function clearError() { var e=$("okr-error"); e.textContent=""; e.classList.remove("visible"); }
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function updateState() {
+    var ta = $("okr-textarea");
+    var len = ta.value.length;
+    var counter = $("okr-counter");
+    counter.textContent = len + " / 3000 (min 100)";
+    var ok = len >= 100 && len <= 3000;
+    counter.classList.toggle("invalid", !ok && len > 0);
+    $("okr-submit").disabled = !ok;
+  }
+
+  function handleSubmit() {
+    clearError();
+    var text = $("okr-textarea").value;
+    var stance = $("okr-stance").value;
+    var level = $("okr-level").value;
+    if (text.length < 100 || text.length > 3000) {
+      var v = $("okr-validation");
+      v.textContent = "Paste needs to be between 100 and 3,000 characters.";
+      v.classList.add("visible");
+      return;
+    }
+    $("okr-validation").classList.remove("visible");
+    var btn = $("okr-submit");
+    btn.disabled = true;
+    btn.textContent = "Parsing…";
+    window.mcp.callTool("okr_critique_run", { okr_text: text, stance: stance, level: level })
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderResult(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Critique my OKRs"; });
+  }
+
+  function renderResult(parsed) {
+    var objCount = parsed.parsed.objectives.length;
+    var krCount = parsed.parsed.objectives.reduce(function (n, o) { return n + o.key_results.length; }, 0);
+    $("okr-parse").textContent =
+      "Parsed " + objCount + " objective(s), " + krCount + " KR(s). Confidence: " + parsed.parsed.parsing_confidence + ".";
+    var tooMany = $("okr-too-many");
+    if (parsed.too_many_overall) {
+      tooMany.innerHTML = '<span class="warn">Flagged too-many at the ' + parsed.level + ' level. Critique will name which to cut.</span>';
+    } else {
+      tooMany.textContent = "";
+    }
+    var out = $("okr-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("okr-narrate-hint-auto");
+    var staged = $("okr-narrate-hint-staged");
+    var fallback = $("okr-narrate-hint-fallback");
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+    window.mcp.sendMessage(
+      "I just submitted an OKR set to the OKR Critique in the embedded widget. " +
+        "Please call okr_critique_get_pending_narration to fetch my saved brief and render the per-KR critique + stance synthesis."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    $("okr-textarea").value = "";
+    $("okr-stance").value = "hybrid";
+    $("okr-level").value = "team";
+    $("okr-output").classList.remove("visible");
+    $("okr-validation").classList.remove("visible");
+    clearError();
+    updateState();
+    $("okr-textarea").focus();
+  }
+
+  // Bootstrap.
+  window.mcp.callTool("okr_critique_get_form", {})
+    .then(function () {
+      $("okr-textarea").addEventListener("input", updateState);
+      $("okr-submit").addEventListener("click", handleSubmit);
+      $("okr-reset-btn").addEventListener("click", handleReset);
+      updateState();
+    })
+    .catch(function (err) {
+      $("okr-form").style.display = "none";
+      showError("Could not load the form: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

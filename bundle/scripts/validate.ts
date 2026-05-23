@@ -74,6 +74,16 @@ import {
   resolveNsmFamily,
   parseDashboardLines,
 } from "../src/tools/9-nsm-finder/data";
+import * as okrGetForm from "../src/tools/24-okr-critique/get-form";
+import * as okrRun from "../src/tools/24-okr-critique/run";
+import * as okrNarrate from "../src/tools/24-okr-critique/narrate";
+import * as okrGetPending from "../src/tools/24-okr-critique/get-pending";
+import { parseOkrs, tooManyOverall, TOO_MANY } from "../src/tools/24-okr-critique/data";
+import * as mvsGetForm from "../src/tools/47-mission-vision-alignment/get-form";
+import * as mvsRun from "../src/tools/47-mission-vision-alignment/run";
+import * as mvsNarrate from "../src/tools/47-mission-vision-alignment/narrate";
+import * as mvsGetPending from "../src/tools/47-mission-vision-alignment/get-pending";
+import { isStrategyTooVague } from "../src/tools/47-mission-vision-alignment/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -108,6 +118,8 @@ async function main(): Promise<void> {
   await checkStrategyData();
   await checkEvalData();
   await checkNsmData();
+  await checkOkrData();
+  await checkMvsData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -212,6 +224,14 @@ async function checkSchemas(): Promise<void> {
     nsmRun,
     nsmNarrate,
     nsmGetPending,
+    okrGetForm,
+    okrRun,
+    okrNarrate,
+    okrGetPending,
+    mvsGetForm,
+    mvsRun,
+    mvsNarrate,
+    mvsGetPending,
   ];
   for (const t of tools) {
     try {
@@ -357,6 +377,8 @@ async function checkUiBuild(): Promise<void> {
     "strategy-pressure-test",
     "ai-eval-coverage",
     "nsm-finder",
+    "okr-critique",
+    "mvs-alignment",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
@@ -1041,7 +1063,8 @@ async function checkEvalData(): Promise<void> {
     !longFailures.success,
   );
 
-  // Happy path runs through.
+  // Happy path runs through. v0.8.0 added optional practice + methodology fields
+  // — submitting without them still validates (defaults).
   try {
     const ok = (await evalScore.invoke({
       feature: {
@@ -1052,7 +1075,7 @@ async function checkEvalData(): Promise<void> {
       user_context: "",
     } as never)) as { feature: { feature_one_liner: string }; persistence_warning?: string };
     record(
-      "eval: score happy path returns valid result + persists brief",
+      "eval: score happy path (legacy 3-field shape) returns valid result + persists brief",
       ok.feature.feature_one_liner === "AI summarization of customer support tickets" &&
         ok.persistence_warning === undefined,
       JSON.stringify(ok).slice(0, 200),
@@ -1060,6 +1083,74 @@ async function checkEvalData(): Promise<void> {
   } catch (err) {
     record("eval: score happy path", false, (err as Error).message);
   }
+
+  // v0.8.0 expanded shape: per-category practice + methodology_paste flow
+  // through to the brief inputs.
+  try {
+    const built = (await evalScore.invoke({
+      feature: {
+        feature_one_liner: "AI summarization of support tickets",
+        audience: "Support agents",
+        failure_modes: "hallucinated names",
+        practice: {
+          correctness: "200-example golden set, weekly run",
+          refusal_behavior: "",
+          latency: "p95 alert at 2s",
+          hallucination_rate: "",
+          jailbreak_resistance: "",
+          regression_set: "80-case regression suite",
+          drift_detection: "",
+        },
+        methodology_paste: "## Eval methodology\nWe maintain a 200-example golden set...",
+      },
+      user_context: "",
+    } as never)) as { feature: { practice?: { correctness?: string }; methodology_paste?: string } };
+    record(
+      "eval: score expanded shape carries practice + methodology_paste through to result",
+      built.feature?.practice?.correctness === "200-example golden set, weekly run" &&
+        typeof built.feature?.methodology_paste === "string" &&
+        built.feature.methodology_paste.startsWith("## Eval methodology"),
+      JSON.stringify(built.feature).slice(0, 300),
+    );
+  } catch (err) {
+    record("eval: score expanded shape happy path", false, (err as Error).message);
+  }
+
+  // Schema rejects oversized methodology_paste (>8000 chars).
+  const oversizeMethod = evalScore.meta.inputSchema.safeParse({
+    feature: {
+      feature_one_liner: "x",
+      audience: "y",
+      failure_modes: "z",
+      methodology_paste: "a".repeat(8001),
+    },
+  });
+  record(
+    "eval: score inputSchema rejects methodology_paste > 8000 chars",
+    !oversizeMethod.success,
+  );
+
+  // Schema rejects oversized practice entry (>300 chars).
+  const oversizePractice = evalScore.meta.inputSchema.safeParse({
+    feature: {
+      feature_one_liner: "x",
+      audience: "y",
+      failure_modes: "z",
+      practice: {
+        correctness: "a".repeat(301),
+        refusal_behavior: "",
+        latency: "",
+        hallucination_rate: "",
+        jailbreak_resistance: "",
+        regression_set: "",
+        drift_detection: "",
+      },
+    },
+  });
+  record(
+    "eval: score inputSchema rejects practice.<cat> > 300 chars",
+    !oversizePractice.success,
+  );
 }
 
 /**
@@ -1178,6 +1269,181 @@ async function checkNsmData(): Promise<void> {
     );
   } catch (err) {
     record("nsm: run happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #24 OKR Critique parser + threshold goldens.
+ */
+async function checkOkrData(): Promise<void> {
+  // Numbered objectives + bulleted KRs
+  const numbered = parseOkrs(
+    "1. Grow weekly active users\n  - Increase WAU from 10k to 15k by Q2\n  - Increase D7 retention from 25% to 30%\n2. Launch enterprise tier\n  - Sign 5 enterprise contracts\n  - Average ACV ≥ $50k",
+  );
+  record(
+    "okr: numbered objectives + bulleted KRs parsed with high confidence",
+    numbered.objectives.length === 2 &&
+      numbered.objectives[0]!.key_results.length === 2 &&
+      numbered.objectives[1]!.key_results.length === 2 &&
+      numbered.parsing_confidence === "high",
+    JSON.stringify(numbered).slice(0, 200),
+  );
+
+  // KR-prefixed format
+  const krFormat = parseOkrs(
+    "**Objective: Improve performance**\nKR1: Reduce p95 latency from 800ms to 300ms\nKR2: Reduce error rate from 2% to 0.5%",
+  );
+  record(
+    "okr: bold-objective + KRn format parsed with high confidence",
+    krFormat.objectives.length === 1 &&
+      krFormat.objectives[0]!.key_results.length === 2 &&
+      krFormat.parsing_confidence === "high",
+    JSON.stringify(krFormat).slice(0, 200),
+  );
+
+  // Unstructured prose → low confidence
+  const unstructured = parseOkrs(
+    "We want to grow this quarter and improve the team and ship things and make customers happy and get to product market fit.",
+  );
+  record(
+    "okr: unstructured prose returns parsing_confidence=low",
+    unstructured.parsing_confidence === "low",
+    JSON.stringify(unstructured).slice(0, 200),
+  );
+
+  // Too-many threshold checks
+  const fiveObjs = parseOkrs(
+    "1. A\n  - kr1\n2. B\n  - kr1\n3. C\n  - kr1\n4. D\n  - kr1\n5. E\n  - kr1",
+  );
+  record(
+    "okr: 5 objectives at team level triggers too-many",
+    tooManyOverall(fiveObjs, "team") === true,
+  );
+  record(
+    "okr: 5 objectives at org level does NOT trigger too-many (cap is 5)",
+    tooManyOverall(fiveObjs, "org") === false,
+  );
+
+  record(
+    "okr: too-many thresholds match prompt.md",
+    TOO_MANY.kr_per_objective === 4 &&
+      TOO_MANY.objectives_team === 3 &&
+      TOO_MANY.objectives_org === 5,
+  );
+
+  // Schema rejects too-short input
+  const tooShort = okrRun.meta.inputSchema.safeParse({ okr_text: "short" });
+  record("okr: run inputSchema rejects okr_text < 100 chars", !tooShort.success);
+
+  const tooLong = okrRun.meta.inputSchema.safeParse({
+    okr_text: "x".repeat(3001),
+  });
+  record("okr: run inputSchema rejects okr_text > 3000 chars", !tooLong.success);
+
+  // Schema rejects unknown stance
+  const badStance = okrRun.meta.inputSchema.safeParse({
+    okr_text: "1. A\n  - kr1\n2. B\n  - kr1\n3. C\n  - kr1".padEnd(120, " "),
+    stance: "harsh",
+  });
+  record("okr: run inputSchema rejects unknown stance", !badStance.success);
+
+  // Happy path
+  try {
+    const ok = (await okrRun.invoke({
+      okr_text:
+        "Objective 1: Improve onboarding\n  KR 1.1: Increase D1 activation from 40% to 60%\n  KR 1.2: Reduce time-to-first-value from 8min to 3min\nObjective 2: Launch admin dashboard\n  KR 2.1: Ship the redesign by Q2\n  KR 2.2: 80% of admins use it weekly",
+      stance: "hybrid",
+      level: "team",
+    } as never)) as { stance: string; level: string; parsed: { objectives: unknown[] }; persistence_warning?: string };
+    record(
+      "okr: run happy path returns parse + stance + level + persists brief",
+      ok.stance === "hybrid" &&
+        ok.level === "team" &&
+        ok.parsed.objectives.length === 2 &&
+        ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 300),
+    );
+  } catch (err) {
+    record("okr: run happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #47 MVS Alignment heuristic + schema goldens.
+ */
+async function checkMvsData(): Promise<void> {
+  // Concrete bets → not vague
+  const concrete =
+    "Our challenge this year is winning the developer-tools market. The bet is community-led growth: we ship a freemium tier in Q1, expand into EMEA in Q2 with localized docs, and launch a $99/mo seat tier in Q3. 50% of new sign-ups should come from community channels by Q4.";
+  record(
+    "mvs: concrete strategy is NOT flagged as too vague",
+    isStrategyTooVague(concrete) === false,
+  );
+
+  // Vague → flagged
+  const vague =
+    "We aspire to be the best in our category. We will delight customers and empower our team. Our north star is excellence.";
+  record(
+    "mvs: vague strategy IS flagged as too vague",
+    isStrategyTooVague(vague) === true,
+  );
+
+  // Schema rejects too-short docs
+  const shortMission = mvsRun.meta.inputSchema.safeParse({
+    mission_text: "too short",
+    vision_text: "a".repeat(60),
+    strategy_text: "b".repeat(220),
+  });
+  record(
+    "mvs: run inputSchema rejects mission_text < 50 chars",
+    !shortMission.success,
+  );
+
+  const shortStrategy = mvsRun.meta.inputSchema.safeParse({
+    mission_text: "a".repeat(60),
+    vision_text: "b".repeat(60),
+    strategy_text: "c".repeat(199),
+  });
+  record(
+    "mvs: run inputSchema rejects strategy_text < 200 chars",
+    !shortStrategy.success,
+  );
+
+  // Schema rejects too-long mission
+  const longMission = mvsRun.meta.inputSchema.safeParse({
+    mission_text: "a".repeat(501),
+    vision_text: "b".repeat(60),
+    strategy_text: "c".repeat(220),
+  });
+  record(
+    "mvs: run inputSchema rejects mission_text > 500 chars",
+    !longMission.success,
+  );
+
+  // Happy path
+  try {
+    const ok = (await mvsRun.invoke({
+      mission_text:
+        "To help product builders ship faster by removing friction from research, design, and engineering coordination.",
+      vision_text:
+        "Every product team operates with the speed and clarity of a top-tier startup, regardless of company size or industry.",
+      strategy_text: concrete,
+      user_context: "",
+    } as never)) as {
+      mission_text: string;
+      strategy_too_vague: boolean;
+      pairs_count: number;
+      persistence_warning?: string;
+    };
+    record(
+      "mvs: run happy path returns three pairs + not-vague + persists brief",
+      ok.pairs_count === 3 &&
+        ok.strategy_too_vague === false &&
+        ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 300),
+    );
+  } catch (err) {
+    record("mvs: run happy path", false, (err as Error).message);
   }
 }
 

@@ -2,250 +2,64 @@
   "resource": {
     "uri": "ui://working-from-lenny/okr-critique",
     "name": "OKR Critique",
-    "description": "Paste draft OKRs. Returns four-test critique per KR (outcome-vs-activity, measurable, single-team-fit, too-many), stance-specific synthesis, and a rewritten set.",
-    "mimeType": "text/html"
+    "description": "Paste 100-3000 chars of draft OKRs. Cheap parser extracts an objective/KR tree; the host model applies four tests per KR (outcome-vs-activity, measurable, single-team-fit, too-many), writes per-stance synthesis (orthodox / skeptical / hybrid), and produces a paste-ready rewritten set. Org-level mode adds a cross-team coherence pass.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
-      "name": "okr_parse",
-      "description": "Deterministic. Extracts objectives and key results from free-form pasted text. Returns structured form for downstream critique.",
+      "name": "okr_critique_get_form",
+      "description": "Entry tool for the OKR Critique. Calling this triggers the host to mount the ui://working-from-lenny/okr-critique resource (an interactive iframe with a textarea for the OKR paste plus stance and level pickers). If your host mounts the UI, that IS the input surface — do NOT additionally render the input prompts in chat as a duplicate surface; the user will paste in the iframe, which calls okr_critique_run directly. The three stances are orthodox (treat OKRs as a load-bearing system to repair), skeptical (treat them as potential theatre), and hybrid (apply both lenses). Level is team (default) or org (triggers the cross-team coherence pass). Input length: 100-3000 chars. If the user already has a paste in hand, call okr_critique_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/okr-critique" } }
+    },
+    {
+      "name": "okr_critique_run",
+      "description": "Takes a 100-3000 char OKR paste, a stance (orthodox / skeptical / hybrid, default hybrid), and a level (team / org, default team) and persists the corpus-grounded critique brief. The deterministic side parses objective/KR structure (returns parsing_confidence: low/med/high) and computes too_many_overall against the level threshold; the four-test critique + stance synthesis + cross-team coherence (when org) come from the host chat model. AFTER calling this, render the critique by calling okr_critique_get_pending_narration. Do not render objections on your own without the brief — the brief carries the closed corpus-anchor pool, the four-test structure, the stance-specific synthesis hooks, and the rewrite contract.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "okr_text": {
-            "type": "string",
-            "minLength": 100,
-            "maxLength": 3000
-          }
+          "okr_text": { "type": "string", "minLength": 100, "maxLength": 3000 },
+          "stance": { "type": "string", "enum": ["orthodox", "skeptical", "hybrid"], "default": "hybrid" },
+          "level": { "type": "string", "enum": ["team", "org"], "default": "team" },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "okr_text"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "objectives": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "text": {
-                  "type": "string"
-                },
-                "key_results": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "parsing_confidence": {
-            "type": "string",
-            "enum": [
-              "low",
-              "med",
-              "high"
-            ]
-          }
-        }
+        "required": ["okr_text"]
       }
     },
     {
-      "name": "okr_critique",
-      "description": "LLM-narrated. Runs four-test critique per KR (outcome-vs-activity, measurable, single-team-fit, too-many), produces per-KR diagnosis + rewrite + anchor.",
+      "name": "okr_critique_narrate",
+      "description": "Packages a corpus-grounded OKR critique brief from okr_text + stance + level. Returns voice rules, the deterministic objective/KR parse, the four-test structure, stance-specific synthesis hooks, and corpus chunks. Pure compute — no persistence. PREFER okr_critique_get_pending_narration after a run call. Only call this tool directly if you need a brief without round-tripping through disk.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "objectives": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "text": {
-                  "type": "string"
-                },
-                "key_results": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "stance": {
-            "type": "string",
-            "enum": [
-              "orthodox",
-              "skeptical",
-              "hybrid"
-            ]
-          },
-          "level": {
-            "type": "string",
-            "enum": [
-              "team",
-              "org"
-            ]
-          }
+          "okr_text": { "type": "string", "minLength": 100, "maxLength": 3000 },
+          "stance": { "type": "string", "enum": ["orthodox", "skeptical", "hybrid"], "default": "hybrid" },
+          "level": { "type": "string", "enum": ["team", "org"], "default": "team" },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "objectives",
-          "stance"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "per_objective": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "objective_text": {
-                  "type": "string"
-                },
-                "too_many": {
-                  "type": "string",
-                  "enum": [
-                    "pass",
-                    "fail"
-                  ]
-                },
-                "key_results": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "kr_text": {
-                        "type": "string"
-                      },
-                      "verdicts": {
-                        "type": "object"
-                      },
-                      "diagnosis": {
-                        "type": "string"
-                      },
-                      "rewrite": {
-                        "type": "string",
-                        "description": "Optional. Omitted when no rewrite is needed."
-                      },
-                      "anchor_quote": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "stance_synthesis": {
-            "type": "string"
-          },
-          "rewritten_okrs": {
-            "type": "string"
-          }
-        }
+        "required": ["okr_text"]
       }
     },
     {
-      "name": "okr_org_coherence",
-      "description": "LLM-narrated. Org-level cross-team coherence check across multiple objectives. Surfaces internal contradictions and KR-ownership ambiguity.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "objectives": {
-            "type": "array",
-            "maxItems": 8
-          }
-        },
-        "required": [
-          "objectives"
-        ]
-      },
-      "_meta": {
-        "dev.workingfromlenny.phase_note": "Available in both web and MCP versions, but only triggered when level == 'org'."
-      }
-    },
-    {
-      "name": "okr_mortality",
-      "description": "MCP-only (stateful). Ingests actual quarterly outcomes after the fact. Surfaces which OKRs were rewritten mid-quarter vs achieved as-stated. Pattern: high mid-quarter rewrites = theatre. Stores quarterly OKRs and outcomes locally across runs.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "string"
-          },
-          "quarter": {
-            "type": "string"
-          },
-          "outcomes": {
-            "type": "array"
-          }
-        },
-        "required": [
-          "user_id",
-          "quarter",
-          "outcomes"
-        ]
-      },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web version does not expose this. Mortality analysis requires persisted prior OKRs + outcomes in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
-      }
+      "name": "okr_critique_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their OKR critique, 'render the per-KR table', 'critique my OKRs', 'rewrite my KRs', or any follow-up to a submission just made — including any phrasing like 'are my OKRs activities or outcomes', 'pressure-test my OKRs', 'I just pasted my OKR set', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by okr_critique_run on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent okr_critique_run call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/okr-critique resource or call okr_critique_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
     }
   ],
-  "ui": {
-    "renderHint": "card",
-    "preferredWidth": 720,
-    "preferredHeight": 900
-  },
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 820 },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #24 OKR Critique. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #24 OKR Critique. Phase 2 .mcpb bundle target. Path 4 four-tool shape. Deterministic side parses objective/KR structure via a lightweight regex parser (returns parsing_confidence) and computes too_many_overall vs the level threshold. Three corpus anchor substitutions vs prompt.md: goal-setting → okrs (covers goal-setting), cross-functional-collaboration → getting-buy-in, metrics-for-pms → north-star-metric (all already logged in authoring.md). Per-user quarterly archives + multi-team mode + 'OKR mortality' deferred to a follow-up. Tool descriptions verbatim-match the runtime `meta.description` strings.",
     "dev.workingfromlenny.app": {
       "id": 24,
       "name": "OKR Critique",
       "phase": 2,
-      "type": "paste + LLM critique with stance picker"
+      "type": "paste + deterministic parser + LLM four-test critique with stance picker"
     },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
-      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
-      "narration_tools": [
-        "okr_critique",
-        "okr_org_coherence"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
-    },
-    "dev.workingfromlenny.open_questions": [
-      "Org-level coherence: what's the right max-objectives input cap? More than 8 starts to read as 'we're doing too many things' rather than a coherence problem.",
-      "okr_mortality: should the tool prompt the user for outcomes per KR, or pull from connected analytics? Latter is a hard dependency.",
-      "Should the four-test verdicts be configurable (some teams reject 'too-many' as a test) or locked? Locked is simpler; configurable is closer to how teams actually argue about OKRs."
-    ],
-    "dev.workingfromlenny.proposed_answers": [
-      "Cap at 8 objectives for the okr_org_coherence tool. The observation in the question is correct: an input of 12 objectives calls for 'pick the five that matter' before coherence analysis. Set maxItems: 8 in the inputSchema (now applied above), and if the input exceeds 8, the schema-level validation rejects it before the coherence pass runs.",
-      "User-entered outcomes for Phase 2, structured as free-text per KR. The analytics integration is a hard dependency that makes Phase 2 deployment conditional on external tooling not under the owner's control. Free-text entry ('KR: Ship checkout redesign by Q1 — what actually happened?') is sufficient for the mortality pattern and aligns with how retrospectives actually run. Flag the analytics pull as a Phase 3 upgrade.",
-      "Lock the four tests for Phase 2. They are corpus-anchored and form a coherent framework. Use the existing stance parameter (orthodox / skeptical / hybrid) to adjust how aggressively the tests are applied: teams that resist the 'too-many' test tend to be operating in the skeptical stance already. Configurable tests add surface area and break the teachable-standard-set framing. Revisit in Phase 3."
-    ],
-    "dev.workingfromlenny.outputSchema_refactor_note": "Removed `type: ['string', 'null']` on `rewrite` field; changed to plain optional string. Absent fields are unambiguous; explicit nulls add a deserialization edge case.",
-    "dev.workingfromlenny.spec_validation": {
-      "validated_on": "2026-05-18",
-      "sources": [
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
-        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
-      ],
-      "notes": [
-        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
-      ]
+      "summary": "Narration tools return a narration_brief. Deterministic parser produces the objective/KR tree + too-many flag; brief carries the parse + stance + level + corpus chunks; host chat model renders per-KR four-test critique + stance synthesis + (org-level) cross-team coherence + rewritten set.",
+      "worked_example": "bundle/src/tools/24-okr-critique/narrate.ts and bundle/src/lib/build-okr-brief.ts",
+      "narration_tools": ["okr_critique_narrate"]
     }
   }
 }

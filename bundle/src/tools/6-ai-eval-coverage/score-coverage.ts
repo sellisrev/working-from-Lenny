@@ -10,7 +10,7 @@ import { writePending } from "./pending";
 export const meta: ToolMeta = {
   name: "ai_eval_coverage_score",
   description:
-    "Takes the three eval-coverage inputs (feature one-liner, audience, failure modes) and persists the corpus-grounded scorecard brief. Validation: feature_one_liner ≤200 chars, audience ≤200 chars, failure_modes ≤300 chars. AFTER calling this, render the score + 7-category table + starter eval prompts by calling ai_eval_coverage_get_pending_narration. Do not render the scorecard on your own without the brief — the brief carries the deterministic scoring formula, the closed category list, and the corpus anchors the starter prompts depend on. If `persistence_warning` is set, ask the user to re-submit.",
+    "Takes the eval-coverage inputs and persists the corpus-grounded scorecard brief. Required: feature_one_liner ≤200 / audience ≤200 / failure_modes ≤300. Optional but recommended: per-category practice answers (feature.practice.{correctness, refusal_behavior, latency, hallucination_rate, jailbreak_resistance, regression_set, drift_detection}, each ≤300 chars; blank = no current practice for that category, which the brief treats as missing-by-default) and feature.methodology_paste (≤8000 chars, the user's eval doc / runbook / report). AFTER calling this, render the score + 7-category table + starter eval prompts by calling ai_eval_coverage_get_pending_narration. Do not render the scorecard on your own without the brief — the brief carries the deterministic scoring formula, the closed category list, and the corpus anchors the starter prompts depend on. If `persistence_warning` is set, ask the user to re-submit.",
   inputSchema: EvalScoreInput,
   outputSchema: EvalScoreOutput,
   annotations: { readOnlyHint: true },

@@ -67,8 +67,49 @@ export const CORPUS_ANCHORS = ["evals-for-ai-products", "ai-pm-skills"];
 export const SCORING_FORMULA =
   "score = (3 * count(status='covered') + 1 * count(status='partial')) / 21 * 100, rounded to integer. Range 0-100.";
 
-export const FIELDS: { key: "feature_one_liner" | "audience" | "failure_modes"; label: string; placeholder: string; max_length: number }[] = [
-  { key: "feature_one_liner", label: "Feature one-liner", placeholder: "What the AI feature does (≤200 chars)", max_length: 200 },
-  { key: "audience", label: "Audience", placeholder: "Who uses it (≤200 chars)", max_length: 200 },
-  { key: "failure_modes", label: "Known failure modes", placeholder: "What could go wrong, in your own framing (≤300 chars)", max_length: 300 },
+export type EvalFieldKey =
+  | "feature_one_liner"
+  | "audience"
+  | "failure_modes"
+  | "practice.correctness"
+  | "practice.refusal_behavior"
+  | "practice.latency"
+  | "practice.hallucination_rate"
+  | "practice.jailbreak_resistance"
+  | "practice.regression_set"
+  | "practice.drift_detection"
+  | "methodology_paste";
+
+export interface EvalFieldDef {
+  key: EvalFieldKey;
+  label: string;
+  placeholder: string;
+  max_length: number;
+  kind: "text" | "textarea";
+  section: "feature" | "practice" | "methodology";
+  required: boolean;
+  accepts_file?: boolean;
+}
+
+/**
+ * Field metadata. The form is grouped into three sections:
+ *   - feature: who/what/known-failures (required)
+ *   - practice: per-category current-state answers (all optional; blank →
+ *     missing-by-default)
+ *   - methodology: optional paste + file upload of the full eval doc
+ */
+export const FIELDS: EvalFieldDef[] = [
+  { key: "feature_one_liner", label: "Feature one-liner", placeholder: "What the AI feature does", max_length: 200, kind: "text", section: "feature", required: true },
+  { key: "audience", label: "Audience", placeholder: "Who uses it", max_length: 200, kind: "text", section: "feature", required: true },
+  { key: "failure_modes", label: "Known failure modes", placeholder: "What could go wrong, in your own framing", max_length: 300, kind: "textarea", section: "feature", required: true },
+
+  { key: "practice.correctness", label: "Correctness — what do you currently do?", placeholder: "e.g. 200-example golden set, weekly run, 95% pass threshold (or 'nothing yet')", max_length: 300, kind: "textarea", section: "practice", required: false },
+  { key: "practice.refusal_behavior", label: "Refusal behavior — what do you currently do?", placeholder: "e.g. 50-prompt out-of-scope set, manual review (or 'nothing yet')", max_length: 300, kind: "textarea", section: "practice", required: false },
+  { key: "practice.latency", label: "Latency — what do you currently track?", placeholder: "e.g. p50 / p95 / p99 in prod dashboards, alert at p95 > 2s", max_length: 300, kind: "textarea", section: "practice", required: false },
+  { key: "practice.hallucination_rate", label: "Hallucination rate — how do you measure it?", placeholder: "e.g. citation-verifiability eval on 100 outputs / week", max_length: 300, kind: "textarea", section: "practice", required: false },
+  { key: "practice.jailbreak_resistance", label: "Jailbreak resistance — what's in your eval set?", placeholder: "e.g. ~10 adversarial prompts borrowed from OWASP LLM list", max_length: 300, kind: "textarea", section: "practice", required: false },
+  { key: "practice.regression_set", label: "Regression set — what changes when you swap model/prompt?", placeholder: "e.g. 80-case regression suite, re-run on every prompt rev", max_length: 300, kind: "textarea", section: "practice", required: false },
+  { key: "practice.drift_detection", label: "Drift detection — what do you watch in production?", placeholder: "e.g. weekly input-length histogram, alert on category-share shift", max_length: 300, kind: "textarea", section: "practice", required: false },
+
+  { key: "methodology_paste", label: "Eval methodology / report (optional)", placeholder: "Paste your eval doc, runbook, or report here. Use the file picker to load a .md / .txt / .json from disk.", max_length: 8000, kind: "textarea", section: "methodology", required: false, accepts_file: true },
 ];

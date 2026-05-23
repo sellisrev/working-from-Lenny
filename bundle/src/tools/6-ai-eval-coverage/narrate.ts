@@ -9,7 +9,7 @@ import { buildEvalNarrationBrief } from "../../lib/build-eval-brief";
 export const meta: ToolMeta = {
   name: "ai_eval_coverage_narrate",
   description:
-    "Packages a corpus-grounded eval-coverage scorecard brief from the three feature inputs. Returns voice rules, structure (score / category_table / gaps_to_fill), the 7-category definition list, the deterministic scoring formula, and corpus chunks. Pure compute — no persistence. PREFER ai_eval_coverage_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
+    "Packages a corpus-grounded eval-coverage scorecard brief from the feature inputs (feature_one_liner / audience / failure_modes + optional per-category practice answers + optional methodology paste). Returns voice rules, structure (score / category_table / gaps_to_fill), the 7-category definition list, the deterministic scoring formula, and corpus chunks. Pure compute — no persistence. PREFER ai_eval_coverage_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
   inputSchema: EvalNarrateInput,
   outputSchema: EvalNarrateOutput,
   annotations: { readOnlyHint: true },

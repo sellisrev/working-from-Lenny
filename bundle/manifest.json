@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -179,6 +179,38 @@
     {
       "name": "nsm_finder_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their North Star Metric candidates, 'find my NSM', 'audit my dashboard', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
+      "name": "okr_critique_get_form",
+      "description": "Returns the OKR Critique form metadata (paste box + stance + level pickers + too-many thresholds) and triggers the host to mount the ui://working-from-lenny/okr-critique iframe."
+    },
+    {
+      "name": "okr_critique_run",
+      "description": "Takes a 100-3000 char OKR paste + stance (orthodox / skeptical / hybrid) + level (team / org), parses objective/KR structure deterministically, and persists the corpus-grounded critique brief. AFTER calling run, render the per-KR four-test critique + stance synthesis (+ cross-team coherence at org level) by calling okr_critique_get_pending_narration."
+    },
+    {
+      "name": "okr_critique_narrate",
+      "description": "Packages a corpus-grounded OKR critique brief from okr_text + stance + level. Pure compute — no persistence. Call okr_critique_get_pending_narration to retrieve the brief run already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "okr_critique_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their OKR critique, 'critique my OKRs', 'rewrite my KRs', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
+      "name": "mvs_alignment_get_form",
+      "description": "Returns the Mission/Vision/Strategy Alignment form metadata (three textareas with min/max-length contracts) and triggers the host to mount the ui://working-from-lenny/mvs-alignment iframe."
+    },
+    {
+      "name": "mvs_alignment_run",
+      "description": "Takes mission_text (50-500 chars) + vision_text (50-500 chars) + strategy_text (200-3000 chars), flags strategy_too_vague heuristically, and persists the corpus-grounded alignment brief. AFTER calling run, render the drift map + platitude detector + operational gaps + Rumelt diagnosis by calling mvs_alignment_get_pending_narration."
+    },
+    {
+      "name": "mvs_alignment_narrate",
+      "description": "Packages a corpus-grounded MVS alignment brief from the three docs. Pure compute — no persistence. Call mvs_alignment_get_pending_narration to retrieve the brief run already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "mvs_alignment_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their MVS alignment reading, 'render the drift map', 'find my platitudes', 'run Rumelt on my strategy', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
     }
   ],
   "prompts_generated": false,

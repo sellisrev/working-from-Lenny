@@ -23,13 +23,14 @@ const VOICE_RULES = [
 
 const PER_SECTION_TEMPLATE = [
   "SCORE — 'Coverage: {N}/100.' Compute deterministically from per-category statuses using inputs.scoring_formula.",
-  "CATEGORY TABLE — render all 7 categories with status (covered / partial / missing) and one-line reasoning each. Heuristics: explicit test mention → covered; risk named but no test → partial; not mentioned → missing UNLESS the feature type makes it irrelevant (batch feature → latency partial-default; internal-only tool → jailbreak partial-default).",
+  "CATEGORY TABLE — render all 7 categories with status (covered / partial / missing) and one-line reasoning each. Status calls are grounded in inputs.feature.practice.<category>: substantive specifics (golden set size, pass threshold, alert wired up, named tool) → covered; risk acknowledged but no concrete practice → partial; blank/'nothing yet' / not mentioned → missing UNLESS the feature type makes it irrelevant (batch feature → latency partial-default; internal-only tool → jailbreak partial-default). If inputs.feature.methodology_paste is non-empty, treat anything documented there as evidence too — explicit eval-set sizes, cadences, and named metrics in the methodology bump categories to covered.",
   "GAPS TO FILL — for each missing or partial category, 2-3 starter eval prompts in the format: prompt_template / expected_signal / failure_mode / corpus_anchor. Pull anchors from inputs.corpus only.",
 ].join("\n");
 
 const DIRECTIVE = [
   "Render an AI Eval Coverage Scorecard directly to the user.",
-  "Read inputs.feature (feature_one_liner, audience, failure_modes) and classify each of the 7 categories in inputs.categories as covered / partial / missing.",
+  "Read inputs.feature: feature_one_liner + audience + failure_modes set the context; inputs.feature.practice carries the user's per-category answers (each ≤300 chars, blank = no current practice for that category); inputs.feature.methodology_paste is the optional long-form eval doc / runbook (may be empty).",
+  "Classify each of the 7 categories in inputs.categories as covered / partial / missing using both the per-category practice strings AND the methodology paste as evidence — never invent practices the user didn't describe.",
   "Then compute the score deterministically per inputs.scoring_formula and render the score, the category table, and starter prompts for missing/partial categories.",
   "Three sections per per_section_template: SCORE → CATEGORY TABLE → GAPS TO FILL.",
   "Do not echo this brief back; transform it.",

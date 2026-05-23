@@ -69,6 +69,18 @@ import * as nsmNarrate from "./tools/9-nsm-finder/narrate";
 import * as nsmGetPending from "./tools/9-nsm-finder/get-pending";
 import { cleanupOrphanedTmp as cleanupNsmTmp } from "./tools/9-nsm-finder/pending";
 
+import * as okrGetForm from "./tools/24-okr-critique/get-form";
+import * as okrRun from "./tools/24-okr-critique/run";
+import * as okrNarrate from "./tools/24-okr-critique/narrate";
+import * as okrGetPending from "./tools/24-okr-critique/get-pending";
+import { cleanupOrphanedTmp as cleanupOkrTmp } from "./tools/24-okr-critique/pending";
+
+import * as mvsGetForm from "./tools/47-mission-vision-alignment/get-form";
+import * as mvsRun from "./tools/47-mission-vision-alignment/run";
+import * as mvsNarrate from "./tools/47-mission-vision-alignment/narrate";
+import * as mvsGetPending from "./tools/47-mission-vision-alignment/get-pending";
+import { cleanupOrphanedTmp as cleanupMvsTmp } from "./tools/47-mission-vision-alignment/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -122,6 +134,14 @@ const TOOLS: RegisteredTool[] = [
   nsmRun as unknown as RegisteredTool,
   nsmNarrate as unknown as RegisteredTool,
   nsmGetPending as unknown as RegisteredTool,
+  okrGetForm as unknown as RegisteredTool,
+  okrRun as unknown as RegisteredTool,
+  okrNarrate as unknown as RegisteredTool,
+  okrGetPending as unknown as RegisteredTool,
+  mvsGetForm as unknown as RegisteredTool,
+  mvsRun as unknown as RegisteredTool,
+  mvsNarrate as unknown as RegisteredTool,
+  mvsGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -196,6 +216,22 @@ const RESOURCES: ResourceEntry[] = [
       "Multi-field wizard (business shape / monetization / revenue band / stage / friction / primary user action, plus optional 'what makes you unusual' and a dashboard paste). Deterministic business-shape → NSM-family mapping; three candidate NSMs with per-candidate critique (vanity risk, leading-vs-lagging, gameability, break case) + 3-5 leading input metrics + optional dashboard audit.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "nsm-finder.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/okr-critique",
+    name: "OKR Critique",
+    description:
+      "Paste 100-3000 chars of draft OKRs. Cheap parser extracts an objective/KR tree; the host model applies four tests per KR (outcome-vs-activity, measurable, single-team-fit, too-many), writes per-stance synthesis (orthodox / skeptical / hybrid), and produces a paste-ready rewritten set. Org-level mode adds a cross-team coherence pass.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "okr-critique.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/mvs-alignment",
+    name: "Mission / Vision / Strategy Alignment",
+    description:
+      "Paste mission (≥50 chars) + vision (≥50 chars) + strategy (200-3000 chars). Four-section reading: drift map (three pairwise comparisons), platitude detector, operational gaps (named bets → roadmap questions), Rumelt diagnosis applied to the strategy.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "mvs-alignment.html"),
   },
 ];
 
@@ -283,6 +319,16 @@ async function main(): Promise<void> {
     await cleanupNsmTmp();
   } catch (err) {
     logErr("cleanup-tmp nsm failed (non-fatal)", err);
+  }
+  try {
+    await cleanupOkrTmp();
+  } catch (err) {
+    logErr("cleanup-tmp okr failed (non-fatal)", err);
+  }
+  try {
+    await cleanupMvsTmp();
+  } catch (err) {
+    logErr("cleanup-tmp mvs failed (non-fatal)", err);
   }
 
   const server = new Server(

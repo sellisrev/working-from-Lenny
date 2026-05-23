@@ -845,10 +845,48 @@ export const EvalCategoryEnum = z.enum([
 ]);
 export type EvalCategory = z.infer<typeof EvalCategoryEnum>;
 
+/**
+ * Per-category eval-practice answers. All optional — a blank string means
+ * "the user didn't volunteer a current practice for this category", which the
+ * host model treats as evidence that the category is missing (or partial if
+ * the methodology_paste mentions it). Cap each at 300 chars; the user is
+ * encouraged to use methodology_paste for longer detail.
+ */
+export const EvalPractice = z.object({
+  correctness: z.string().max(300).default(""),
+  refusal_behavior: z.string().max(300).default(""),
+  latency: z.string().max(300).default(""),
+  hallucination_rate: z.string().max(300).default(""),
+  jailbreak_resistance: z.string().max(300).default(""),
+  regression_set: z.string().max(300).default(""),
+  drift_detection: z.string().max(300).default(""),
+});
+export type EvalPracticeT = z.infer<typeof EvalPractice>;
+
 export const EvalFeatureInputs = z.object({
   feature_one_liner: z.string().min(1).max(200),
   audience: z.string().min(1).max(200),
   failure_modes: z.string().min(1).max(300),
+  /**
+   * Optional per-category practice answers. Defaults to all blank so the
+   * legacy 3-field shape still validates.
+   */
+  practice: EvalPractice.default({
+    correctness: "",
+    refusal_behavior: "",
+    latency: "",
+    hallucination_rate: "",
+    jailbreak_resistance: "",
+    regression_set: "",
+    drift_detection: "",
+  }),
+  /**
+   * Optional eval methodology document the user pastes (or uploads — the
+   * iframe reads .md / .txt / .json files client-side via FileReader and
+   * populates this field). 8000-char cap matches the manager-review-text
+   * cap on #3 calibrate for similar long-doc inputs.
+   */
+  methodology_paste: z.string().max(8000).default(""),
 });
 export type EvalFeatureInputsT = z.infer<typeof EvalFeatureInputs>;
 
@@ -859,7 +897,11 @@ export const EvalGetFormOutput = z.object({
     label: z.string(),
     placeholder: z.string(),
     max_length: z.number().int().positive(),
-  })).length(3),
+    kind: z.enum(["text", "textarea"]),
+    section: z.enum(["feature", "practice", "methodology"]),
+    required: z.boolean(),
+    accepts_file: z.boolean().optional(),
+  })),
   categories: z.array(z.object({
     slug: EvalCategoryEnum,
     label: z.string(),
@@ -1029,6 +1071,165 @@ export const NSMGetPendingNarrationOutput = z.discriminatedUnion("status", [
     status: z.literal("ready"),
     saved_at: z.string(),
     brief: NSMNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ───────────────────────────────────────────────────────────
+// #24 OKR Critique schemas
+// ───────────────────────────────────────────────────────────
+
+export const OkrStanceEnum = z.enum(["orthodox", "skeptical", "hybrid"]);
+export const OkrLevelEnum = z.enum(["team", "org"]);
+export type OkrStance = z.infer<typeof OkrStanceEnum>;
+export type OkrLevel = z.infer<typeof OkrLevelEnum>;
+
+export const OkrParsedObjective = z.object({
+  text: z.string(),
+  key_results: z.array(z.string()),
+});
+export const OkrParseResult = z.object({
+  objectives: z.array(OkrParsedObjective),
+  parsing_confidence: z.enum(["low", "med", "high"]),
+});
+export type OkrParseResultT = z.infer<typeof OkrParseResult>;
+
+export const OkrGetFormInput = z.object({}).strict();
+export const OkrGetFormOutput = z.object({
+  stances: z.array(OkrStanceEnum).length(3),
+  levels: z.array(OkrLevelEnum).length(2),
+  too_many_thresholds: z.object({
+    kr_per_objective: z.number().int(),
+    objectives_team: z.number().int(),
+    objectives_org: z.number().int(),
+  }),
+  note: z.string(),
+});
+
+export const OkrCritiqueInput = z.object({
+  okr_text: z.string().min(100).max(3000),
+  stance: OkrStanceEnum.default("hybrid"),
+  level: OkrLevelEnum.default("team"),
+  user_context: z.string().default(""),
+});
+
+export const OkrCritiqueOutput = z.object({
+  parsed: OkrParseResult,
+  stance: OkrStanceEnum,
+  level: OkrLevelEnum,
+  too_many_overall: z.boolean(),
+  persistence_warning: z.string().optional(),
+});
+
+export const OkrNarrateInput = z.object({
+  okr_text: z.string().min(100).max(3000),
+  stance: OkrStanceEnum.default("hybrid"),
+  level: OkrLevelEnum.default("team"),
+  user_context: z.string().default(""),
+});
+
+export const OkrNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    okr_text: z.string(),
+    parsed: OkrParseResult,
+    stance: OkrStanceEnum,
+    level: OkrLevelEnum,
+    too_many_overall: z.boolean(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const OkrGetPendingNarrationInput = z.object({}).strict();
+export const OkrGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: OkrNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ───────────────────────────────────────────────────────────
+// #47 Mission / Vision / Strategy Alignment schemas
+// ───────────────────────────────────────────────────────────
+
+export const MvsGetFormInput = z.object({}).strict();
+export const MvsGetFormOutput = z.object({
+  fields: z.array(z.object({
+    key: z.enum(["mission_text", "vision_text", "strategy_text"]),
+    label: z.string(),
+    placeholder: z.string(),
+    min_length: z.number().int(),
+    max_length: z.number().int(),
+  })).length(3),
+  note: z.string(),
+});
+
+export const MvsAlignInput = z.object({
+  mission_text: z.string().min(50).max(500),
+  vision_text: z.string().min(50).max(500),
+  strategy_text: z.string().min(200).max(3000),
+  user_context: z.string().default(""),
+});
+
+export const MvsAlignOutput = z.object({
+  mission_text: z.string(),
+  vision_text: z.string(),
+  strategy_text: z.string(),
+  pairs_count: z.number().int().min(3).max(3),
+  strategy_too_vague: z.boolean(),
+  persistence_warning: z.string().optional(),
+});
+
+export const MvsNarrateInput = z.object({
+  mission_text: z.string().min(50).max(500),
+  vision_text: z.string().min(50).max(500),
+  strategy_text: z.string().min(200).max(3000),
+  user_context: z.string().default(""),
+});
+
+export const MvsNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    mission_text: z.string(),
+    vision_text: z.string(),
+    strategy_text: z.string(),
+    pairs: z.array(z.enum(["mission_vs_vision", "mission_vs_strategy", "vision_vs_strategy"])).length(3),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const MvsGetPendingNarrationInput = z.object({}).strict();
+export const MvsGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: MvsNarrateOutput,
   }),
   z.object({
     status: z.literal("no_pending"),

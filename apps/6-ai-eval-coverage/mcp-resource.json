@@ -2,19 +2,19 @@
   "resource": {
     "uri": "ui://working-from-lenny/ai-eval-coverage",
     "name": "AI Eval Coverage Scorecard",
-    "description": "Three-input wizard (feature one-liner / audience / failure modes). Seven fixed eval categories (correctness / refusal / latency / hallucination / jailbreak / regression / drift), deterministic 0-100 coverage score, plus 2-3 starter eval prompts per missing or partial category.",
+    "description": "Three-section wizard: required feature context (one-liner / audience / failure modes), optional per-category current practice (7 short fields — blank = missing-by-default), optional eval methodology paste with file picker (.md / .txt / .json / .csv / .log, ≤8000 chars). Seven fixed eval categories (correctness / refusal / latency / hallucination / jailbreak / regression / drift), deterministic 0-100 coverage score, plus 2-3 starter eval prompts per missing or partial category.",
     "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
       "name": "ai_eval_coverage_get_form",
-      "description": "Entry tool for the AI Eval Coverage Scorecard. Calling this triggers the host to mount the ui://working-from-lenny/ai-eval-coverage resource (an interactive iframe with three text inputs: feature one-liner / audience / failure modes). If your host mounts the UI, that IS the input surface — do NOT additionally render the three prompts in chat as a duplicate surface; the user will fill them in the iframe, which calls ai_eval_coverage_score directly. Returns the seven fixed eval categories (correctness, refusal behavior, latency, hallucination rate, jailbreak resistance, regression-set coverage, drift detection) plus the field definitions. If the user already has the three inputs in hand, call ai_eval_coverage_score directly.",
+      "description": "Entry tool for the AI Eval Coverage Scorecard. Calling this triggers the host to mount the ui://working-from-lenny/ai-eval-coverage resource (an interactive iframe with three grouped sections: feature context — required; current eval practice per category — optional; eval methodology paste with file-picker — optional). If your host mounts the UI, that IS the input surface — do NOT additionally render the prompts in chat as a duplicate surface; the user will fill them in the iframe, which calls ai_eval_coverage_score directly. Returns the seven fixed eval categories (correctness, refusal behavior, latency, hallucination rate, jailbreak resistance, regression-set coverage, drift detection) plus the field definitions grouped by section. If the user already has the inputs in hand, call ai_eval_coverage_score directly.",
       "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
       "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/ai-eval-coverage" } }
     },
     {
       "name": "ai_eval_coverage_score",
-      "description": "Takes the three eval-coverage inputs (feature one-liner, audience, failure modes) and persists the corpus-grounded scorecard brief. Validation: feature_one_liner ≤200 chars, audience ≤200 chars, failure_modes ≤300 chars. AFTER calling this, render the score + 7-category table + starter eval prompts by calling ai_eval_coverage_get_pending_narration. Do not render the scorecard on your own without the brief — the brief carries the deterministic scoring formula, the closed category list, and the corpus anchors the starter prompts depend on. If `persistence_warning` is set, ask the user to re-submit.",
+      "description": "Takes the eval-coverage inputs and persists the corpus-grounded scorecard brief. Required: feature_one_liner ≤200 / audience ≤200 / failure_modes ≤300. Optional but recommended: per-category practice answers (feature.practice.{correctness, refusal_behavior, latency, hallucination_rate, jailbreak_resistance, regression_set, drift_detection}, each ≤300 chars; blank = no current practice for that category, which the brief treats as missing-by-default) and feature.methodology_paste (≤8000 chars, the user's eval doc / runbook / report). AFTER calling this, render the score + 7-category table + starter eval prompts by calling ai_eval_coverage_get_pending_narration. Do not render the scorecard on your own without the brief — the brief carries the deterministic scoring formula, the closed category list, and the corpus anchors the starter prompts depend on. If `persistence_warning` is set, ask the user to re-submit.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -23,7 +23,21 @@
             "properties": {
               "feature_one_liner": { "type": "string", "minLength": 1, "maxLength": 200 },
               "audience": { "type": "string", "minLength": 1, "maxLength": 200 },
-              "failure_modes": { "type": "string", "minLength": 1, "maxLength": 300 }
+              "failure_modes": { "type": "string", "minLength": 1, "maxLength": 300 },
+              "practice": {
+                "type": "object",
+                "properties": {
+                  "correctness": { "type": "string", "maxLength": 300, "default": "" },
+                  "refusal_behavior": { "type": "string", "maxLength": 300, "default": "" },
+                  "latency": { "type": "string", "maxLength": 300, "default": "" },
+                  "hallucination_rate": { "type": "string", "maxLength": 300, "default": "" },
+                  "jailbreak_resistance": { "type": "string", "maxLength": 300, "default": "" },
+                  "regression_set": { "type": "string", "maxLength": 300, "default": "" },
+                  "drift_detection": { "type": "string", "maxLength": 300, "default": "" }
+                },
+                "default": {}
+              },
+              "methodology_paste": { "type": "string", "maxLength": 8000, "default": "" }
             },
             "required": ["feature_one_liner", "audience", "failure_modes"]
           },
@@ -34,19 +48,11 @@
     },
     {
       "name": "ai_eval_coverage_narrate",
-      "description": "Packages a corpus-grounded eval-coverage scorecard brief from the three feature inputs. Returns voice rules, structure (score / category_table / gaps_to_fill), the 7-category definition list, the deterministic scoring formula, and corpus chunks. Pure compute — no persistence. PREFER ai_eval_coverage_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "description": "Packages a corpus-grounded eval-coverage scorecard brief from the feature inputs (feature_one_liner / audience / failure_modes + optional per-category practice answers + optional methodology paste). Returns voice rules, structure (score / category_table / gaps_to_fill), the 7-category definition list, the deterministic scoring formula, and corpus chunks. Pure compute — no persistence. PREFER ai_eval_coverage_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "feature": {
-            "type": "object",
-            "properties": {
-              "feature_one_liner": { "type": "string", "minLength": 1, "maxLength": 200 },
-              "audience": { "type": "string", "minLength": 1, "maxLength": 200 },
-              "failure_modes": { "type": "string", "minLength": 1, "maxLength": 300 }
-            },
-            "required": ["feature_one_liner", "audience", "failure_modes"]
-          },
+          "feature": { "type": "object" },
           "user_context": { "type": "string", "default": "" }
         },
         "required": ["feature"]

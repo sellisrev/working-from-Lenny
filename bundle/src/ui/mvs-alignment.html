@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission / Vision / Strategy Alignment</title>
+  <!-- include: styles.css -->
+  <style>
+    .mvs-card { padding: 0; }
+    .mvs-field { margin: 0.75rem 0; }
+    .mvs-field label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.3rem;
+      font-weight: 500;
+    }
+    .mvs-textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .mvs-textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .mvs-textarea.short { min-height: 70px; }
+    .mvs-textarea.long { min-height: 160px; }
+    .mvs-counter { font-size: 0.72rem; color: var(--fg-faint); margin-top: 0.15rem; text-align: right; }
+    .mvs-counter.invalid { color: var(--warn-text); }
+    .mvs-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .mvs-submit:hover { background: #333; }
+    .mvs-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .mvs-validation { display: none; margin-top: 0.75rem; font-size: 0.875rem; color: var(--warn-text); }
+    .mvs-validation.visible { display: block; }
+    .mvs-output { display: none; margin-top: 1.5rem; }
+    .mvs-output.visible { display: block; }
+    .mvs-confirm { font-size: 1rem; font-weight: 500; margin: 0 0 0.35rem; }
+    .mvs-vague { font-size: 0.85rem; color: var(--warn-text); margin: 0.2rem 0; }
+    .mvs-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .mvs-actions { display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .mvs-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .mvs-btn:hover { background: var(--border-soft); }
+    .mvs-error {
+      display: none; margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .mvs-error.visible { display: block; }
+    .mvs-build-marker { font-size: 11px; color: var(--fg-faint); margin-top: -8px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Mission / Vision / Strategy Alignment</h1>
+  <p class="app-tagline">A mission is what you'd still do if the funding stopped. The rest is decoration.</p>
+  <p class="mvs-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="mvs-form" id="mvs-form" novalidate>
+    <div id="mvs-fields"></div>
+    <button type="button" class="mvs-submit" id="mvs-submit" disabled>Check alignment</button>
+    <p class="mvs-validation" id="mvs-validation" role="alert"></p>
+  </form>
+
+  <div class="mvs-error" id="mvs-error" role="alert"></div>
+
+  <div class="mvs-output" id="mvs-output">
+    <p class="mvs-confirm">Your alignment reading is on its way.</p>
+    <p class="mvs-vague" id="mvs-vague"></p>
+
+    <p class="mvs-narrate-hint" id="mvs-narrate-hint">
+      <span id="mvs-narrate-hint-auto">Queueing your alignment reading in chat…</span>
+      <span id="mvs-narrate-hint-staged" style="display:none;">Your alignment reading is rendering in chat below.</span>
+      <span id="mvs-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"render the drift map"</strong>.
+      </span>
+    </p>
+
+    <div class="mvs-actions">
+      <button type="button" class="mvs-btn" id="mvs-reset-btn">Check a different set</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var FIELDS = null;
+
+  function $(id) { return document.getElementById(id); }
+  function showError(m) { var e=$("mvs-error"); e.textContent=m; e.classList.add("visible"); }
+  function clearError() { var e=$("mvs-error"); e.textContent=""; e.classList.remove("visible"); }
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function buildForm() {
+    var c = $("mvs-fields");
+    c.innerHTML = "";
+    FIELDS.forEach(function (f) {
+      var wrap = document.createElement("div");
+      wrap.className = "mvs-field";
+      var lbl = document.createElement("label");
+      lbl.setAttribute("for", "mvs-field-" + f.key);
+      lbl.textContent = f.label + " (≥" + f.min_length + " chars)";
+      wrap.appendChild(lbl);
+      var ta = document.createElement("textarea");
+      ta.className = "mvs-textarea " + (f.max_length > 1000 ? "long" : "short");
+      ta.id = "mvs-field-" + f.key;
+      ta.dataset.key = f.key;
+      ta.dataset.min = String(f.min_length);
+      ta.dataset.max = String(f.max_length);
+      ta.placeholder = f.placeholder;
+      ta.maxLength = f.max_length;
+      ta.addEventListener("input", updateState);
+      wrap.appendChild(ta);
+      var counter = document.createElement("div");
+      counter.className = "mvs-counter";
+      counter.id = "mvs-counter-" + f.key;
+      counter.textContent = "0 / " + f.max_length + " (min " + f.min_length + ")";
+      wrap.appendChild(counter);
+      c.appendChild(wrap);
+    });
+  }
+
+  function gather() {
+    var out = {};
+    var valid = true;
+    FIELDS.forEach(function (f) {
+      var el = $("mvs-field-" + f.key);
+      var v = el.value.trim();
+      if (v.length < f.min_length || v.length > f.max_length) { valid = false; return; }
+      out[f.key] = v;
+    });
+    return { args: out, valid: valid };
+  }
+
+  function updateState() {
+    FIELDS.forEach(function (f) {
+      var el = $("mvs-field-" + f.key);
+      var counter = $("mvs-counter-" + f.key);
+      var len = el.value.length;
+      counter.textContent = len + " / " + f.max_length + " (min " + f.min_length + ")";
+      var invalid = len > 0 && (len < f.min_length || len > f.max_length);
+      counter.classList.toggle("invalid", invalid);
+    });
+    var g = gather();
+    $("mvs-submit").disabled = !g.valid;
+  }
+
+  function handleSubmit() {
+    clearError();
+    var g = gather();
+    if (!g.valid) {
+      var v = $("mvs-validation");
+      v.textContent = "All three docs need to be within their min/max ranges.";
+      v.classList.add("visible");
+      return;
+    }
+    $("mvs-validation").classList.remove("visible");
+    var btn = $("mvs-submit");
+    btn.disabled = true;
+    btn.textContent = "Checking alignment…";
+    window.mcp.callTool("mvs_alignment_run", g.args)
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderResult(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Check alignment"; });
+  }
+
+  function renderResult(parsed) {
+    var vague = $("mvs-vague");
+    if (parsed.strategy_too_vague) {
+      vague.textContent = "Heuristic flag: your strategy reads as low-density (few quarter markers, named bets, or decision verbs). The brief will likely return the 'rewrite your strategy first' fallback.";
+    } else {
+      vague.textContent = "";
+    }
+    var out = $("mvs-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("mvs-narrate-hint-auto");
+    var staged = $("mvs-narrate-hint-staged");
+    var fallback = $("mvs-narrate-hint-fallback");
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+    window.mcp.sendMessage(
+      "I just submitted mission/vision/strategy to the alignment checker in the embedded widget. " +
+        "Please call mvs_alignment_get_pending_narration to fetch my saved brief and render the drift map + platitude detector + operational gaps + Rumelt diagnosis."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    FIELDS.forEach(function (f) {
+      var el = $("mvs-field-" + f.key);
+      if (el) el.value = "";
+    });
+    $("mvs-output").classList.remove("visible");
+    $("mvs-validation").classList.remove("visible");
+    clearError();
+    updateState();
+  }
+
+  window.mcp.callTool("mvs_alignment_get_form", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.fields) || parsed.fields.length === 0) throw new Error("No fields returned");
+      FIELDS = parsed.fields;
+      buildForm();
+      $("mvs-submit").addEventListener("click", handleSubmit);
+      $("mvs-reset-btn").addEventListener("click", handleReset);
+      updateState();
+    })
+    .catch(function (err) {
+      $("mvs-form").style.display = "none";
+      showError("Could not load the form: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

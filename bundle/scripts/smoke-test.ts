@@ -106,6 +106,8 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "strategy-pressure-test.html"),
     path.join(installRoot, "dist", "ui", "ai-eval-coverage.html"),
     path.join(installRoot, "dist", "ui", "nsm-finder.html"),
+    path.join(installRoot, "dist", "ui", "okr-critique.html"),
+    path.join(installRoot, "dist", "ui", "mvs-alignment.html"),
     path.join(
       installRoot,
       "dist",
@@ -198,6 +200,8 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkStrategyChain(client, dataDir);
     await checkEvalChain(client, dataDir);
     await checkNsmChain(client, dataDir);
+    await checkOkrChain(client, dataDir);
+    await checkMvsChain(client, dataDir);
   } finally {
     await client.close();
   }
@@ -247,6 +251,14 @@ async function checkListTools(client: Client): Promise<void> {
       "nsm_finder_run",
       "nsm_finder_narrate",
       "nsm_finder_get_pending_narration",
+      "okr_critique_get_form",
+      "okr_critique_run",
+      "okr_critique_narrate",
+      "okr_critique_get_pending_narration",
+      "mvs_alignment_get_form",
+      "mvs_alignment_run",
+      "mvs_alignment_narrate",
+      "mvs_alignment_get_pending_narration",
     ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
@@ -2920,6 +2932,174 @@ async function checkNsmChain(client: Client, dataDir: string): Promise<void> {
   const afterMtime = (await fs.stat(file)).mtimeMs;
   record(
     "nsm: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #24 OKR Critique smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkOkrChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "okr: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["okr_critique_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/okr-critique",
+  );
+  const desc = list.tools.find((t) => t.name === "okr_critique_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "rewrite my krs", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("okr: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/okr-critique" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "okr: iframe staged ui/message names submission + tool",
+    text.includes("I just submitted an OKR set to the OKR Critique in the embedded widget") &&
+      text.includes("okr_critique_get_pending_narration"),
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "okr_critique_get_pending_narration", arguments: {} })));
+  record("okr: get_pending pre-run → no_pending", before.status === "no_pending");
+
+  const okrText =
+    "Objective 1: Improve onboarding activation\n  KR 1.1: Increase D1 activation from 40% to 60% by Q2\n  KR 1.2: Reduce time-to-first-value from 8 min to 3 min\nObjective 2: Launch enterprise tier\n  KR 2.1: Sign 5 enterprise contracts by Q3\n  KR 2.2: Ship the admin dashboard by Q2";
+  const runResult = JSON.parse(contentText(await client.callTool({
+    name: "okr_critique_run",
+    arguments: { okr_text: okrText, stance: "hybrid", level: "team" },
+  })));
+  record(
+    "okr: run returns parsed structure + stance/level + no persistence_warning",
+    runResult.stance === "hybrid" &&
+      runResult.level === "team" &&
+      runResult.parsed?.objectives?.length === 2 &&
+      runResult.persistence_warning === undefined,
+    JSON.stringify(runResult).slice(0, 400),
+  );
+
+  const file = path.join(dataDir, "_pending", "okr-critique-pending.json");
+  record("okr: run wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "okr_critique_get_pending_narration", arguments: {} })));
+  record(
+    "okr: get_pending after run returns brief carrying parsed tree",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.parsed?.objectives?.length === 2,
+  );
+
+  // Test too-many flag at team level by submitting 4 objectives
+  const fourObjs =
+    "1. Goal A\n  - kr a\n2. Goal B\n  - kr b\n3. Goal C\n  - kr c\n4. Goal D\n  - kr d";
+  const fourResult = JSON.parse(contentText(await client.callTool({
+    name: "okr_critique_run",
+    arguments: { okr_text: fourObjs.padEnd(120, " "), stance: "hybrid", level: "team" },
+  })));
+  record(
+    "okr: 4 objectives at team level triggers too_many_overall",
+    fourResult.too_many_overall === true,
+    JSON.stringify(fourResult).slice(0, 300),
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "okr_critique_narrate",
+    arguments: { okr_text: okrText, stance: "orthodox", level: "team" },
+  });
+  // Re-read after narrate. We already overwrote the pending via the
+  // too-many run above; check that narrate itself didn't write again.
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "okr: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #47 MVS Alignment smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkMvsChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "mvs: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["mvs_alignment_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/mvs-alignment",
+  );
+  const desc = list.tools.find((t) => t.name === "mvs_alignment_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "drift map", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("mvs: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/mvs-alignment" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "mvs: iframe staged ui/message names submission + tool",
+    text.includes("I just submitted mission/vision/strategy to the alignment checker") &&
+      text.includes("mvs_alignment_get_pending_narration"),
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "mvs_alignment_get_pending_narration", arguments: {} })));
+  record("mvs: get_pending pre-run → no_pending", before.status === "no_pending");
+
+  const mission =
+    "To help product builders ship faster by removing friction from research, design, and engineering coordination.";
+  const vision =
+    "Every product team operates with the speed and clarity of a top-tier startup, regardless of company size or industry.";
+  const strategy =
+    "Our challenge this year is winning the developer-tools market against three well-funded competitors. The bet is community-led growth: ship a freemium tier in Q1, expand into EMEA in Q2 with localized docs, launch a $99/mo seat tier in Q3. 50% of new sign-ups from community channels by Q4.";
+
+  const runResult = JSON.parse(contentText(await client.callTool({
+    name: "mvs_alignment_run",
+    arguments: { mission_text: mission, vision_text: vision, strategy_text: strategy },
+  })));
+  record(
+    "mvs: run returns 3 pairs + concrete-strategy flag false + no persistence_warning",
+    runResult.pairs_count === 3 &&
+      runResult.strategy_too_vague === false &&
+      runResult.persistence_warning === undefined,
+    JSON.stringify(runResult).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "mission-vision-alignment-pending.json");
+  record("mvs: run wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "mvs_alignment_get_pending_narration", arguments: {} })));
+  record(
+    "mvs: get_pending after run returns brief carrying the three pair labels",
+    after.status === "ready" &&
+      Array.isArray(after.brief?.inputs?.pairs) &&
+      after.brief.inputs.pairs.length === 3,
+  );
+
+  // Vague-strategy path flips the flag
+  const vagueStrategy =
+    "We aspire to be the best in our category and deliver excellence. We will delight customers and empower our team. Our north star is excellence and our differentiator is the team and our values are vision and execution.";
+  const vagueResult = JSON.parse(contentText(await client.callTool({
+    name: "mvs_alignment_run",
+    arguments: { mission_text: mission, vision_text: vision, strategy_text: vagueStrategy },
+  })));
+  record(
+    "mvs: vague strategy flips strategy_too_vague to true",
+    vagueResult.strategy_too_vague === true,
+    JSON.stringify(vagueResult).slice(0, 300),
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "mvs_alignment_narrate",
+    arguments: { mission_text: mission, vision_text: vision, strategy_text: strategy },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "mvs: narrate is pure compute (pending file untouched)",
     beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }
