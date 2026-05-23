@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How [You] Build Product</title>
+  <!-- include: styles.css -->
+  <style>
+    /* hyb-namespaced visuals per the project's per-app naming lock. Three
+       structured-input groups + 3-mode picker + generate button. */
+    .hyb-card { padding: 0; }
+    .hyb-section-label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-faint);
+      text-transform: uppercase;
+      margin: 1rem 0 0.4rem;
+    }
+    .hyb-counts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .hyb-count-field { display: flex; flex-direction: column; }
+    .hyb-count-field label {
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.2rem;
+    }
+    .hyb-input,
+    .hyb-textarea {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+    .hyb-input:focus-visible,
+    .hyb-textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .hyb-textarea { resize: vertical; min-height: 70px; }
+    .hyb-text-field { margin-top: 0.6rem; }
+    .hyb-text-field label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.2rem;
+    }
+    .hyb-mode-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .hyb-mode-btn {
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+      line-height: 1.35;
+      flex: 1;
+      min-width: 170px;
+      text-align: left;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .hyb-mode-btn:hover { background: var(--border-soft); }
+    .hyb-mode-btn.selected {
+      border-color: var(--accent);
+      background: var(--border-soft);
+    }
+    .hyb-mode-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.1rem;
+    }
+    .hyb-mode-len {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--fg-faint);
+    }
+    .hyb-mode-summary {
+      font-size: 0.8rem;
+      color: var(--fg-faint);
+      margin: 0.25rem 0 0;
+      font-style: italic;
+    }
+    .hyb-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .hyb-submit:hover { background: #333; }
+    .hyb-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .hyb-validation {
+      display: none;
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--warn-text);
+    }
+    .hyb-validation.visible { display: block; }
+    .hyb-output { display: none; margin-top: 1.5rem; }
+    .hyb-output.visible { display: block; }
+    .hyb-mode-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 2px 6px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .hyb-confirm {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 0.35rem;
+    }
+    .hyb-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .hyb-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .hyb-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .hyb-btn:hover { background: var(--border-soft); }
+    .hyb-error {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .hyb-error.visible { display: block; }
+    .hyb-build-marker {
+      font-size: 11px;
+      color: var(--fg-faint);
+      margin-top: -8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">How [You] Build Product</h1>
+  <p class="app-tagline">How did your team make a Notion doc this important? Mostly by accident.</p>
+  <p class="hyb-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="hyb-form" id="hyb-form" novalidate>
+    <span class="hyb-section-label">Team composition</span>
+    <div class="hyb-counts" id="hyb-counts"></div>
+
+    <div id="hyb-text-fields"></div>
+
+    <span class="hyb-section-label">Mode</span>
+    <div class="hyb-mode-row" id="hyb-mode-row" role="radiogroup" aria-label="Parody mode"></div>
+    <p class="hyb-mode-summary" id="hyb-mode-summary"></p>
+
+    <button type="button" class="hyb-submit" id="hyb-submit" disabled>Generate</button>
+
+    <p class="hyb-validation" id="hyb-validation" role="alert"></p>
+  </form>
+
+  <div class="hyb-error" id="hyb-error" role="alert"></div>
+
+  <div class="hyb-output" id="hyb-output">
+    <span class="hyb-mode-tag" id="hyb-mode-tag"></span>
+    <p class="hyb-confirm" id="hyb-confirm">Your parody is on its way.</p>
+
+    <p class="hyb-narrate-hint" id="hyb-narrate-hint">
+      <span id="hyb-narrate-hint-auto">Queueing your parody in chat…</span>
+      <span id="hyb-narrate-hint-staged" style="display:none;">
+        Your parody is rendering in chat below.
+      </span>
+      <span id="hyb-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"render the reverence profile"</strong> (or the LinkedIn post, or the cold open) — the assistant will generate the parody following the mode-specific voice rules.
+      </span>
+    </p>
+
+    <div class="hyb-actions">
+      <button type="button" class="hyb-btn" id="hyb-reset-btn">Generate another</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var MODES = null;
+  var FIELDS = null;
+  var selectedMode = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function showError(msg) {
+    var el = $("hyb-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("hyb-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) {
+      throw new Error("Malformed tool result");
+    }
+    var first = result.content[0];
+    if (!first || first.type !== "text") {
+      throw new Error("Tool returned non-text content");
+    }
+    return JSON.parse(first.text);
+  }
+
+  function buildForm() {
+    var counts = $("hyb-counts");
+    var textFields = $("hyb-text-fields");
+    counts.innerHTML = "";
+    textFields.innerHTML = "";
+
+    FIELDS.forEach(function (f) {
+      if (f.kind === "int") {
+        var wrap = document.createElement("div");
+        wrap.className = "hyb-count-field";
+        var lbl = document.createElement("label");
+        lbl.setAttribute("for", "hyb-field-" + f.key);
+        lbl.textContent = f.label;
+        wrap.appendChild(lbl);
+        var input = document.createElement("input");
+        input.type = "number";
+        input.className = "hyb-input";
+        input.id = "hyb-field-" + f.key;
+        input.dataset.key = f.key;
+        input.dataset.kind = "int";
+        input.min = "0";
+        input.placeholder = f.placeholder;
+        input.addEventListener("input", updateSubmitState);
+        wrap.appendChild(input);
+        counts.appendChild(wrap);
+      } else {
+        var w2 = document.createElement("div");
+        w2.className = "hyb-text-field";
+        var l2 = document.createElement("label");
+        l2.setAttribute("for", "hyb-field-" + f.key);
+        l2.textContent = f.label;
+        w2.appendChild(l2);
+        var ta = document.createElement("textarea");
+        ta.className = "hyb-textarea";
+        ta.id = "hyb-field-" + f.key;
+        ta.dataset.key = f.key;
+        ta.dataset.kind = "text";
+        ta.rows = 2;
+        ta.placeholder = f.placeholder;
+        ta.maxLength = 400;
+        ta.addEventListener("input", updateSubmitState);
+        w2.appendChild(ta);
+        textFields.appendChild(w2);
+      }
+    });
+  }
+
+  function buildModeButtons() {
+    var row = $("hyb-mode-row");
+    row.innerHTML = "";
+    MODES.forEach(function (m, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hyb-mode-btn";
+      btn.dataset.mode = m.slug;
+      btn.setAttribute("role", "radio");
+      btn.setAttribute("aria-checked", i === 0 ? "true" : "false");
+
+      var lbl = document.createElement("span");
+      lbl.className = "hyb-mode-label";
+      lbl.textContent = m.label;
+      btn.appendChild(lbl);
+
+      var len = document.createElement("span");
+      len.className = "hyb-mode-len";
+      len.textContent = m.length_hint;
+      btn.appendChild(len);
+
+      btn.addEventListener("click", function () { selectMode(m.slug); });
+      row.appendChild(btn);
+    });
+    selectMode(MODES[0].slug);
+  }
+
+  function selectMode(slug) {
+    selectedMode = slug;
+    var def = MODES.find(function (m) { return m.slug === slug; });
+    document.querySelectorAll(".hyb-mode-btn").forEach(function (b) {
+      var sel = b.dataset.mode === slug;
+      b.classList.toggle("selected", sel);
+      b.setAttribute("aria-checked", sel ? "true" : "false");
+    });
+    if (def) $("hyb-mode-summary").textContent = def.summary;
+    updateSubmitState();
+  }
+
+  function gatherTeam() {
+    var team = {};
+    var valid = true;
+    FIELDS.forEach(function (f) {
+      var el = $("hyb-field-" + f.key);
+      var v = el.value.trim();
+      if (f.kind === "int") {
+        if (v === "") { valid = false; return; }
+        var n = parseInt(v, 10);
+        if (isNaN(n) || n < 0) { valid = false; return; }
+        team[f.key] = n;
+      } else {
+        if (v.length === 0) { valid = false; return; }
+        team[f.key] = v;
+      }
+    });
+    return { team: team, valid: valid };
+  }
+
+  function updateSubmitState() {
+    var g = gatherTeam();
+    $("hyb-submit").disabled = !(g.valid && selectedMode !== null);
+  }
+
+  function handleSubmit() {
+    clearError();
+    var g = gatherTeam();
+    if (!g.valid) {
+      var v = $("hyb-validation");
+      v.textContent = "Fill in all six fields before generating.";
+      v.classList.add("visible");
+      return;
+    }
+    $("hyb-validation").classList.remove("visible");
+
+    var btn = $("hyb-submit");
+    btn.disabled = true;
+    btn.textContent = "Generating…";
+
+    window.mcp.callTool("how_you_build_generate", {
+      mode: selectedMode,
+      team: g.team,
+    })
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderConfirm(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Generate";
+      });
+  }
+
+  function renderConfirm(parsed) {
+    var def = MODES.find(function (m) { return m.slug === parsed.mode; });
+    $("hyb-mode-tag").textContent = def ? def.label : parsed.mode;
+    var out = $("hyb-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("hyb-narrate-hint-auto");
+    var staged = $("hyb-narrate-hint-staged");
+    var fallback = $("hyb-narrate-hint-fallback");
+
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just submitted team composition to How [You] Build Product in the embedded widget. " +
+        "Please call how_you_build_get_pending_narration to fetch my saved brief and render my parody."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    FIELDS.forEach(function (f) {
+      var el = $("hyb-field-" + f.key);
+      if (el) el.value = "";
+    });
+    $("hyb-output").classList.remove("visible");
+    $("hyb-validation").classList.remove("visible");
+    clearError();
+    updateSubmitState();
+  }
+
+  // Bootstrap.
+  window.mcp.callTool("how_you_build_get_modes", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.modes) || parsed.modes.length === 0) {
+        throw new Error("No modes returned");
+      }
+      MODES = parsed.modes;
+      FIELDS = parsed.fields;
+      buildForm();
+      buildModeButtons();
+      $("hyb-submit").addEventListener("click", handleSubmit);
+      $("hyb-reset-btn").addEventListener("click", handleReset);
+    })
+    .catch(function (err) {
+      $("hyb-form").style.display = "none";
+      showError("Could not load the modes: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

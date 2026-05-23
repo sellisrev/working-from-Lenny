@@ -543,3 +543,100 @@ export const PmifyGetPendingNarrationOutput = z.discriminatedUnion("status", [
     note: z.string(),
   }),
 ]);
+
+// ───────────────────────────────────────────────────────────
+// #52 How [You] Build Product schemas
+// ───────────────────────────────────────────────────────────
+
+export const HowYouBuildModeEnum = z.enum([
+  "reverence-profile",
+  "linkedin-humblebrag",
+  "acquired-cold-open",
+]);
+export type HowYouBuildMode = z.infer<typeof HowYouBuildModeEnum>;
+
+/** Structured team-composition inputs. Three counts + three short text fields. */
+export const HowYouBuildTeam = z.object({
+  pm_count: z.number().int().min(0).max(200),
+  eng_count: z.number().int().min(0).max(1000),
+  des_count: z.number().int().min(0).max(200),
+  tools: z.string().min(1).max(400).describe("Comma-separated tools the team uses, e.g. 'Notion, Linear, Slack'"),
+  rituals: z.string().min(1).max(400).describe("Comma-separated rituals, e.g. 'Mon/Wed/Fri standups, pinned roadmap, Friday demos'"),
+  last_shipped: z.string().min(1).max(400).describe("Short description of the last thing the team shipped."),
+});
+export type HowYouBuildTeamT = z.infer<typeof HowYouBuildTeam>;
+
+export const HowYouBuildGetModesInput = z.object({}).strict();
+
+export const HowYouBuildGetModesOutput = z.object({
+  modes: z.array(
+    z.object({
+      slug: HowYouBuildModeEnum,
+      label: z.string(),
+      length_hint: z.string(),
+      summary: z.string(),
+    }),
+  ).length(3),
+  fields: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.enum(["int", "text"]),
+      placeholder: z.string(),
+    }),
+  ).length(6),
+  note: z.string(),
+});
+
+export const HowYouBuildGenerateInput = z.object({
+  mode: HowYouBuildModeEnum,
+  team: HowYouBuildTeam,
+  user_context: z.string().default(""),
+});
+
+export const HowYouBuildGenerateOutput = z.object({
+  mode: HowYouBuildModeEnum,
+  team: HowYouBuildTeam,
+  persistence_warning: z.string().optional(),
+});
+
+export const HowYouBuildNarrateInput = z.object({
+  mode: HowYouBuildModeEnum,
+  team: HowYouBuildTeam,
+  user_context: z.string().default(""),
+});
+
+/** Path 4 narration brief. No corpus chunks — the parody is voice/structure work, not corpus citation. `corpus` is present (schema-required) but typically an empty record. */
+export const HowYouBuildNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    mode: HowYouBuildModeEnum,
+    team: HowYouBuildTeam,
+    /** Pre-assembled [INPUT] block matching the prompt.md template — saves the host model from re-formatting. */
+    input_block: z.string(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const HowYouBuildGetPendingNarrationInput = z.object({}).strict();
+
+export const HowYouBuildGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: HowYouBuildNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

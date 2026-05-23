@@ -101,6 +101,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "horoscope.html"),
     path.join(installRoot, "dist", "ui", "ladder.html"),
     path.join(installRoot, "dist", "ui", "pmify.html"),
+    path.join(installRoot, "dist", "ui", "how-you-build.html"),
     path.join(
       installRoot,
       "dist",
@@ -181,6 +182,14 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkPmifyChatSidePathPersists(client, dataDir);
     await checkPmifyPendingAfterTranslateReturnsBrief(client);
     await checkPmifyNarrateIsPureCompute(client, dataDir);
+    await checkHybListsTools(client);
+    await checkHybGetPendingDescription(client);
+    await checkHybIframeStagedMessage(installRoot);
+    await checkHybResource(client);
+    await checkHybGetModes(client);
+    await checkHybChatSidePathPersists(client, dataDir);
+    await checkHybPendingAfterGenerateReturnsBrief(client);
+    await checkHybNarrateIsPureCompute(client, dataDir);
   } finally {
     await client.close();
   }
@@ -210,7 +219,11 @@ async function checkListTools(client: Client): Promise<void> {
       "pmify_get_pending_narration",
       "pmify_narrate",
       "pmify_translate",
-    ];
+      "how_you_build_generate",
+      "how_you_build_get_modes",
+      "how_you_build_get_pending_narration",
+      "how_you_build_narrate",
+    ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
       "list_tools returns pm-pitfalls + pm-horoscope tools",
@@ -2159,6 +2172,393 @@ async function checkPmifyNarrateIsPureCompute(
     beforeContent === afterContent && beforeMtime === afterMtime;
   record(
     "pmify: narrate-pure-compute pending file untouched by narrate",
+    untouched,
+    untouched
+      ? undefined
+      : `mtime ${beforeMtime} → ${afterMtime}; content equal=${beforeContent === afterContent}`,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #52 How [You] Build Product smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkHybListsTools(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const entries = Object.fromEntries(
+      result.tools.map((t) => [
+        t.name,
+        t as { _meta?: { ui?: { resourceUri?: string } } },
+      ]),
+    );
+    const entryUri =
+      entries["how_you_build_get_modes"]?._meta?.ui?.resourceUri;
+    const expectedUri = "ui://working-from-lenny/how-you-build";
+    record(
+      "how-you-build: get_modes binds ui:// via _meta.ui.resourceUri",
+      entryUri === expectedUri,
+      entryUri === expectedUri ? undefined : `got ${String(entryUri)}`,
+    );
+    const internalToolsClean = [
+      "how_you_build_generate",
+      "how_you_build_narrate",
+      "how_you_build_get_pending_narration",
+    ].filter((n) => entries[n]?._meta?.ui?.resourceUri !== undefined);
+    record(
+      "how-you-build: internal tools do NOT declare ui binding",
+      internalToolsClean.length === 0,
+      internalToolsClean.length === 0
+        ? undefined
+        : `unexpected binding on: ${internalToolsClean.join(", ")}`,
+    );
+  } catch (err) {
+    record("how-you-build: list_tools binding", false, (err as Error).message);
+  }
+}
+
+async function checkHybGetPendingDescription(client: Client): Promise<void> {
+  try {
+    const result = await client.listTools();
+    const tool = result.tools.find(
+      (t) => t.name === "how_you_build_get_pending_narration",
+    );
+    if (!tool) {
+      record(
+        "how-you-build: get_pending description tool exists",
+        false,
+        "tool missing",
+      );
+      return;
+    }
+    const desc = tool.description ?? "";
+    const lower = desc.toLowerCase();
+    const checks: { name: string; pass: boolean }[] = [
+      { name: "must-call directive", pass: lower.includes("must call") },
+      { name: "covers 'render my profile'", pass: lower.includes("render my profile") },
+      {
+        name: "forbids 'you haven't submitted'",
+        pass: lower.includes("haven't submitted"),
+      },
+      { name: "states submission lives on disk", pass: lower.includes("on disk") },
+      { name: "mentions embedded widget", pass: lower.includes("embedded widget") },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "how-you-build: get_pending description forbids short-circuit failure mode",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "how-you-build: get_pending description guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkHybIframeStagedMessage(installRoot: string): Promise<void> {
+  try {
+    const distHtml = path.join(installRoot, "dist", "ui", "how-you-build.html");
+    const body = await fs.readFile(distHtml, "utf8");
+    const checks: { name: string; pass: boolean }[] = [
+      {
+        name: "message states submission",
+        pass: body.includes("I just submitted team composition to How [You] Build Product"),
+      },
+      {
+        name: "message names the tool explicitly",
+        pass: body.includes("how_you_build_get_pending_narration"),
+      },
+    ];
+    const failures = checks.filter((c) => !c.pass).map((c) => c.name);
+    record(
+      "how-you-build: iframe staged message names submission + tool explicitly",
+      failures.length === 0,
+      failures.length === 0 ? undefined : `missing: ${failures.join(", ")}`,
+    );
+  } catch (err) {
+    record(
+      "how-you-build: iframe staged message guard",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkHybResource(client: Client): Promise<void> {
+  try {
+    const list = await client.listResources();
+    const uri = "ui://working-from-lenny/how-you-build";
+    const found = list.resources.find((r) => r.uri === uri);
+    if (!found) {
+      record(
+        "how-you-build: list_resources includes how-you-build UI",
+        false,
+        `uris: ${list.resources.map((r) => r.uri).join(", ")}`,
+      );
+      return;
+    }
+    const read = await client.readResource({ uri });
+    const first = read.contents[0];
+    const text = first && "text" in first ? first.text : undefined;
+    const ok =
+      first?.mimeType === "text/html;profile=mcp-app" &&
+      typeof text === "string" &&
+      text.includes("window.mcp") &&
+      !text.includes("<!-- include:");
+    record(
+      "how-you-build: read_resource returns inlined HTML with window.mcp",
+      ok,
+      ok ? undefined : `mime=${first?.mimeType} len=${text?.length ?? 0}`,
+    );
+  } catch (err) {
+    record("how-you-build: read_resource", false, (err as Error).message);
+  }
+}
+
+async function checkHybGetModes(client: Client): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "how_you_build_get_modes",
+      arguments: {},
+    });
+    if (result.isError) {
+      record("how-you-build: call get_modes", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const expectedSlugs = "reverence-profile,linkedin-humblebrag,acquired-cold-open";
+    const ok =
+      Array.isArray(parsed.modes) &&
+      parsed.modes.length === 3 &&
+      parsed.modes.map((m: { slug: string }) => m.slug).join(",") === expectedSlugs &&
+      Array.isArray(parsed.fields) &&
+      parsed.fields.length === 6;
+    record(
+      "how-you-build: get_modes returns 3 modes + 6 fields",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record("how-you-build: call get_modes", false, (err as Error).message);
+  }
+}
+
+async function checkHybChatSidePathPersists(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  // Step 1: get_pending BEFORE any submission.
+  try {
+    const result = await client.callTool({
+      name: "how_you_build_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "how-you-build: get_pending before submission returns no error",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    record(
+      "how-you-build: get_pending before submission returns status=no_pending",
+      parsed.status === "no_pending" && typeof parsed.note === "string",
+      JSON.stringify(parsed).slice(0, 200),
+    );
+  } catch (err) {
+    record(
+      "how-you-build: get_pending before submission",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  // Step 2: generate persists brief.
+  try {
+    const result = await client.callTool({
+      name: "how_you_build_generate",
+      arguments: {
+        mode: "reverence-profile",
+        team: {
+          pm_count: 3,
+          eng_count: 9,
+          des_count: 2,
+          tools: "Notion, Linear, Slack",
+          rituals: "Mon/Wed/Fri standups, pinned roadmap, Friday demos",
+          last_shipped: "the new onboarding flow last quarter",
+        },
+      },
+    });
+    if (result.isError) {
+      record("how-you-build: generate call", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.mode === "reverence-profile" &&
+      parsed.team?.pm_count === 3 &&
+      parsed.persistence_warning === undefined;
+    record(
+      "how-you-build: generate returns valid result with NO persistence_warning",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record("how-you-build: generate invocation", false, (err as Error).message);
+    return;
+  }
+
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "how-you-build-pending.json",
+  );
+  const exists = fsSync.existsSync(expectedFile);
+  record(
+    "how-you-build: generate wrote pending file to expected path",
+    exists,
+    exists ? expectedFile : `missing: ${expectedFile}`,
+  );
+
+  if (exists) {
+    try {
+      const raw = await fs.readFile(expectedFile, "utf8");
+      const file = JSON.parse(raw);
+      const briefOk =
+        file?.data?.brief?.type === "narration_brief" &&
+        file?.data?.brief?.inputs?.mode === "reverence-profile" &&
+        typeof file?.data?.brief?.inputs?.input_block === "string" &&
+        file.data.brief.inputs.input_block.includes("Team composition: 3 PMs, 9 engineers, 2 designers");
+      record(
+        "how-you-build: pending file contains a valid brief with assembled [INPUT] block",
+        briefOk,
+        briefOk ? undefined : JSON.stringify(file).slice(0, 300),
+      );
+    } catch (err) {
+      record(
+        "how-you-build: pending file parses",
+        false,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+async function checkHybPendingAfterGenerateReturnsBrief(
+  client: Client,
+): Promise<void> {
+  try {
+    const result = await client.callTool({
+      name: "how_you_build_get_pending_narration",
+      arguments: {},
+    });
+    if (result.isError) {
+      record(
+        "how-you-build: user-types-narrate get_pending returns ready",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const ok =
+      parsed.status === "ready" &&
+      typeof parsed.saved_at === "string" &&
+      parsed.brief?.type === "narration_brief" &&
+      parsed.brief?.inputs?.mode === "reverence-profile" &&
+      typeof parsed.brief?.inputs?.input_block === "string" &&
+      typeof parsed.brief?.corpus === "object";
+    record(
+      "how-you-build: user-types-narrate get_pending returns brief after generate",
+      ok,
+      ok ? undefined : JSON.stringify(parsed).slice(0, 400),
+    );
+  } catch (err) {
+    record(
+      "how-you-build: user-types-narrate get_pending after generate",
+      false,
+      (err as Error).message,
+    );
+  }
+}
+
+async function checkHybNarrateIsPureCompute(
+  client: Client,
+  dataDir: string,
+): Promise<void> {
+  const expectedFile = path.join(
+    dataDir,
+    "_pending",
+    "how-you-build-pending.json",
+  );
+  let beforeContent: string;
+  try {
+    beforeContent = await fs.readFile(expectedFile, "utf8");
+  } catch (err) {
+    record(
+      "how-you-build: narrate-pure-compute pre-read pending file",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+  const beforeMtime = (await fs.stat(expectedFile)).mtimeMs;
+
+  try {
+    const result = await client.callTool({
+      name: "how_you_build_narrate",
+      arguments: {
+        mode: "linkedin-humblebrag",
+        team: {
+          pm_count: 1,
+          eng_count: 4,
+          des_count: 1,
+          tools: "Linear, GitHub, Figma",
+          rituals: "Tuesday demos, async standups",
+          last_shipped: "the v2 dashboard redesign",
+        },
+      },
+    });
+    if (result.isError) {
+      record(
+        "how-you-build: narrate-pure-compute returns brief",
+        false,
+        contentText(result),
+      );
+      return;
+    }
+    const parsed = JSON.parse(contentText(result));
+    const briefOk =
+      parsed.type === "narration_brief" &&
+      parsed.inputs?.mode === "linkedin-humblebrag" &&
+      parsed.inputs?.team?.pm_count === 1 &&
+      typeof parsed.inputs?.input_block === "string";
+    record(
+      "how-you-build: narrate-pure-compute returns brief for arbitrary mode + team",
+      briefOk,
+      briefOk ? undefined : JSON.stringify(parsed).slice(0, 300),
+    );
+  } catch (err) {
+    record(
+      "how-you-build: narrate-pure-compute invocation",
+      false,
+      (err as Error).message,
+    );
+    return;
+  }
+
+  const afterContent = await fs.readFile(expectedFile, "utf8");
+  const afterMtime = (await fs.stat(expectedFile)).mtimeMs;
+  const untouched =
+    beforeContent === afterContent && beforeMtime === afterMtime;
+  record(
+    "how-you-build: narrate-pure-compute pending file untouched by narrate",
     untouched,
     untouched
       ? undefined

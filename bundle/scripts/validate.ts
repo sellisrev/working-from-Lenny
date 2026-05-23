@@ -40,6 +40,15 @@ import {
   MODES as PMIFY_MODES,
   PATTERN_POOL as PMIFY_PATTERN_POOL,
 } from "../src/tools/51-pmify-inbox/data";
+import * as hybGetModes from "../src/tools/52-how-you-build/get-modes";
+import * as hybGenerate from "../src/tools/52-how-you-build/generate";
+import * as hybNarrate from "../src/tools/52-how-you-build/narrate";
+import * as hybGetPending from "../src/tools/52-how-you-build/get-pending";
+import {
+  MODES as HYB_MODES,
+  FIELDS as HYB_FIELDS,
+  assembleInputBlock as hybAssembleInputBlock,
+} from "../src/tools/52-how-you-build/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -69,6 +78,7 @@ async function main(): Promise<void> {
   await checkHoroscopeData();
   await checkLadderData();
   await checkPmifyData();
+  await checkHowYouBuildData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -153,6 +163,10 @@ async function checkSchemas(): Promise<void> {
     pmifyTranslate,
     pmifyNarrate,
     pmifyGetPending,
+    hybGetModes,
+    hybGenerate,
+    hybNarrate,
+    hybGetPending,
   ];
   for (const t of tools) {
     try {
@@ -288,7 +302,7 @@ async function checkDriftGoldens(): Promise<void> {
 }
 
 async function checkUiBuild(): Promise<void> {
-  for (const slug of ["pitfalls", "horoscope", "ladder", "pmify"]) {
+  for (const slug of ["pitfalls", "horoscope", "ladder", "pmify", "how-you-build"]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
       record(
@@ -638,6 +652,129 @@ async function checkPmifyData(): Promise<void> {
     );
   } catch (err) {
     record("pmify: translate happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #52 How [You] Build Product shape guards. Three modes, six structured input
+ * fields (3 int + 3 text), schema-level input validation, [INPUT] block
+ * assembly matches the prompt.md format, and the happy-path generate runs
+ * end-to-end.
+ */
+async function checkHowYouBuildData(): Promise<void> {
+  const shapeOk =
+    HYB_MODES.length === 3 &&
+    HYB_MODES.map((m) => m.slug).join(",") ===
+      "reverence-profile,linkedin-humblebrag,acquired-cold-open";
+  record("how-you-build: 3 modes (reverence-profile, linkedin-humblebrag, acquired-cold-open)", shapeOk);
+
+  const fieldsOk =
+    HYB_FIELDS.length === 6 &&
+    HYB_FIELDS.filter((f) => f.kind === "int").length === 3 &&
+    HYB_FIELDS.filter((f) => f.kind === "text").length === 3;
+  record("how-you-build: 6 structured input fields (3 int + 3 text)", fieldsOk);
+
+  // [INPUT] block assembly must match the prompt.md template line-for-line.
+  const expectedBlock = [
+    "Team composition: 3 PMs, 9 engineers, 2 designers",
+    "Tools used: Notion, Linear, Slack",
+    "Rituals: Mon/Wed/Fri standups, pinned roadmap, Friday demos",
+    "Last shipped: the new onboarding flow last quarter",
+  ].join("\n");
+  const actualBlock = hybAssembleInputBlock({
+    pm_count: 3,
+    eng_count: 9,
+    des_count: 2,
+    tools: "Notion, Linear, Slack",
+    rituals: "Mon/Wed/Fri standups, pinned roadmap, Friday demos",
+    last_shipped: "the new onboarding flow last quarter",
+  });
+  record(
+    "how-you-build: assembleInputBlock matches prompt.md template line-for-line",
+    actualBlock === expectedBlock,
+    actualBlock === expectedBlock
+      ? undefined
+      : `got:\n${actualBlock}\nwant:\n${expectedBlock}`,
+  );
+
+  // Schema rejects missing fields.
+  const missingField = hybGenerate.meta.inputSchema.safeParse({
+    mode: "reverence-profile",
+    team: {
+      pm_count: 3,
+      eng_count: 9,
+      des_count: 2,
+      tools: "Notion, Linear, Slack",
+      rituals: "Mon/Wed/Fri standups, pinned roadmap, Friday demos",
+      // last_shipped missing
+    },
+  });
+  record(
+    "how-you-build: generate inputSchema rejects missing required team field",
+    !missingField.success,
+  );
+
+  const badMode = hybGenerate.meta.inputSchema.safeParse({
+    mode: "invalid-mode",
+    team: {
+      pm_count: 3,
+      eng_count: 9,
+      des_count: 2,
+      tools: "Notion",
+      rituals: "standups",
+      last_shipped: "the onboarding flow",
+    },
+  });
+  record(
+    "how-you-build: generate inputSchema rejects unknown mode",
+    !badMode.success,
+  );
+
+  const negativeCount = hybGenerate.meta.inputSchema.safeParse({
+    mode: "reverence-profile",
+    team: {
+      pm_count: -1,
+      eng_count: 9,
+      des_count: 2,
+      tools: "Notion",
+      rituals: "standups",
+      last_shipped: "the onboarding flow",
+    },
+  });
+  record(
+    "how-you-build: generate inputSchema rejects negative count",
+    !negativeCount.success,
+  );
+
+  // Happy path: well-formed input runs through generate end-to-end.
+  try {
+    const okResult = (await hybGenerate.invoke({
+      mode: "acquired-cold-open",
+      team: {
+        pm_count: 3,
+        eng_count: 9,
+        des_count: 2,
+        tools: "Notion, Linear, Slack",
+        rituals: "Mon/Wed/Fri standups, pinned roadmap, Friday demos",
+        last_shipped: "the new onboarding flow last quarter",
+      },
+      user_context: "",
+    } as never)) as {
+      mode: string;
+      team: { pm_count: number };
+      persistence_warning?: string;
+    };
+    const okOk =
+      okResult.mode === "acquired-cold-open" &&
+      okResult.team.pm_count === 3 &&
+      okResult.persistence_warning === undefined;
+    record(
+      "how-you-build: generate happy path returns valid result + persists brief",
+      okOk,
+      okOk ? undefined : JSON.stringify(okResult).slice(0, 200),
+    );
+  } catch (err) {
+    record("how-you-build: generate happy path", false, (err as Error).message);
   }
 }
 

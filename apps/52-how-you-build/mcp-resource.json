@@ -2,97 +2,183 @@
   "resource": {
     "uri": "ui://working-from-lenny/how-you-build",
     "name": "How [You] Build Product",
-    "description": "Parody generator for the breathless-reverence-profile genre. Paste a small team's setup, get back the full Series-B-unicorn treatment.",
-    "mimeType": "text/html"
+    "description": "Parody generator for the breathless-reverence-profile genre. Six structured-input fields (PM/eng/designer counts + tools + rituals + last_shipped) plus three modes: reverence-profile, linkedin-humblebrag, acquired-cold-open.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
-      "name": "how_you_build_generate",
-      "description": "Generates the parody profile for a team's pasted setup. Returns six sections: pull quote, profile narrative, architecture diagram, origin story, rituals, closing-line lesson.",
+      "name": "how_you_build_get_modes",
+      "description": "Entry tool for How [You] Build Product. Calling this triggers the host to mount the ui://working-from-lenny/how-you-build resource (an interactive iframe with three number inputs, three text inputs, and a 3-mode picker). If your host mounts the UI, that IS the input surface — do NOT additionally render the input form in chat as a duplicate surface; the user will fill in the team-composition fields and pick a mode in the iframe, which calls how_you_build_generate directly. The returned `modes` array is provided only as a fallback for hosts that cannot mount ui:// resources. There are three modes: 'reverence-profile' (600-900 word breathless-reverence parody of the team), 'linkedin-humblebrag' (100-150 word founder post celebrating a banal artifact), 'acquired-cold-open' (80-120 word podcast-style narrative cold open). If the user already has team composition in hand and tells you which mode to use, call how_you_build_generate directly.",
       "inputSchema": {
         "type": "object",
-        "properties": {
-          "team_description": {
-            "type": "string",
-            "minLength": 20,
-            "maxLength": 2000,
-            "description": "Free-text description of the team: size, tools, meetings, decision flow."
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "profile",
-              "twitter-thread",
-              "podcast-cold-open"
-            ],
-            "default": "profile",
-            "description": "Output format. Profile is the default reverence write-up; twitter-thread reformats as 47 numbered bullets; podcast-cold-open returns a 90-second intro."
-          }
-        },
-        "required": [
-          "team_description"
-        ]
+        "properties": {},
+        "additionalProperties": false
       },
       "outputSchema": {
         "type": "object",
         "properties": {
-          "pull_quote": {
-            "type": "string"
-          },
-          "profile_narrative": {
-            "type": "string"
-          },
-          "architecture_diagram": {
-            "type": "string",
-            "description": "ASCII/Unicode diagram."
-          },
-          "origin_story": {
-            "type": "string"
-          },
-          "rituals": {
+          "modes": {
             "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
             "items": {
-              "type": "string"
-            },
-            "minItems": 4,
-            "maxItems": 6
+              "type": "object",
+              "properties": {
+                "slug": {
+                  "type": "string",
+                  "enum": ["reverence-profile", "linkedin-humblebrag", "acquired-cold-open"]
+                },
+                "label": { "type": "string" },
+                "length_hint": { "type": "string" },
+                "summary": { "type": "string" }
+              }
+            }
           },
-          "closing_lesson": {
-            "type": "string"
+          "fields": {
+            "type": "array",
+            "minItems": 6,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": { "type": "string" },
+                "label": { "type": "string" },
+                "kind": { "type": "string", "enum": ["int", "text"] },
+                "placeholder": { "type": "string" }
+              }
+            }
           },
-          "mode_alt_output": {
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://working-from-lenny/how-you-build"
+        }
+      }
+    },
+    {
+      "name": "how_you_build_generate",
+      "description": "Takes a team composition (PM/engineer/designer counts + tools + rituals + last shipped) and a mode (reverence-profile / linkedin-humblebrag / acquired-cold-open) and prepares the parody narration brief. The deterministic side validates input, assembles the [INPUT] block exactly as apps/52-how-you-build/prompt.md specifies, and packages the mode-specific directive + voice rules; the parody output itself comes from the host chat model. AFTER receiving this result, call how_you_build_get_pending_narration to fetch the brief and render it for the user following its `directive` and `voice_rules`. Do not render the parody on your own without the brief — the brief carries the genre-specific voice rules (length cap, tone constraints, no-AI-tells list) the output depends on. If the returned `persistence_warning` field is set, the brief could not be persisted — surface the warning and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
             "type": "string",
-            "description": "Populated only when mode is twitter-thread or podcast-cold-open; replaces the structured fields with the alt format."
+            "enum": ["reverence-profile", "linkedin-humblebrag", "acquired-cold-open"]
+          },
+          "team": {
+            "type": "object",
+            "properties": {
+              "pm_count": { "type": "integer", "minimum": 0, "maximum": 200 },
+              "eng_count": { "type": "integer", "minimum": 0, "maximum": 1000 },
+              "des_count": { "type": "integer", "minimum": 0, "maximum": 200 },
+              "tools": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "rituals": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "last_shipped": { "type": "string", "minLength": 1, "maxLength": 400 }
+            },
+            "required": ["pm_count", "eng_count", "des_count", "tools", "rituals", "last_shipped"]
+          },
+          "user_context": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required": ["mode", "team"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["reverence-profile", "linkedin-humblebrag", "acquired-cold-open"]
+          },
+          "team": { "type": "object" },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when generate's persistence side-effect failed. Presence indicates how_you_build_get_pending_narration will return no_pending and the host should surface the message, recommending re-submission."
           }
         }
       }
     },
     {
-      "name": "how_you_build_save",
-      "description": "MCP-only (stateful). Saves a team profile for later iteration. Stores profile inputs locally across runs.",
+      "name": "how_you_build_narrate",
+      "description": "Packages a corpus-free parody narration brief for the supplied team composition + mode. Returns voice rules, structure, the team inputs + pre-assembled [INPUT] block, and an empty corpus map (the parody is voice/structure work, not corpus-grounded). The host chat model renders the user-facing parody from this brief. Pure compute — no persistence side-effect. PREFER how_you_build_get_pending_narration after a how_you_build_generate call (returns the brief generate already saved). Only call this tool directly if you need a brief without round-tripping through disk.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "string"
+          "mode": {
+            "type": "string",
+            "enum": ["reverence-profile", "linkedin-humblebrag", "acquired-cold-open"]
           },
-          "label": {
-            "type": "string"
+          "team": {
+            "type": "object",
+            "properties": {
+              "pm_count": { "type": "integer", "minimum": 0, "maximum": 200 },
+              "eng_count": { "type": "integer", "minimum": 0, "maximum": 1000 },
+              "des_count": { "type": "integer", "minimum": 0, "maximum": 200 },
+              "tools": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "rituals": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "last_shipped": { "type": "string", "minLength": 1, "maxLength": 400 }
+            },
+            "required": ["pm_count", "eng_count", "des_count", "tools", "rituals", "last_shipped"]
           },
-          "team_description": {
-            "type": "string"
-          }
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "user_id",
-          "team_description"
-        ]
+        "required": ["mode", "team"]
       },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": { "type": "object" },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Empty map by design — this app is voice/structure work, not corpus citation. Host model should rely on the structural template + voice rules."
+          }
+        }
+      }
+    },
+    {
+      "name": "how_you_build_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their How [You] Build Product output, 'render my profile', 'show me the reverence profile', 'show me the LinkedIn post', 'show me the cold open', or any follow-up to a submission just made — including any phrasing like 'generate it', 'write the parody', 'I just filled in the team form', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' or 'fill in the form first' without calling this tool first: the submission state lives on disk (persisted by how_you_build_generate on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent how_you_build_generate call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/how-you-build resource to fill in the team form, or to call how_you_build_generate directly with team + mode in hand.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
       }
     }
   ],
@@ -102,29 +188,28 @@
     "preferredHeight": 880
   },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #52 How [You] Build Product. Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #52 How [You] Build Product. Phase 2 .mcpb bundle target. Rewritten from the pre-Path-4 two-tool draft (how_you_build_generate + how_you_build_save) to the Path 4 four-tool shape that mirrors #51 PM-ify: entry (get_modes) → generate (persists brief) → narrate (pure compute) → get_pending_narration (MUST CALL). how_you_build_save (stateful per-user team profile) is deferred to a follow-up, matching how drift was deferred for #3 and pmify_history for #51. Mode enum names updated from the pre-Phase-2 placeholders (profile / twitter-thread / podcast-cold-open) to the prompt.md names (reverence-profile / linkedin-humblebrag / acquired-cold-open) — the placeholders were drafted before the modes were finalized in apps/52-how-you-build/prompt.md on 2026-05-13. Tool descriptions verbatim-match the runtime `meta.description` strings in bundle/src/tools/52-how-you-build/.",
     "dev.workingfromlenny.app": {
       "id": 52,
       "name": "How [You] Build Product",
       "phase": 2,
-      "type": "paste-and-critique"
+      "type": "structured-input + LLM-generated parody (multi-mode)"
     },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
-      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
+      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The deterministic engine has nothing to compute — the prompt itself is the product. The brief carries the structured team inputs + pre-assembled [INPUT] block + mode-specific directive + voice rules; the host chat model renders the parody. Corpus map is intentionally empty: this app is voice/structure work, not corpus-citation work.",
+      "worked_example": "bundle/src/tools/52-how-you-build/narrate.ts and bundle/src/lib/build-how-you-build-brief.ts. Mirrors bundle/src/tools/51-pmify-inbox/narrate.ts.",
       "narration_tools": [
-        "how_you_build_generate"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
+        "how_you_build_narrate"
+      ]
     },
     "dev.workingfromlenny.open_questions": [
-      "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better.",
-      "Decide whether the twitter-thread and podcast-cold-open modes ship in Phase 2 or get deferred."
+      "Decide whether to add how_you_build_save in a follow-up. Mirrors pm_pitfalls_drift / pmify_history (stateful per-user log of saved team profiles for re-running across modes). Defer until owner traffic signal justifies the per-user-history surface.",
+      "Confirm structured multi-section output is acceptable in MCP outputSchema, or whether the host renders a single markdown blob better."
     ],
     "dev.workingfromlenny.proposed_answers": [
-      "Structured multi-section output is acceptable. Hosts can render each section in order, highlight the pull-quote separately, or collapse secondary sections. A single markdown blob is simpler but throws away structure the host cannot recover. Recommend keeping the structured form and offering a mode parameter option (e.g., mode: 'markdown') that flattens all sections to a single string for hosts that prefer it. Do not change the outputSchema; add the flatten path in the narration layer.",
-      "Defer both alt modes to Phase 3. The profile output is the core value; twitter-thread and podcast-cold-open add surface area without adding PM-utility that validates the tool concept. Ship the MCP bundle with profile-only, confirm the output works well in the host, then add modes in a follow-on update. The mode enum can stay in the inputSchema now so the contract is established; unsupported modes fall through to the profile default. Note: mode_alt_output was renamed from _mode_alt_output — underscore-prefixed top-level property names are not safe in JSON Schema output."
+      "Defer how_you_build_save to a follow-up. The four-tool Path 4 shape is the cloned worked example; save is the +1 stateful surface that mirrors drift on #44.",
+      "Structured multi-section output is acceptable. Path 4 hands the host model a brief with sections + per_section_template; the model assembles the user-facing prose under its rendering. The previous concern about single-blob-vs-structured no longer applies because Path 4 doesn't return structured prose from the tool — only the brief + voice rules. The host's flexibility on formatting belongs in the rendering step, not the tool output."
     ],
     "dev.workingfromlenny.spec_validation": {
       "validated_on": "2026-05-18",
@@ -135,9 +220,8 @@
       ],
       "notes": [
         "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys.",
-        "Renamed outputSchema property _mode_alt_output → mode_alt_output: underscore prefix is the _meta convention, not a property-name convention."
+        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook. The how-you-build tools are read-only from the host's per-user perspective (overwrite-on-each-submission cache file, no per-user history), so they keep readOnlyHint at the default true.",
+        "Canonical UI-bundle MIME is text/html;profile=mcp-app per the spec's mimeTypes negotiation."
       ]
     }
   }

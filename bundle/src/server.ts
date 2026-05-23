@@ -39,6 +39,12 @@ import * as pmifyNarrate from "./tools/51-pmify-inbox/narrate";
 import * as pmifyGetPending from "./tools/51-pmify-inbox/get-pending";
 import { cleanupOrphanedTmp as cleanupPmifyTmp } from "./tools/51-pmify-inbox/pending";
 
+import * as hybGetModes from "./tools/52-how-you-build/get-modes";
+import * as hybGenerate from "./tools/52-how-you-build/generate";
+import * as hybNarrate from "./tools/52-how-you-build/narrate";
+import * as hybGetPending from "./tools/52-how-you-build/get-pending";
+import { cleanupOrphanedTmp as cleanupHybTmp } from "./tools/52-how-you-build/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -72,6 +78,10 @@ const TOOLS: RegisteredTool[] = [
   pmifyTranslate as unknown as RegisteredTool,
   pmifyNarrate as unknown as RegisteredTool,
   pmifyGetPending as unknown as RegisteredTool,
+  hybGetModes as unknown as RegisteredTool,
+  hybGenerate as unknown as RegisteredTool,
+  hybNarrate as unknown as RegisteredTool,
+  hybGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -106,6 +116,14 @@ const RESOURCES: ResourceEntry[] = [
       "Translates messages between plain English and corporate-PM-speak. Mode picker (pm-ify vs de-pm-ify) + textarea; the host chat model renders the translation + 2-4 deadpan footnotes citing the bad-PM patterns each translation triggers.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "pmify.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/how-you-build",
+    name: "How [You] Build Product",
+    description:
+      "Parody generator for the breathless-reverence-profile genre. Six structured-input fields (PM/eng/designer counts + tools + rituals + last_shipped) plus three modes: reverence-profile, linkedin-humblebrag, acquired-cold-open.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "how-you-build.html"),
   },
 ];
 
@@ -168,6 +186,11 @@ async function main(): Promise<void> {
     await cleanupPmifyTmp();
   } catch (err) {
     logErr("cleanup-tmp pmify failed (non-fatal)", err);
+  }
+  try {
+    await cleanupHybTmp();
+  } catch (err) {
+    logErr("cleanup-tmp how-you-build failed (non-fatal)", err);
   }
 
   const server = new Server(

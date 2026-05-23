@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -99,6 +99,22 @@
     {
       "name": "pmify_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their PM-ify translation, 'render my translation', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted anything' without calling this tool first; the submission state lives on disk, not in chat history."
+    },
+    {
+      "name": "how_you_build_get_modes",
+      "description": "Returns the three How [You] Build Product parody modes (reverence-profile, linkedin-humblebrag, acquired-cold-open) plus the six structured input fields, and triggers the host to mount the ui://working-from-lenny/how-you-build iframe."
+    },
+    {
+      "name": "how_you_build_generate",
+      "description": "Takes a team composition (PM/eng/designer counts + tools + rituals + last_shipped) and a mode, validates input, assembles the [INPUT] block per prompt.md, and persists the parody narration brief. AFTER calling generate, render the parody by calling how_you_build_get_pending_narration."
+    },
+    {
+      "name": "how_you_build_narrate",
+      "description": "Packages a parody narration brief from team composition + mode. Pure compute — no persistence. Call how_you_build_get_pending_narration to retrieve the brief generate already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "how_you_build_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their How [You] Build Product output, 'render the profile', 'show me the LinkedIn post', 'show me the cold open', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted anything' without calling this tool first; the submission state lives on disk, not in chat history."
     }
   ],
   "prompts_generated": false,
