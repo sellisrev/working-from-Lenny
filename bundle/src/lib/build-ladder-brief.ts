@@ -22,6 +22,7 @@ const VOICE_RULES = [
   "Be direct. No corporate softening. Owner-of-the-tool voice: a candid coach who has seen this pattern before.",
   "No em dashes. No 'delve', 'leverage', 'unpack', 'navigate', 'unlock', or 'in today's fast-paced'.",
   "No level-name worship. Use the level numbers and titles when useful; do not rhapsodize about being 'Senior PM' or 'Staff PM'.",
+  "Conditional opener. Use the voice catalog's #3 pattern: 'If you scored X, Y.' — e.g., 'If you scored Principal, the rubric was easier than the job.' The summary section should land on something the score itself implies, not a generic preamble.",
   "Ground each behavior in the supplied corpus chunks. Do not invent corpus material or framework names.",
   "Address the user in second person.",
 ];
@@ -34,7 +35,8 @@ const PER_SECTION_TEMPLATE = [
 
 const DIRECTIVE_GROUNDED = [
   "Render a PM-ladder gap report directly to the user.",
-  "Open with the one-paragraph summary per the per_section_template. Lead with the strongest dimension and the widest gap.",
+  "Open with the one-paragraph summary per the per_section_template, leading with the voice catalog's conditional hook — see #3 entry: 'If you scored Principal, the rubric was easier than the job.' Build the opener off the user's actual effective_level + widest_gap_dimension; do not use the literal Principal line unless it fits.",
+  "Lead the summary with the strongest dimension and the widest gap.",
   "Then write three behaviors to start practicing this quarter that close the widest gap. Each behavior is one paragraph: what to do, why it matters at the target level, what the dropoff looks like if skipped. Anchor each in a specific corpus chunk from inputs.corpus.",
   "Close with one sentence on the dimensions already at or above target.",
   "When you cite specific behavior of the user, ground it in inputs.full_assessment (their actual answer level per question). Do not invent answers the user did not give.",
@@ -43,7 +45,8 @@ const DIRECTIVE_GROUNDED = [
 
 const DIRECTIVE_UNGROUNDED = [
   "Render a PM-ladder gap report directly to the user.",
-  "Open with the one-paragraph summary per the per_section_template. Lead with the strongest dimension and the widest gap.",
+  "Open with the one-paragraph summary per the per_section_template, leading with the voice catalog's conditional hook — see #3 entry: 'If you scored Principal, the rubric was easier than the job.' Build the opener off the user's actual effective_level + widest_gap_dimension; do not use the literal Principal line unless it fits.",
+  "Lead the summary with the strongest dimension and the widest gap.",
   "Then write three behaviors to start practicing this quarter that close the widest gap. Each behavior is one paragraph: what to do, why it matters at the target level, what the dropoff looks like if skipped. Anchor each in a specific corpus chunk from inputs.corpus.",
   "Close with one sentence on the dimensions already at or above target.",
   "The user's per-question answers were not passed through. Do NOT claim specific user answers (no phrases like 'on Q14 you said X'). Keep behavioral diagnoses general to the dimension levels.",
