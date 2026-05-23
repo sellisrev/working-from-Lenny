@@ -108,6 +108,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "nsm-finder.html"),
     path.join(installRoot, "dist", "ui", "okr-critique.html"),
     path.join(installRoot, "dist", "ui", "mvs-alignment.html"),
+    path.join(installRoot, "dist", "ui", "activation-finder.html"),
     path.join(
       installRoot,
       "dist",
@@ -202,6 +203,7 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkNsmChain(client, dataDir);
     await checkOkrChain(client, dataDir);
     await checkMvsChain(client, dataDir);
+    await checkActivationChain(client, dataDir);
   } finally {
     await client.close();
   }
@@ -259,6 +261,10 @@ async function checkListTools(client: Client): Promise<void> {
       "mvs_alignment_run",
       "mvs_alignment_narrate",
       "mvs_alignment_get_pending_narration",
+      "activation_finder_get_form",
+      "activation_finder_run",
+      "activation_finder_narrate",
+      "activation_finder_get_pending_narration",
     ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
@@ -3100,6 +3106,117 @@ async function checkMvsChain(client: Client, dataDir: string): Promise<void> {
   const afterMtime = (await fs.stat(file)).mtimeMs;
   record(
     "mvs: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #37 Activation Metric Finder smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkActivationChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "activation: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["activation_finder_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/activation-finder",
+  );
+  const desc = list.tools.find((t) => t.name === "activation_finder_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "activation", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("activation: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/activation-finder" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "activation: iframe staged ui/message names submission + tool",
+    text.includes("I just submitted the Activation Metric Finder wizard in the embedded widget") &&
+      text.includes("activation_finder_get_pending_narration"),
+  );
+
+  // get_form smoke: 9 fields + 6 families
+  const form = JSON.parse(contentText(await client.callTool({ name: "activation_finder_get_form", arguments: {} })));
+  record(
+    "activation: get_form returns 9 fields + 6 activation_families",
+    Array.isArray(form.fields) && form.fields.length === 9 && Array.isArray(form.activation_families) && form.activation_families.length === 6,
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "activation_finder_get_pending_narration", arguments: {} })));
+  record("activation: get_pending pre-run → no_pending", before.status === "no_pending");
+
+  const runResult = JSON.parse(contentText(await client.callTool({
+    name: "activation_finder_run",
+    arguments: {
+      inputs: {
+        business_shape: "marketplace",
+        marketplace_side: "supply",
+        primary_value_action: "posting a listing that gets matched",
+        monetization: ["consumption-based"],
+        stage: "scaling",
+        aha_moment_guess: "first listing matched within 48 hours",
+        funnel_paste: "Sign-up\nProfile complete\nFirst listing posted\nFirst match\nFirst payout",
+      },
+    },
+  })));
+  record(
+    "activation: run returns supply-side family + has_funnel=true + ai_product_flagged=false",
+    runResult.activation_family === "First listing posted that gets matched" &&
+      runResult.has_funnel === true &&
+      runResult.ai_product_flagged === false &&
+      runResult.persistence_warning === undefined,
+    JSON.stringify(runResult).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "activation-metric-finder-pending.json");
+  record("activation: run wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "activation_finder_get_pending_narration", arguments: {} })));
+  record(
+    "activation: get_pending after run returns brief with normalized funnel_lines",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.activation_family === "First listing posted that gets matched" &&
+      Array.isArray(after.brief?.inputs?.funnel_lines) &&
+      after.brief.inputs.funnel_lines.length === 5,
+  );
+
+  // AI-product flag fires on second run
+  const aiRun = JSON.parse(contentText(await client.callTool({
+    name: "activation_finder_run",
+    arguments: {
+      inputs: {
+        business_shape: "b2b-plg",
+        business_unusual: "we wrap an LLM that drafts responses for support agents",
+        primary_value_action: "draft a reply that goes out unedited",
+        monetization: ["subscription"],
+        stage: "early-pmf",
+      },
+    },
+  })));
+  record(
+    "activation: AI-product heuristic flips ai_product_flagged to true when business_unusual mentions LLM",
+    aiRun.ai_product_flagged === true,
+    JSON.stringify(aiRun).slice(0, 200),
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "activation_finder_narrate",
+    arguments: {
+      inputs: {
+        business_shape: "prosumer",
+        primary_value_action: "running 3 saved queries in a week",
+        monetization: ["subscription"],
+        stage: "scaling",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "activation: narrate is pure compute (pending file untouched)",
     beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }

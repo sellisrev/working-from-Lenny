@@ -1236,3 +1236,94 @@ export const MvsGetPendingNarrationOutput = z.discriminatedUnion("status", [
     note: z.string(),
   }),
 ]);
+
+// ───────────────────────────────────────────────────────────
+// #37 Activation Metric Finder schemas (Phase 3, paired with #9)
+// Reuses NSMBusinessShapeEnum + NSMMonetizationEnum + NSMStageEnum +
+// NSMMarketplaceSideEnum from #9. Schemas are intentionally shared so a
+// user who runs both apps can exchange input-metrics trees losslessly.
+// ───────────────────────────────────────────────────────────
+
+export const ActivationInputs = z.object({
+  business_shape: NSMBusinessShapeEnum,
+  business_unusual: z.string().max(200).default(""),
+  primary_value_action: z.string().min(1).max(200),
+  monetization: z.array(NSMMonetizationEnum).min(1),
+  stage: NSMStageEnum,
+  marketplace_side: NSMMarketplaceSideEnum.optional(),
+  current_activation_rate_estimate: z.string().max(20).default(""),
+  aha_moment_guess: z.string().max(200).default(""),
+  funnel_paste: z.string().max(2000).default(""),
+});
+export type ActivationInputsT = z.infer<typeof ActivationInputs>;
+
+export const ActivationGetFormInput = z.object({}).strict();
+export const ActivationGetFormOutput = z.object({
+  fields: z.array(z.object({
+    key: z.string(),
+    label: z.string(),
+    kind: z.enum(["enum", "multi-enum", "text", "textarea"]),
+    required: z.boolean(),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+    placeholder: z.string().optional(),
+    max_length: z.number().int().positive().optional(),
+    only_when: z.object({ key: z.string(), equals: z.string() }).optional(),
+  })),
+  activation_families: z.array(z.object({
+    business_shape: NSMBusinessShapeEnum,
+    family: z.string(),
+  })).length(6),
+  note: z.string(),
+});
+
+export const ActivationRunInput = z.object({
+  inputs: ActivationInputs,
+  user_context: z.string().default(""),
+});
+
+export const ActivationRunOutput = z.object({
+  inputs: ActivationInputs,
+  activation_family: z.string(),
+  has_funnel: z.boolean(),
+  ai_product_flagged: z.boolean(),
+  persistence_warning: z.string().optional(),
+});
+
+export const ActivationNarrateInput = z.object({
+  inputs: ActivationInputs,
+  user_context: z.string().default(""),
+});
+
+export const ActivationNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    user_inputs: ActivationInputs,
+    activation_family: z.string(),
+    has_funnel: z.boolean(),
+    funnel_lines: z.array(z.string()),
+    ai_product_flagged: z.boolean(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const ActivationGetPendingNarrationInput = z.object({}).strict();
+export const ActivationGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: ActivationNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

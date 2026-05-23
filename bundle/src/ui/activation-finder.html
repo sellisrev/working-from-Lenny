@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activation Metric Finder</title>
+  <!-- include: styles.css -->
+  <style>
+    .act-card { padding: 0; }
+    .act-field { margin: 0.75rem 0; display: flex; flex-direction: column; }
+    .act-field.hidden { display: none; }
+    .act-field label {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+    .act-input, .act-select, .act-textarea {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+    .act-input:focus-visible, .act-select:focus-visible, .act-textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .act-textarea { resize: vertical; min-height: 80px; }
+    .act-multi { display: flex; gap: 0.4rem 0.6rem; flex-wrap: wrap; padding: 0.25rem 0; }
+    .act-multi-item {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+      cursor: pointer; font-size: 0.9rem; background: var(--bg);
+    }
+    .act-multi-item.selected { border-color: var(--accent); background: var(--border-soft); }
+    .act-multi-item input { margin: 0; }
+    .act-counter { font-size: 0.75rem; color: var(--fg-muted); margin-top: 0.2rem; text-align: right; }
+    .act-counter.invalid { color: var(--warn-text); }
+    .act-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .act-submit:hover { background: #333; }
+    .act-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .act-validation { display: none; margin-top: 0.75rem; font-size: 0.875rem; color: var(--warn-text); }
+    .act-validation.visible { display: block; }
+    .act-output { display: none; margin-top: 1.5rem; }
+    .act-output.visible { display: block; }
+    .act-family { font-size: 1rem; font-weight: 600; margin: 0 0 0.35rem; }
+    .act-tag {
+      display: inline-block; font-size: 0.7rem; letter-spacing: 0.04em;
+      color: var(--accent); text-transform: uppercase; font-weight: 600;
+      padding: 2px 6px; border: 1px solid var(--accent); border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .act-ai-flag {
+      display: inline-block;
+      margin-left: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .act-narrate-hint {
+      margin-top: 1.25rem; padding: 0.75rem 1rem;
+      background: var(--warn-bg); border: 1px solid var(--warn-border);
+      border-radius: 6px; color: var(--warn-text); font-size: 0.875rem;
+    }
+    .act-actions { display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .act-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .act-btn:hover { background: var(--border-soft); }
+    .act-error {
+      display: none; margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .act-error.visible { display: block; }
+    .act-build-marker { font-size: 11px; color: var(--fg-faint); margin-top: -8px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Activation Metric Finder</h1>
+  <p class="app-tagline">Activation looks like retention. Until it doesn't.</p>
+  <p class="act-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="act-form" id="act-form" novalidate>
+    <div id="act-fields"></div>
+    <button type="button" class="act-submit" id="act-submit" disabled>Find my activation event</button>
+    <p class="act-validation" id="act-validation" role="alert"></p>
+  </form>
+
+  <div class="act-error" id="act-error" role="alert"></div>
+
+  <div class="act-output" id="act-output">
+    <span class="act-tag" id="act-shape-tag"></span><span class="act-ai-flag" id="act-ai-flag"></span>
+    <p class="act-family" id="act-family"></p>
+
+    <p class="act-narrate-hint" id="act-narrate-hint">
+      <span id="act-narrate-hint-auto">Queueing your candidates in chat…</span>
+      <span id="act-narrate-hint-staged" style="display:none;">Your activation candidates are rendering in chat below.</span>
+      <span id="act-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"find my activation event"</strong>.
+      </span>
+    </p>
+
+    <div class="act-actions">
+      <button type="button" class="act-btn" id="act-reset-btn">Try a different shape</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var FIELDS = null;
+
+  function $(id) { return document.getElementById(id); }
+  function showError(m) { var e=$("act-error"); e.textContent=m; e.classList.add("visible"); }
+  function clearError() { var e=$("act-error"); e.textContent=""; e.classList.remove("visible"); }
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function buildForm() {
+    var c = $("act-fields");
+    c.innerHTML = "";
+    FIELDS.forEach(function (f) {
+      var wrap = document.createElement("div");
+      wrap.className = "act-field";
+      wrap.id = "act-field-wrap-" + f.key;
+      var lbl = document.createElement("label");
+      lbl.setAttribute("for", "act-field-" + f.key);
+      lbl.textContent = f.label;
+      wrap.appendChild(lbl);
+
+      if (f.kind === "enum") {
+        var sel = document.createElement("select");
+        sel.className = "act-select";
+        sel.id = "act-field-" + f.key;
+        sel.dataset.key = f.key;
+        var blank = document.createElement("option");
+        blank.value = "";
+        blank.textContent = f.required ? "— pick one —" : "— pick one (optional) —";
+        sel.appendChild(blank);
+        (f.options || []).forEach(function (opt) {
+          var o = document.createElement("option");
+          o.value = opt.value;
+          o.textContent = opt.label;
+          sel.appendChild(o);
+        });
+        sel.addEventListener("change", updateState);
+        wrap.appendChild(sel);
+      } else if (f.kind === "multi-enum") {
+        var box = document.createElement("div");
+        box.className = "act-multi";
+        box.id = "act-field-" + f.key;
+        box.dataset.key = f.key;
+        (f.options || []).forEach(function (opt) {
+          var item = document.createElement("label");
+          item.className = "act-multi-item";
+          var cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.value = opt.value;
+          cb.addEventListener("change", function () {
+            item.classList.toggle("selected", cb.checked);
+            updateState();
+          });
+          item.appendChild(cb);
+          var span = document.createElement("span");
+          span.textContent = opt.label;
+          item.appendChild(span);
+          box.appendChild(item);
+        });
+        wrap.appendChild(box);
+      } else if (f.kind === "textarea") {
+        var ta = document.createElement("textarea");
+        ta.className = "act-textarea";
+        ta.id = "act-field-" + f.key;
+        ta.dataset.key = f.key;
+        ta.dataset.max = String(f.max_length || 2000);
+        ta.rows = 4;
+        ta.placeholder = f.placeholder || "";
+        ta.maxLength = f.max_length || 2000;
+        ta.addEventListener("input", updateState);
+        wrap.appendChild(ta);
+        var counter = document.createElement("div");
+        counter.className = "act-counter";
+        counter.id = "act-counter-" + f.key;
+        counter.textContent = "0 / " + (f.max_length || 2000);
+        wrap.appendChild(counter);
+      } else {
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "act-input";
+        input.id = "act-field-" + f.key;
+        input.dataset.key = f.key;
+        input.dataset.max = String(f.max_length || 200);
+        input.placeholder = f.placeholder || "";
+        input.maxLength = f.max_length || 200;
+        input.addEventListener("input", updateState);
+        wrap.appendChild(input);
+      }
+
+      c.appendChild(wrap);
+    });
+    applyConditionalVisibility();
+  }
+
+  function applyConditionalVisibility() {
+    FIELDS.forEach(function (f) {
+      if (!f.only_when) return;
+      var parentEl = $("act-field-" + f.only_when.key);
+      var parentVal = parentEl ? parentEl.value : "";
+      var wrap = $("act-field-wrap-" + f.key);
+      if (parentVal === f.only_when.equals) {
+        wrap.classList.remove("hidden");
+      } else {
+        wrap.classList.add("hidden");
+        var el = $("act-field-" + f.key);
+        if (el) el.value = "";
+      }
+    });
+  }
+
+  function gather() {
+    var out = {};
+    var valid = true;
+    FIELDS.forEach(function (f) {
+      var wrap = $("act-field-wrap-" + f.key);
+      var hidden = wrap.classList.contains("hidden");
+      if (hidden) return;
+      var el = $("act-field-" + f.key);
+      if (f.kind === "multi-enum") {
+        var checks = el.querySelectorAll("input[type=checkbox]");
+        var vals = [];
+        checks.forEach(function (cb) { if (cb.checked) vals.push(cb.value); });
+        if (vals.length === 0) { if (f.required) valid = false; return; }
+        out[f.key] = vals;
+      } else {
+        var v = (el.value || "").trim();
+        if (v === "") { if (f.required) valid = false; return; }
+        out[f.key] = v;
+      }
+    });
+    return { inputs: out, valid: valid };
+  }
+
+  function updateState() {
+    FIELDS.forEach(function (f) {
+      if (f.kind !== "text" && f.kind !== "textarea") return;
+      var el = $("act-field-" + f.key);
+      var counter = $("act-counter-" + f.key);
+      if (!counter) return;
+      var len = el.value.length;
+      counter.textContent = len + " / " + (f.max_length || 200);
+      counter.classList.toggle("invalid", len > (f.max_length || 200));
+    });
+    applyConditionalVisibility();
+    var g = gather();
+    $("act-submit").disabled = !g.valid;
+  }
+
+  function handleSubmit() {
+    clearError();
+    var g = gather();
+    if (!g.valid) {
+      var v = $("act-validation");
+      v.textContent = "Fill in all required fields before finding activation candidates.";
+      v.classList.add("visible");
+      return;
+    }
+    $("act-validation").classList.remove("visible");
+    var btn = $("act-submit");
+    btn.disabled = true;
+    btn.textContent = "Finding…";
+
+    window.mcp.callTool("activation_finder_run", { inputs: g.inputs })
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderResult(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Find my activation event"; });
+  }
+
+  function renderResult(parsed) {
+    $("act-shape-tag").textContent = parsed.inputs.business_shape;
+    $("act-ai-flag").textContent = parsed.ai_product_flagged ? "AI-product caveat applied" : "";
+    $("act-family").textContent = "Family: " + parsed.activation_family + (parsed.has_funnel ? " (with funnel audit)" : "");
+    var out = $("act-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("act-narrate-hint-auto");
+    var staged = $("act-narrate-hint-staged");
+    var fallback = $("act-narrate-hint-fallback");
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+    window.mcp.sendMessage(
+      "I just submitted the Activation Metric Finder wizard in the embedded widget. " +
+        "Please call activation_finder_get_pending_narration to fetch my saved brief and render my three candidates."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    FIELDS.forEach(function (f) {
+      var el = $("act-field-" + f.key);
+      if (!el) return;
+      if (f.kind === "multi-enum") {
+        el.querySelectorAll("input[type=checkbox]").forEach(function (cb) {
+          cb.checked = false;
+          cb.parentElement.classList.remove("selected");
+        });
+      } else {
+        el.value = "";
+      }
+    });
+    $("act-output").classList.remove("visible");
+    $("act-validation").classList.remove("visible");
+    clearError();
+    updateState();
+  }
+
+  window.mcp.callTool("activation_finder_get_form", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.fields) || parsed.fields.length === 0) throw new Error("No fields returned");
+      FIELDS = parsed.fields;
+      buildForm();
+      $("act-submit").addEventListener("click", handleSubmit);
+      $("act-reset-btn").addEventListener("click", handleReset);
+      updateState();
+    })
+    .catch(function (err) {
+      $("act-form").style.display = "none";
+      showError("Could not load the form: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

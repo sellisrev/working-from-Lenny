@@ -81,6 +81,12 @@ import * as mvsNarrate from "./tools/47-mission-vision-alignment/narrate";
 import * as mvsGetPending from "./tools/47-mission-vision-alignment/get-pending";
 import { cleanupOrphanedTmp as cleanupMvsTmp } from "./tools/47-mission-vision-alignment/pending";
 
+import * as activationGetForm from "./tools/37-activation-metric-finder/get-form";
+import * as activationRun from "./tools/37-activation-metric-finder/run";
+import * as activationNarrate from "./tools/37-activation-metric-finder/narrate";
+import * as activationGetPending from "./tools/37-activation-metric-finder/get-pending";
+import { cleanupOrphanedTmp as cleanupActivationTmp } from "./tools/37-activation-metric-finder/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -142,6 +148,10 @@ const TOOLS: RegisteredTool[] = [
   mvsRun as unknown as RegisteredTool,
   mvsNarrate as unknown as RegisteredTool,
   mvsGetPending as unknown as RegisteredTool,
+  activationGetForm as unknown as RegisteredTool,
+  activationRun as unknown as RegisteredTool,
+  activationNarrate as unknown as RegisteredTool,
+  activationGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -232,6 +242,14 @@ const RESOURCES: ResourceEntry[] = [
       "Paste mission (≥50 chars) + vision (≥50 chars) + strategy (200-3000 chars). Four-section reading: drift map (three pairwise comparisons), platitude detector, operational gaps (named bets → roadmap questions), Rumelt diagnosis applied to the strategy.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "mvs-alignment.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/activation-finder",
+    name: "Activation Metric Finder",
+    description:
+      "Multi-field wizard (business shape + monetization + stage + primary value action, plus optional aha-moment guess, current activation-rate estimate, and a funnel paste). Deterministic business-shape → activation-event-family mapping; three candidate activation events with per-candidate critique (vanity risk, leading-vs-retention, friction balance, customer-interview signal), benchmark range read from corpus, plus 3-5 input metrics in #9-NSM-compatible shape, plus optional funnel audit. Pairs with #9 NSM Finder.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "activation-finder.html"),
   },
 ];
 
@@ -329,6 +347,11 @@ async function main(): Promise<void> {
     await cleanupMvsTmp();
   } catch (err) {
     logErr("cleanup-tmp mvs failed (non-fatal)", err);
+  }
+  try {
+    await cleanupActivationTmp();
+  } catch (err) {
+    logErr("cleanup-tmp activation failed (non-fatal)", err);
   }
 
   const server = new Server(

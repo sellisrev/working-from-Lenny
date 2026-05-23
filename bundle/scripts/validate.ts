@@ -84,6 +84,16 @@ import * as mvsRun from "../src/tools/47-mission-vision-alignment/run";
 import * as mvsNarrate from "../src/tools/47-mission-vision-alignment/narrate";
 import * as mvsGetPending from "../src/tools/47-mission-vision-alignment/get-pending";
 import { isStrategyTooVague } from "../src/tools/47-mission-vision-alignment/data";
+import * as activationGetForm from "../src/tools/37-activation-metric-finder/get-form";
+import * as activationRun from "../src/tools/37-activation-metric-finder/run";
+import * as activationNarrate from "../src/tools/37-activation-metric-finder/narrate";
+import * as activationGetPending from "../src/tools/37-activation-metric-finder/get-pending";
+import {
+  ACTIVATION_FAMILIES,
+  FIELDS as ACTIVATION_FIELDS,
+  isAiProductFlagged,
+  resolveActivationFamily,
+} from "../src/tools/37-activation-metric-finder/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -120,6 +130,7 @@ async function main(): Promise<void> {
   await checkNsmData();
   await checkOkrData();
   await checkMvsData();
+  await checkActivationData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -232,6 +243,10 @@ async function checkSchemas(): Promise<void> {
     mvsRun,
     mvsNarrate,
     mvsGetPending,
+    activationGetForm,
+    activationRun,
+    activationNarrate,
+    activationGetPending,
   ];
   for (const t of tools) {
     try {
@@ -379,6 +394,7 @@ async function checkUiBuild(): Promise<void> {
     "nsm-finder",
     "okr-critique",
     "mvs-alignment",
+    "activation-finder",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
@@ -1444,6 +1460,122 @@ async function checkMvsData(): Promise<void> {
     );
   } catch (err) {
     record("mvs: run happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #37 Activation Metric Finder shape + family-resolution + AI-flag goldens.
+ */
+async function checkActivationData(): Promise<void> {
+  record(
+    "activation: 9 fields defined (incl. conditional marketplace_side + optional aha-guess + funnel paste)",
+    ACTIVATION_FIELDS.length === 9,
+    `got ${ACTIVATION_FIELDS.length}`,
+  );
+
+  record(
+    "activation: 6 business shapes in family map",
+    ACTIVATION_FAMILIES.length === 6,
+  );
+
+  record(
+    "activation: b2b-plg → workspace+team-of-3",
+    resolveActivationFamily("b2b-plg") === "Workspace creation + team-of-3+ engagement",
+  );
+  record(
+    "activation: marketplace(supply) → first listing posted that gets matched",
+    resolveActivationFamily("marketplace", "supply") === "First listing posted that gets matched",
+  );
+  record(
+    "activation: marketplace(demand) → first matched transaction completed",
+    resolveActivationFamily("marketplace", "demand") === "First matched transaction completed",
+  );
+  record(
+    "activation: marketplace unspecified side defaults to two-sided",
+    resolveActivationFamily("marketplace") === "First matched transaction (both sides participate)",
+  );
+
+  // AI-product heuristic flag
+  record(
+    "activation: AI-product flag fires on 'LLM' in business_unusual",
+    isAiProductFlagged({
+      business_shape: "b2b-plg",
+      business_unusual: "we wrap an LLM for support automation",
+      primary_value_action: "draft a reply",
+      monetization: ["subscription"],
+      stage: "early-pmf",
+      current_activation_rate_estimate: "",
+      aha_moment_guess: "",
+      funnel_paste: "",
+    }) === true,
+  );
+  record(
+    "activation: AI-product flag does NOT fire on plain SaaS",
+    isAiProductFlagged({
+      business_shape: "b2b-plg",
+      business_unusual: "we have a unique pricing model",
+      primary_value_action: "publish a doc",
+      monetization: ["subscription"],
+      stage: "early-pmf",
+      current_activation_rate_estimate: "",
+      aha_moment_guess: "",
+      funnel_paste: "",
+    }) === false,
+  );
+
+  // Schema: missing required field rejects.
+  const missingShape = activationRun.meta.inputSchema.safeParse({
+    inputs: {
+      primary_value_action: "x",
+      monetization: ["subscription"],
+      stage: "scaling",
+    },
+  });
+  record("activation: run inputSchema rejects missing business_shape", !missingShape.success);
+
+  // Schema: empty monetization rejects.
+  const emptyMon = activationRun.meta.inputSchema.safeParse({
+    inputs: {
+      business_shape: "b2b-plg",
+      primary_value_action: "x",
+      monetization: [],
+      stage: "scaling",
+    },
+  });
+  record("activation: run inputSchema rejects empty monetization", !emptyMon.success);
+
+  // Happy path with funnel paste.
+  try {
+    const ok = (await activationRun.invoke({
+      inputs: {
+        business_shape: "b2b-plg",
+        business_unusual: "",
+        primary_value_action: "publishing a shared doc",
+        monetization: ["freemium-to-paid", "seat-based"],
+        stage: "early-pmf",
+        current_activation_rate_estimate: "~22%",
+        aha_moment_guess: "seeing a teammate comment on your doc",
+        funnel_paste: "Sign-up\nEmail verify\nOnboarding tour\nFirst doc created\nFirst teammate invited\nFirst comment received",
+      },
+      user_context: "",
+    } as never)) as {
+      activation_family: string;
+      has_funnel: boolean;
+      ai_product_flagged: boolean;
+      persistence_warning?: string;
+    };
+    const okOk =
+      ok.activation_family === "Workspace creation + team-of-3+ engagement" &&
+      ok.has_funnel === true &&
+      ok.ai_product_flagged === false &&
+      ok.persistence_warning === undefined;
+    record(
+      "activation: run happy path returns valid result + persists brief",
+      okOk,
+      okOk ? undefined : JSON.stringify(ok).slice(0, 200),
+    );
+  } catch (err) {
+    record("activation: run happy path", false, (err as Error).message);
   }
 }
 

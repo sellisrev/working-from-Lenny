@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -211,6 +211,22 @@
     {
       "name": "mvs_alignment_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their MVS alignment reading, 'render the drift map', 'find my platitudes', 'run Rumelt on my strategy', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
+      "name": "activation_finder_get_form",
+      "description": "Returns the Activation Metric Finder form metadata (multi-field wizard + business-shape → activation-event-family map) and triggers the host to mount the ui://working-from-lenny/activation-finder iframe. Pairs with #9 NSM Finder."
+    },
+    {
+      "name": "activation_finder_run",
+      "description": "Takes the Activation Metric Finder inputs, resolves the business-shape → activation-event-family mapping, normalizes funnel paste, and flags AI-product context heuristically. AFTER calling run, render the FAMILY + three candidate sections (+ funnel audit when has_funnel) by calling activation_finder_get_pending_narration."
+    },
+    {
+      "name": "activation_finder_narrate",
+      "description": "Packages a corpus-grounded activation brief from the structured inputs. Pure compute — no persistence. Call activation_finder_get_pending_narration to retrieve the brief run already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "activation_finder_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their activation candidates, 'find my activation event', 'audit my funnel', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
     }
   ],
   "prompts_generated": false,

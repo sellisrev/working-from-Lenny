@@ -1,0 +1,80 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/activation-finder",
+    "name": "Activation Metric Finder",
+    "description": "Multi-field wizard (business shape + monetization + stage + primary value action, plus optional aha-moment guess, current activation-rate estimate, and a funnel paste). Deterministic business-shape → activation-event-family mapping; three candidate activation events with per-candidate critique (vanity risk, leading-vs-retention, friction balance, customer-interview signal), benchmark range read from corpus, plus 3-5 input metrics in #9-NSM-compatible shape, plus optional funnel audit. Pairs with #9 NSM Finder.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "activation_finder_get_form",
+      "description": "Entry tool for the Activation Metric Finder. Calling this triggers the host to mount the ui://working-from-lenny/activation-finder resource (an interactive iframe with a multi-field wizard: business shape, primary value action, monetization, stage, plus optional current-rate / aha-moment / funnel paste). If your host mounts the UI, that IS the input surface — do NOT additionally render the inputs in chat as a duplicate surface; the user will fill them in the iframe, which calls activation_finder_run directly. The returned `fields` array is the fallback for hosts that cannot mount ui:// resources; `activation_families` is the business-shape → activation-event-family map. If the user already has all inputs in hand, call activation_finder_run directly. NOTE: this tool pairs with #9 NSM Finder via a shared input-metrics-tree shape — a user who runs both can copy-paste between them losslessly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/activation-finder" } }
+    },
+    {
+      "name": "activation_finder_run",
+      "description": "Takes the structured Activation Metric Finder inputs (business_shape, marketplace_side when applicable, primary_value_action, monetization, stage, optional business_unusual + current_activation_rate_estimate + aha_moment_guess + funnel_paste) and persists the corpus-grounded activation brief. The deterministic side resolves the business-shape → activation-event-family mapping, normalizes funnel paste into trimmed lines, and flags AI-product context heuristically (so the brief includes the Cat Wu wow-moment-vs-aha-moment caveat in benchmarks). The three candidates + per-candidate critique + benchmark ranges + input-metrics tree + optional funnel audit come from the host chat model. AFTER receiving this result, call activation_finder_get_pending_narration to fetch the brief and render the FAMILY + three candidate sections (and the funnel audit, when has_funnel is true). The brief's per-candidate INPUT METRICS list is formatted to be paste-compatible with #9 NSM Finder. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "business_shape": { "type": "string", "enum": ["b2c-subscription", "b2c-transactional", "b2b-plg", "b2b-sales-led", "marketplace", "prosumer"] },
+              "business_unusual": { "type": "string", "maxLength": 200, "default": "" },
+              "primary_value_action": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "monetization": {
+                "type": "array",
+                "items": { "type": "string", "enum": ["pay-per-use", "subscription", "freemium-to-paid", "seat-based", "consumption-based", "ad-supported", "other"] },
+                "minItems": 1
+              },
+              "stage": { "type": "string", "enum": ["pre-pmf", "early-pmf", "scaling", "mature"] },
+              "marketplace_side": { "type": "string", "enum": ["supply", "demand", "both"] },
+              "current_activation_rate_estimate": { "type": "string", "maxLength": 20, "default": "" },
+              "aha_moment_guess": { "type": "string", "maxLength": 200, "default": "" },
+              "funnel_paste": { "type": "string", "maxLength": 2000, "default": "" }
+            },
+            "required": ["business_shape", "primary_value_action", "monetization", "stage"]
+          },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      }
+    },
+    {
+      "name": "activation_finder_narrate",
+      "description": "Packages a corpus-grounded Activation Metric brief from the structured inputs. Returns voice rules, structure (FAMILY → CANDIDATE_1/2/3 → optional FUNNEL_AUDIT), the resolved activation-event family, normalized funnel lines, the AI-product-flagged indicator, and corpus chunks. Pure compute — no persistence. PREFER activation_finder_get_pending_narration after a run call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      }
+    },
+    {
+      "name": "activation_finder_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their activation-event reading, 'render my activation candidates', 'find my aha moment', 'audit my funnel', or any follow-up to a submission just made — including any phrasing like 'pick my activation event', 'what's my activation rate target', 'I just filled in the activation form', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by activation_finder_run on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent activation_finder_run call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/activation-finder resource or call activation_finder_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 820 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #37 Activation Metric Finder. Phase 3 .mcpb bundle target. Path 4 four-tool shape mirroring #9 NSM Finder. Pairs with #9 via a shared input-metrics-tree shape (lossless manual copy-paste). Deterministic side resolves business-shape → activation-event-family, normalizes funnel paste, and flips an AI-product-flagged indicator when the brief should cite Cat Wu wow-moment-vs-aha-moment. Per-user calibration history (re-run quarterly to check whether the chosen event correlated with 30/90-day retention) deferred to a follow-up. Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 37,
+      "name": "Activation Metric Finder",
+      "phase": 3,
+      "type": "wizard + deterministic mapping + LLM narration",
+      "paired_with": 9
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. Deterministic engine resolves the business-shape → activation-event-family lookup; brief carries the family + user inputs + normalized funnel lines + ai_product_flagged + corpus chunks (activation-metric, retention, cohort-retention, hierarchy-of-engagement, marketplace-metrics, pm-pitfalls). Host chat model renders the FAMILY + three candidates (each with vanity-risk / leading-vs-retention / friction-balance / customer-interview-signal / benchmark / input-metrics slots) + optional funnel audit.",
+      "worked_example": "bundle/src/tools/37-activation-metric-finder/narrate.ts and bundle/src/lib/build-activation-brief.ts. Mirrors bundle/src/tools/9-nsm-finder/narrate.ts.",
+      "narration_tools": ["activation_finder_narrate"]
+    }
+  }
+}
