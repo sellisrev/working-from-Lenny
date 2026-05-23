@@ -45,6 +45,24 @@ import * as hybNarrate from "./tools/52-how-you-build/narrate";
 import * as hybGetPending from "./tools/52-how-you-build/get-pending";
 import { cleanupOrphanedTmp as cleanupHybTmp } from "./tools/52-how-you-build/pending";
 
+import * as founderGetForm from "./tools/12-38-founder-pm-hire/get-form";
+import * as founderDecide from "./tools/12-38-founder-pm-hire/decide";
+import * as founderNarrate from "./tools/12-38-founder-pm-hire/narrate";
+import * as founderGetPending from "./tools/12-38-founder-pm-hire/get-pending";
+import { cleanupOrphanedTmp as cleanupFounderTmp } from "./tools/12-38-founder-pm-hire/pending";
+
+import * as strategyGetForm from "./tools/2-strategy-pressure-test/get-form";
+import * as strategyTest from "./tools/2-strategy-pressure-test/pressure-test";
+import * as strategyNarrate from "./tools/2-strategy-pressure-test/narrate";
+import * as strategyGetPending from "./tools/2-strategy-pressure-test/get-pending";
+import { cleanupOrphanedTmp as cleanupStrategyTmp } from "./tools/2-strategy-pressure-test/pending";
+
+import * as evalGetForm from "./tools/6-ai-eval-coverage/get-form";
+import * as evalScore from "./tools/6-ai-eval-coverage/score-coverage";
+import * as evalNarrate from "./tools/6-ai-eval-coverage/narrate";
+import * as evalGetPending from "./tools/6-ai-eval-coverage/get-pending";
+import { cleanupOrphanedTmp as cleanupEvalTmp } from "./tools/6-ai-eval-coverage/pending";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -82,6 +100,18 @@ const TOOLS: RegisteredTool[] = [
   hybGenerate as unknown as RegisteredTool,
   hybNarrate as unknown as RegisteredTool,
   hybGetPending as unknown as RegisteredTool,
+  founderGetForm as unknown as RegisteredTool,
+  founderDecide as unknown as RegisteredTool,
+  founderNarrate as unknown as RegisteredTool,
+  founderGetPending as unknown as RegisteredTool,
+  strategyGetForm as unknown as RegisteredTool,
+  strategyTest as unknown as RegisteredTool,
+  strategyNarrate as unknown as RegisteredTool,
+  strategyGetPending as unknown as RegisteredTool,
+  evalGetForm as unknown as RegisteredTool,
+  evalScore as unknown as RegisteredTool,
+  evalNarrate as unknown as RegisteredTool,
+  evalGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -124,6 +154,30 @@ const RESOURCES: ResourceEntry[] = [
       "Parody generator for the breathless-reverence-profile genre. Six structured-input fields (PM/eng/designer counts + tools + rituals + last_shipped) plus three modes: reverence-profile, linkedin-humblebrag, acquired-cold-open.",
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "how-you-build.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/founder-pm-hire",
+    name: "Founder PM hire",
+    description:
+      "Eight-input wizard. Deterministic decision tree runs against your stage / team / founder-time / density / bottleneck / bandwidth signals and returns one of five verdicts (stay-founder-mode / not-yet / hire-apm / hire-empowered-pm / hire-head-of-product) plus an interim playbook when not-yet.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "founder-pm-hire.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/strategy-pressure-test",
+    name: "Strategy Pressure-Tester",
+    description:
+      "Paste a strategy doc / PRD / roadmap (200-4000 chars). Deterministic doc-type router classifies the document, then a four-pass corpus-grounded critique (Rumelt diagnosis / missing tradeoffs / untested assumptions / six-month stress scenario) renders as five objection cards.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "strategy-pressure-test.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/ai-eval-coverage",
+    name: "AI Eval Coverage Scorecard",
+    description:
+      "Three-input wizard (feature one-liner / audience / failure modes). Seven fixed eval categories (correctness / refusal / latency / hallucination / jailbreak / regression / drift), deterministic 0-100 coverage score, plus 2-3 starter eval prompts per missing or partial category.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "ai-eval-coverage.html"),
   },
 ];
 
@@ -191,6 +245,21 @@ async function main(): Promise<void> {
     await cleanupHybTmp();
   } catch (err) {
     logErr("cleanup-tmp how-you-build failed (non-fatal)", err);
+  }
+  try {
+    await cleanupFounderTmp();
+  } catch (err) {
+    logErr("cleanup-tmp founder failed (non-fatal)", err);
+  }
+  try {
+    await cleanupStrategyTmp();
+  } catch (err) {
+    logErr("cleanup-tmp strategy failed (non-fatal)", err);
+  }
+  try {
+    await cleanupEvalTmp();
+  } catch (err) {
+    logErr("cleanup-tmp eval failed (non-fatal)", err);
   }
 
   const server = new Server(

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strategy Pressure-Tester</title>
+  <!-- include: styles.css -->
+  <style>
+    .spt-card { padding: 0; }
+    .spt-label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-faint);
+      text-transform: uppercase;
+      margin: 0.85rem 0 0.4rem;
+    }
+    .spt-textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .spt-textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .spt-counter { font-size: 0.75rem; color: var(--fg-muted); margin-top: 0.35rem; text-align: right; }
+    .spt-counter.invalid { color: var(--warn-text); }
+    .spt-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .spt-submit:hover { background: #333; }
+    .spt-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .spt-validation { display: none; margin-top: 0.75rem; font-size: 0.875rem; color: var(--warn-text); }
+    .spt-validation.visible { display: block; }
+    .spt-output { display: none; margin-top: 1.5rem; }
+    .spt-output.visible { display: block; }
+    .spt-doctype {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 2px 6px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .spt-confirm { font-size: 1rem; font-weight: 500; margin: 0 0 0.35rem; }
+    .spt-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .spt-actions { display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .spt-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .spt-btn:hover { background: var(--border-soft); }
+    .spt-error {
+      display: none; margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .spt-error.visible { display: block; }
+    .spt-build-marker { font-size: 11px; color: var(--fg-faint); margin-top: -8px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Strategy Pressure-Tester</h1>
+  <p class="app-tagline">Pressure-test it now. The board has fewer hobbies than you do.</p>
+  <p class="spt-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spt-form" id="spt-form" novalidate>
+    <label class="spt-label" for="spt-textarea">Paste your strategy doc, PRD, or roadmap</label>
+    <textarea class="spt-textarea" id="spt-textarea" rows="10" placeholder="Paste 200-4000 characters of strategy / roadmap / PRD." minlength="200" maxlength="4000"></textarea>
+    <div class="spt-counter" id="spt-counter">0 / 4000 (min 200)</div>
+
+    <button type="button" class="spt-submit" id="spt-submit" disabled>Pressure-test it</button>
+    <p class="spt-validation" id="spt-validation" role="alert"></p>
+  </form>
+
+  <div class="spt-error" id="spt-error" role="alert"></div>
+
+  <div class="spt-output" id="spt-output">
+    <span class="spt-doctype" id="spt-doctype"></span>
+    <p class="spt-confirm">Your critique is on its way.</p>
+
+    <p class="spt-narrate-hint" id="spt-narrate-hint">
+      <span id="spt-narrate-hint-auto">Queueing your critique in chat…</span>
+      <span id="spt-narrate-hint-staged" style="display:none;">Your critique is rendering in chat below.</span>
+      <span id="spt-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"pressure-test this strategy"</strong>.
+      </span>
+    </p>
+
+    <div class="spt-actions">
+      <button type="button" class="spt-btn" id="spt-reset-btn">Pressure-test another</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function showError(m) { var e=$("spt-error"); e.textContent=m; e.classList.add("visible"); }
+  function clearError() { var e=$("spt-error"); e.textContent=""; e.classList.remove("visible"); }
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function updateState() {
+    var ta = $("spt-textarea");
+    var len = ta.value.length;
+    var counter = $("spt-counter");
+    counter.textContent = len + " / 4000 (min 200)";
+    var ok = len >= 200 && len <= 4000;
+    counter.classList.toggle("invalid", !ok && len > 0);
+    $("spt-submit").disabled = !ok;
+  }
+
+  function handleSubmit() {
+    clearError();
+    var text = $("spt-textarea").value;
+    if (text.length < 200 || text.length > 4000) {
+      var v = $("spt-validation");
+      v.textContent = "Paste needs to be between 200 and 4,000 characters.";
+      v.classList.add("visible");
+      return;
+    }
+    $("spt-validation").classList.remove("visible");
+    var btn = $("spt-submit");
+    btn.disabled = true;
+    btn.textContent = "Classifying…";
+    window.mcp.callTool("strategy_pressure_test_run", { strategy_text: text })
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderResult(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Pressure-test it"; });
+  }
+
+  function renderResult(parsed) {
+    $("spt-doctype").textContent = parsed.doc_type;
+    var out = $("spt-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("spt-narrate-hint-auto");
+    var staged = $("spt-narrate-hint-staged");
+    var fallback = $("spt-narrate-hint-fallback");
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+    window.mcp.sendMessage(
+      "I just submitted a strategy doc to Strategy Pressure-Tester in the embedded widget. " +
+        "Please call strategy_pressure_test_get_pending_narration to fetch my saved brief and render the objection cards."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    $("spt-textarea").value = "";
+    $("spt-output").classList.remove("visible");
+    $("spt-validation").classList.remove("visible");
+    clearError();
+    updateState();
+    $("spt-textarea").focus();
+  }
+
+  // Bootstrap.
+  window.mcp.callTool("strategy_pressure_test_get_form", {})
+    .then(function () {
+      $("spt-textarea").addEventListener("input", updateState);
+      $("spt-submit").addEventListener("click", handleSubmit);
+      $("spt-reset-btn").addEventListener("click", handleReset);
+      updateState();
+    })
+    .catch(function (err) {
+      $("spt-form").style.display = "none";
+      showError("Could not load the form: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

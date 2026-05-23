@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
   "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
   "author": {
@@ -115,6 +115,54 @@
     {
       "name": "how_you_build_get_pending_narration",
       "description": "MUST CALL whenever the user asks for their How [You] Build Product output, 'render the profile', 'show me the LinkedIn post', 'show me the cold open', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted anything' without calling this tool first; the submission state lives on disk, not in chat history."
+    },
+    {
+      "name": "founder_pm_hire_get_form",
+      "description": "Returns the eight-input Founder PM hire wizard form metadata + the five possible verdicts, and triggers the host to mount the ui://working-from-lenny/founder-pm-hire iframe."
+    },
+    {
+      "name": "founder_pm_hire_decide",
+      "description": "Runs the deterministic founder-PM-hire decision tree on the eight inputs and persists the verdict + corpus-grounded brief. AFTER calling decide, render the verdict + what-good-looks-like + cost-of-getting-it-wrong by calling founder_pm_hire_get_pending_narration."
+    },
+    {
+      "name": "founder_pm_hire_narrate",
+      "description": "Packages a corpus-grounded founder-PM-hire brief from the eight inputs. Pure compute — no persistence. Call founder_pm_hire_get_pending_narration to retrieve the brief decide already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "founder_pm_hire_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their founder-PM-hire verdict, 'should I hire a PM', or a follow-up to the diagnostic just taken — including messages from the embedded widget. Do NOT respond 'you haven't filled in the form' without calling this tool first; the diagnostic state lives on disk."
+    },
+    {
+      "name": "strategy_pressure_test_get_form",
+      "description": "Returns the Strategy Pressure-Tester form metadata (paste box accepting 200-4000 chars) and triggers the host to mount the ui://working-from-lenny/strategy-pressure-test iframe. Also returns the four-pass critique structure and corpus-anchor pool."
+    },
+    {
+      "name": "strategy_pressure_test_run",
+      "description": "Takes a 200-4000 char strategy / roadmap / PRD, classifies it via a deterministic doc-type router, and persists the corpus-grounded critique brief. AFTER calling run, render the five (or six, when mixed) objection cards by calling strategy_pressure_test_get_pending_narration."
+    },
+    {
+      "name": "strategy_pressure_test_narrate",
+      "description": "Packages a corpus-grounded pressure-test critique brief from strategy_text. Pure compute — no persistence. Call strategy_pressure_test_get_pending_narration to retrieve the brief run already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "strategy_pressure_test_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their strategy critique, 'render the objections', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
+      "name": "ai_eval_coverage_get_form",
+      "description": "Returns the three-input AI Eval Coverage Scorecard form metadata + the seven fixed eval categories, and triggers the host to mount the ui://working-from-lenny/ai-eval-coverage iframe."
+    },
+    {
+      "name": "ai_eval_coverage_score",
+      "description": "Takes the three eval-coverage inputs (feature one-liner, audience, failure modes) and persists the corpus-grounded scorecard brief. AFTER calling score, render the score + category table + starter eval prompts by calling ai_eval_coverage_get_pending_narration."
+    },
+    {
+      "name": "ai_eval_coverage_narrate",
+      "description": "Packages a corpus-grounded eval-coverage scorecard brief from the three feature inputs. Pure compute — no persistence. Call ai_eval_coverage_get_pending_narration to retrieve the brief score already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "ai_eval_coverage_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their AI eval coverage scorecard, 'score my evals', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
     }
   ],
   "prompts_generated": false,

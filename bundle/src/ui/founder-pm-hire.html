@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Founder PM hire</title>
+  <!-- include: styles.css -->
+  <style>
+    .fph-card { padding: 0; }
+    .fph-field { margin: 0.75rem 0; display: flex; flex-direction: column; }
+    .fph-field label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+    .fph-input,
+    .fph-select {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+    .fph-input:focus-visible,
+    .fph-select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .fph-submit {
+      padding: 0.6rem 1.1rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font: inherit;
+      cursor: pointer;
+      margin-top: 1.1rem;
+    }
+    .fph-submit:hover { background: #333; }
+    .fph-submit[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .fph-validation {
+      display: none; margin-top: 0.75rem; font-size: 0.875rem; color: var(--warn-text);
+    }
+    .fph-validation.visible { display: block; }
+    .fph-output { display: none; margin-top: 1.5rem; }
+    .fph-output.visible { display: block; }
+    .fph-verdict {
+      font-size: 1.3rem; font-weight: 600; margin: 0 0 0.35rem;
+    }
+    .fph-playbook {
+      font-size: 0.85rem; color: var(--fg-muted); margin: 0 0 0.5rem;
+    }
+    .fph-narrate-hint {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 6px;
+      color: var(--warn-text);
+      font-size: 0.875rem;
+    }
+    .fph-actions {
+      display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap;
+    }
+    .fph-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .fph-btn:hover { background: var(--border-soft); }
+    .fph-error {
+      display: none; margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff4f4;
+      border-left: 3px solid #c34;
+      color: #1a1a1a;
+      border-radius: 6px;
+    }
+    .fph-error.visible { display: block; }
+    .fph-build-marker {
+      font-size: 11px; color: var(--fg-faint); margin-top: -8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Founder PM hire</h1>
+  <p class="app-tagline">Maybe. Not yet. Yes (and at which level).</p>
+  <p class="fph-build-marker">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="fph-form" id="fph-form" novalidate>
+    <div id="fph-fields"></div>
+    <button type="button" class="fph-submit" id="fph-submit" disabled>Run the diagnostic</button>
+    <p class="fph-validation" id="fph-validation" role="alert"></p>
+  </form>
+
+  <div class="fph-error" id="fph-error" role="alert"></div>
+
+  <div class="fph-output" id="fph-output">
+    <p class="fph-verdict" id="fph-verdict"></p>
+    <p class="fph-playbook" id="fph-playbook"></p>
+
+    <p class="fph-narrate-hint" id="fph-narrate-hint">
+      <span id="fph-narrate-hint-auto">Queueing your reading in chat…</span>
+      <span id="fph-narrate-hint-staged" style="display:none;">
+        Your full reading is rendering in chat below.
+      </span>
+      <span id="fph-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in chat: <strong>"render my founder PM hire verdict"</strong>.
+      </span>
+    </p>
+
+    <div class="fph-actions">
+      <button type="button" class="fph-btn" id="fph-reset-btn">Run again</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var FIELDS = null;
+
+  function $(id) { return document.getElementById(id); }
+  function showError(m) { var e=$("fph-error"); e.textContent=m; e.classList.add("visible"); }
+  function clearError() { var e=$("fph-error"); e.textContent=""; e.classList.remove("visible"); }
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function buildForm() {
+    var c = $("fph-fields");
+    c.innerHTML = "";
+    FIELDS.forEach(function (f) {
+      var wrap = document.createElement("div");
+      wrap.className = "fph-field";
+      var lbl = document.createElement("label");
+      lbl.setAttribute("for", "fph-field-" + f.key);
+      lbl.textContent = f.label;
+      wrap.appendChild(lbl);
+      if (f.kind === "int") {
+        var input = document.createElement("input");
+        input.type = "number";
+        input.className = "fph-input";
+        input.id = "fph-field-" + f.key;
+        input.dataset.key = f.key;
+        input.min = "0";
+        input.placeholder = f.placeholder || "";
+        input.addEventListener("input", updateSubmitState);
+        wrap.appendChild(input);
+      } else {
+        var sel = document.createElement("select");
+        sel.className = "fph-select";
+        sel.id = "fph-field-" + f.key;
+        sel.dataset.key = f.key;
+        var blank = document.createElement("option");
+        blank.value = "";
+        blank.textContent = "— pick one —";
+        sel.appendChild(blank);
+        (f.options || []).forEach(function (opt) {
+          var o = document.createElement("option");
+          o.value = opt.value;
+          o.textContent = opt.label;
+          sel.appendChild(o);
+        });
+        sel.addEventListener("change", updateSubmitState);
+        wrap.appendChild(sel);
+      }
+      c.appendChild(wrap);
+    });
+  }
+
+  function gather() {
+    var out = {};
+    var ok = true;
+    FIELDS.forEach(function (f) {
+      var el = $("fph-field-" + f.key);
+      var v = (el.value || "").trim();
+      if (v === "") { ok = false; return; }
+      if (f.kind === "int") {
+        var n = parseInt(v, 10);
+        if (isNaN(n) || n < 0) { ok = false; return; }
+        out[f.key] = n;
+      } else {
+        out[f.key] = v;
+      }
+    });
+    return { inputs: out, valid: ok };
+  }
+
+  function updateSubmitState() {
+    var g = gather();
+    $("fph-submit").disabled = !g.valid;
+  }
+
+  function handleSubmit() {
+    clearError();
+    var g = gather();
+    if (!g.valid) {
+      var v = $("fph-validation");
+      v.textContent = "Fill in all eight inputs before running the diagnostic.";
+      v.classList.add("visible");
+      return;
+    }
+    $("fph-validation").classList.remove("visible");
+    var btn = $("fph-submit");
+    btn.disabled = true;
+    btn.textContent = "Running…";
+
+    window.mcp.callTool("founder_pm_hire_decide", { inputs: g.inputs })
+      .then(function (result) {
+        var parsed = parseToolResult(result);
+        renderResult(parsed);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Run the diagnostic"; });
+  }
+
+  function renderResult(parsed) {
+    var labels = {
+      "stay-founder-mode": "Stay founder-mode for now.",
+      "not-yet": "Not yet.",
+      "hire-apm": "Hire an APM.",
+      "hire-empowered-pm": "Hire an empowered PM.",
+      "hire-head-of-product": "Hire a head of product."
+    };
+    $("fph-verdict").textContent = labels[parsed.verdict] || parsed.verdict;
+    $("fph-playbook").textContent = parsed.playbook
+      ? "Interim playbook: " + parsed.playbook
+      : "";
+    var out = $("fph-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(parsed);
+  }
+
+  function requestNarration(parsed) {
+    var auto = $("fph-narrate-hint-auto");
+    var staged = $("fph-narrate-hint-staged");
+    var fallback = $("fph-narrate-hint-fallback");
+    if (parsed && parsed.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + parsed.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+    window.mcp.sendMessage(
+      "I just ran the Founder PM hire diagnostic in the embedded widget. " +
+        "Please call founder_pm_hire_get_pending_narration to fetch my saved brief and render my full reading."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleReset() {
+    FIELDS.forEach(function (f) {
+      var el = $("fph-field-" + f.key);
+      if (el) el.value = "";
+    });
+    $("fph-output").classList.remove("visible");
+    $("fph-validation").classList.remove("visible");
+    clearError();
+    updateSubmitState();
+  }
+
+  window.mcp.callTool("founder_pm_hire_get_form", {})
+    .then(function (result) {
+      var parsed = parseToolResult(result);
+      if (!Array.isArray(parsed.fields) || parsed.fields.length === 0) throw new Error("No fields returned");
+      FIELDS = parsed.fields;
+      buildForm();
+      $("fph-submit").addEventListener("click", handleSubmit);
+      $("fph-reset-btn").addEventListener("click", handleReset);
+    })
+    .catch(function (err) {
+      $("fph-form").style.display = "none";
+      showError("Could not load the form: " + (err && err.message ? err.message : String(err)));
+    });
+})();
+</script>
+
+</body>
+</html>

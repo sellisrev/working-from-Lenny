@@ -640,3 +640,283 @@ export const HowYouBuildGetPendingNarrationOutput = z.discriminatedUnion("status
     note: z.string(),
   }),
 ]);
+
+// ───────────────────────────────────────────────────────────
+// #12-38 Founder PM hire schemas
+// ───────────────────────────────────────────────────────────
+
+export const FounderStageEnum = z.enum(["pre-seed", "seed", "series-a", "series-b-plus"]);
+export const FounderPMTodayEnum = z.enum([
+  "the-founder",
+  "doubling-up-engineer",
+  "doubling-up-designer",
+  "ceo-and-head-eng",
+  "nobody",
+]);
+export const FounderTimeEnum = z.enum([
+  "rarely",
+  "some-of-the-time",
+  "most-of-the-time",
+  "full-time",
+]);
+export const FounderEnjoymentEnum = z.enum(["enjoy", "tolerate", "dislike"]);
+export const FounderCEOBandwidthEnum = z.enum([
+  "room-to-add-product",
+  "stretched-but-functioning",
+  "overstretched",
+]);
+export const FounderProductDensityEnum = z.enum(["light", "moderate", "heavy"]);
+export const FounderBottleneckEnum = z.enum([
+  "we-dont-know-what-to-build",
+  "we-cant-keep-up-with-stakeholders",
+  "engineering-builds-wrong-thing",
+  "no-time-for-customer-research",
+  "no-time-for-strategy",
+]);
+export const FounderVerdictEnum = z.enum([
+  "stay-founder-mode",
+  "not-yet",
+  "hire-apm",
+  "hire-empowered-pm",
+  "hire-head-of-product",
+]);
+export const FounderPlaybookEnum = z.enum([
+  "pre-seed-founder-owns-product",
+  "seed-early-team",
+  "seed-founder-distracted",
+  "need-product-clarity-first",
+]);
+export type FounderVerdict = z.infer<typeof FounderVerdictEnum>;
+export type FounderPlaybook = z.infer<typeof FounderPlaybookEnum>;
+
+export const FounderInputs = z.object({
+  stage: FounderStageEnum,
+  team_size: z.number().int().min(0).max(500),
+  pm_today: FounderPMTodayEnum,
+  founder_time: FounderTimeEnum,
+  enjoyment: FounderEnjoymentEnum,
+  ceo_bandwidth: FounderCEOBandwidthEnum,
+  product_density: FounderProductDensityEnum,
+  bottleneck: FounderBottleneckEnum,
+});
+export type FounderInputsT = z.infer<typeof FounderInputs>;
+
+export const FounderGetFormInput = z.object({}).strict();
+export const FounderGetFormOutput = z.object({
+  fields: z.array(z.object({
+    key: z.string(),
+    label: z.string(),
+    kind: z.enum(["enum", "int"]),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+    placeholder: z.string().optional(),
+  })),
+  verdicts: z.array(FounderVerdictEnum).length(5),
+  note: z.string(),
+});
+
+export const FounderDecideInput = z.object({
+  inputs: FounderInputs,
+  user_context: z.string().default(""),
+});
+
+export const FounderDecideOutput = z.object({
+  verdict: FounderVerdictEnum,
+  playbook: FounderPlaybookEnum.nullable(),
+  inputs: FounderInputs,
+  persistence_warning: z.string().optional(),
+});
+
+export const FounderNarrateInput = z.object({
+  inputs: FounderInputs,
+  user_context: z.string().default(""),
+});
+
+export const FounderNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    verdict: FounderVerdictEnum,
+    playbook: FounderPlaybookEnum.nullable(),
+    user_inputs: FounderInputs,
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const FounderGetPendingNarrationInput = z.object({}).strict();
+export const FounderGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: FounderNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ───────────────────────────────────────────────────────────
+// #2 Strategy Pressure-Tester schemas
+// ───────────────────────────────────────────────────────────
+
+export const StrategyDocTypeEnum = z.enum(["strategy", "roadmap", "prd", "mixed"]);
+export type StrategyDocType = z.infer<typeof StrategyDocTypeEnum>;
+
+export const StrategyGetFormInput = z.object({}).strict();
+export const StrategyGetFormOutput = z.object({
+  doc_types: z.array(StrategyDocTypeEnum).length(4),
+  corpus_anchors: z.array(z.string()),
+  passes: z.array(z.object({
+    slug: z.string(),
+    label: z.string(),
+    summary: z.string(),
+  })).length(4),
+  note: z.string(),
+});
+
+export const StrategyPressureTestInput = z.object({
+  strategy_text: z.string().min(200).max(4000),
+  user_context: z.string().default(""),
+});
+
+export const StrategyPressureTestOutput = z.object({
+  doc_type: StrategyDocTypeEnum,
+  strategy_text: z.string(),
+  persistence_warning: z.string().optional(),
+});
+
+export const StrategyNarrateInput = z.object({
+  strategy_text: z.string().min(200).max(4000),
+  user_context: z.string().default(""),
+  doc_type: StrategyDocTypeEnum.optional(),
+});
+
+export const StrategyNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    doc_type: StrategyDocTypeEnum,
+    strategy_text: z.string(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const StrategyGetPendingNarrationInput = z.object({}).strict();
+export const StrategyGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: StrategyNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ───────────────────────────────────────────────────────────
+// #6 AI Eval Coverage Scorecard schemas
+// ───────────────────────────────────────────────────────────
+
+export const EvalCategoryEnum = z.enum([
+  "correctness",
+  "refusal-behavior",
+  "latency",
+  "hallucination-rate",
+  "jailbreak-resistance",
+  "regression-set",
+  "drift-detection",
+]);
+export type EvalCategory = z.infer<typeof EvalCategoryEnum>;
+
+export const EvalFeatureInputs = z.object({
+  feature_one_liner: z.string().min(1).max(200),
+  audience: z.string().min(1).max(200),
+  failure_modes: z.string().min(1).max(300),
+});
+export type EvalFeatureInputsT = z.infer<typeof EvalFeatureInputs>;
+
+export const EvalGetFormInput = z.object({}).strict();
+export const EvalGetFormOutput = z.object({
+  fields: z.array(z.object({
+    key: z.string(),
+    label: z.string(),
+    placeholder: z.string(),
+    max_length: z.number().int().positive(),
+  })).length(3),
+  categories: z.array(z.object({
+    slug: EvalCategoryEnum,
+    label: z.string(),
+    summary: z.string(),
+    common_omission: z.string(),
+  })).length(7),
+  note: z.string(),
+});
+
+export const EvalScoreInput = z.object({
+  feature: EvalFeatureInputs,
+  user_context: z.string().default(""),
+});
+
+export const EvalScoreOutput = z.object({
+  feature: EvalFeatureInputs,
+  persistence_warning: z.string().optional(),
+});
+
+export const EvalNarrateInput = z.object({
+  feature: EvalFeatureInputs,
+  user_context: z.string().default(""),
+});
+
+export const EvalNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    feature: EvalFeatureInputs,
+    categories: z.array(z.object({
+      slug: EvalCategoryEnum,
+      label: z.string(),
+      summary: z.string(),
+      common_omission: z.string(),
+    })).length(7),
+    scoring_formula: z.string(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const EvalGetPendingNarrationInput = z.object({}).strict();
+export const EvalGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: EvalNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

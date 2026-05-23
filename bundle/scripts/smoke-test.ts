@@ -102,6 +102,9 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "ladder.html"),
     path.join(installRoot, "dist", "ui", "pmify.html"),
     path.join(installRoot, "dist", "ui", "how-you-build.html"),
+    path.join(installRoot, "dist", "ui", "founder-pm-hire.html"),
+    path.join(installRoot, "dist", "ui", "strategy-pressure-test.html"),
+    path.join(installRoot, "dist", "ui", "ai-eval-coverage.html"),
     path.join(
       installRoot,
       "dist",
@@ -190,6 +193,9 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkHybChatSidePathPersists(client, dataDir);
     await checkHybPendingAfterGenerateReturnsBrief(client);
     await checkHybNarrateIsPureCompute(client, dataDir);
+    await checkFounderChain(client, dataDir);
+    await checkStrategyChain(client, dataDir);
+    await checkEvalChain(client, dataDir);
   } finally {
     await client.close();
   }
@@ -223,6 +229,18 @@ async function checkListTools(client: Client): Promise<void> {
       "how_you_build_get_modes",
       "how_you_build_get_pending_narration",
       "how_you_build_narrate",
+      "founder_pm_hire_get_form",
+      "founder_pm_hire_decide",
+      "founder_pm_hire_narrate",
+      "founder_pm_hire_get_pending_narration",
+      "strategy_pressure_test_get_form",
+      "strategy_pressure_test_run",
+      "strategy_pressure_test_narrate",
+      "strategy_pressure_test_get_pending_narration",
+      "ai_eval_coverage_get_form",
+      "ai_eval_coverage_score",
+      "ai_eval_coverage_narrate",
+      "ai_eval_coverage_get_pending_narration",
     ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(
@@ -2563,6 +2581,246 @@ async function checkHybNarrateIsPureCompute(
     untouched
       ? undefined
       : `mtime ${beforeMtime} → ${afterMtime}; content equal=${beforeContent === afterContent}`,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #12-38 Founder PM hire smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkFounderChain(client: Client, dataDir: string): Promise<void> {
+  // ui binding
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "founder: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["founder_pm_hire_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/founder-pm-hire",
+  );
+  const desc = list.tools.find((t) => t.name === "founder_pm_hire_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "verdict", "haven't filled in the form", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("founder: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  // iframe staged message
+  const html = await fs.readFile(path.join(dataDir, "..", "..", "Temp").startsWith("/")
+    ? path.join("/", "tmp", "noop") : path.join(dataDir, "..").replace(/wfl-smoke-data-[A-Za-z0-9]+$/, ""), "utf8").catch(() => "");
+  // Read the built file from the staged installRoot via the readResource shape instead:
+  const read = await client.readResource({ uri: "ui://working-from-lenny/founder-pm-hire" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  void html;
+  record(
+    "founder: iframe staged ui/message names diagnostic + tool",
+    text.includes("I just ran the Founder PM hire diagnostic in the embedded widget") &&
+      text.includes("founder_pm_hire_get_pending_narration"),
+  );
+
+  // before/decide/after persistence chain
+  const before = JSON.parse(contentText(await client.callTool({ name: "founder_pm_hire_get_pending_narration", arguments: {} })));
+  record("founder: get_pending pre-decide → no_pending", before.status === "no_pending");
+
+  const decideResult = JSON.parse(contentText(await client.callTool({
+    name: "founder_pm_hire_decide",
+    arguments: {
+      inputs: {
+        stage: "series-a",
+        team_size: 14,
+        pm_today: "the-founder",
+        founder_time: "most-of-the-time",
+        enjoyment: "tolerate",
+        ceo_bandwidth: "stretched-but-functioning",
+        product_density: "moderate",
+        bottleneck: "engineering-builds-wrong-thing",
+      },
+    },
+  })));
+  record(
+    "founder: decide returns verdict + null/playbook + inputs",
+    typeof decideResult.verdict === "string" && decideResult.persistence_warning === undefined,
+    JSON.stringify(decideResult).slice(0, 200),
+  );
+
+  const file = path.join(dataDir, "_pending", "founder-pm-hire-pending.json");
+  record("founder: decide wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "founder_pm_hire_get_pending_narration", arguments: {} })));
+  record(
+    "founder: get_pending after decide returns ready brief",
+    after.status === "ready" && after.brief?.type === "narration_brief" && typeof after.brief?.inputs?.verdict === "string",
+  );
+
+  // narrate is pure compute
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "founder_pm_hire_narrate",
+    arguments: {
+      inputs: {
+        stage: "pre-seed",
+        team_size: 2,
+        pm_today: "the-founder",
+        founder_time: "full-time",
+        enjoyment: "enjoy",
+        ceo_bandwidth: "room-to-add-product",
+        product_density: "light",
+        bottleneck: "no-time-for-strategy",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "founder: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #2 Strategy Pressure-Tester smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkStrategyChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "strategy: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["strategy_pressure_test_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/strategy-pressure-test",
+  );
+  const desc = list.tools.find((t) => t.name === "strategy_pressure_test_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "objections", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("strategy: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/strategy-pressure-test" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "strategy: iframe staged ui/message names submission + tool",
+    text.includes("I just submitted a strategy doc to Strategy Pressure-Tester") &&
+      text.includes("strategy_pressure_test_get_pending_narration"),
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "strategy_pressure_test_get_pending_narration", arguments: {} })));
+  record("strategy: get_pending pre-run → no_pending", before.status === "no_pending");
+
+  const mixedText =
+    "Our challenge is winning in a crowded developer-tools market. The bet is community-led growth and developer experience. " +
+    "Q1 ship: onboarding revamp. Q2 ship: pricing tier and new admin dashboard. Q3 milestones: enterprise tier, SSO. " +
+    "Q4: we keep building features. Roadmap: more integrations every quarter.";
+  const runResult = JSON.parse(contentText(await client.callTool({
+    name: "strategy_pressure_test_run",
+    arguments: { strategy_text: mixedText },
+  })));
+  record(
+    "strategy: run returns doc_type + persists brief",
+    typeof runResult.doc_type === "string" && runResult.persistence_warning === undefined,
+    JSON.stringify(runResult).slice(0, 200),
+  );
+  record(
+    "strategy: router classifies mixed text as 'mixed'",
+    runResult.doc_type === "mixed",
+    `got ${runResult.doc_type}`,
+  );
+
+  const file = path.join(dataDir, "_pending", "strategy-pressure-test-pending.json");
+  record("strategy: run wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "strategy_pressure_test_get_pending_narration", arguments: {} })));
+  record(
+    "strategy: get_pending after run returns ready brief",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.doc_type === "mixed",
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "strategy_pressure_test_narrate",
+    arguments: { strategy_text: mixedText, doc_type: "strategy" },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "strategy: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #6 AI Eval Coverage Scorecard smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkEvalChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "eval: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["ai_eval_coverage_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/ai-eval-coverage",
+  );
+  const desc = list.tools.find((t) => t.name === "ai_eval_coverage_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "scorecard", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("eval: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/ai-eval-coverage" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "eval: iframe staged ui/message names submission + tool",
+    text.includes("I just submitted a feature to the AI Eval Coverage Scorecard") &&
+      text.includes("ai_eval_coverage_get_pending_narration"),
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "ai_eval_coverage_get_pending_narration", arguments: {} })));
+  record("eval: get_pending pre-score → no_pending", before.status === "no_pending");
+
+  const scoreResult = JSON.parse(contentText(await client.callTool({
+    name: "ai_eval_coverage_score",
+    arguments: {
+      feature: {
+        feature_one_liner: "AI-drafted reply suggestions in the inbox",
+        audience: "Sales reps responding to inbound leads",
+        failure_modes: "off-tone replies for technical buyers; occasional confident wrong facts about pricing",
+      },
+    },
+  })));
+  record(
+    "eval: score returns feature + persists brief (no persistence_warning)",
+    scoreResult.feature?.feature_one_liner === "AI-drafted reply suggestions in the inbox" &&
+      scoreResult.persistence_warning === undefined,
+    JSON.stringify(scoreResult).slice(0, 200),
+  );
+
+  const file = path.join(dataDir, "_pending", "ai-eval-coverage-pending.json");
+  record("eval: score wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "ai_eval_coverage_get_pending_narration", arguments: {} })));
+  record(
+    "eval: get_pending after score returns brief carrying 7 categories + scoring formula",
+    after.status === "ready" &&
+      Array.isArray(after.brief?.inputs?.categories) &&
+      after.brief.inputs.categories.length === 7 &&
+      typeof after.brief?.inputs?.scoring_formula === "string",
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "ai_eval_coverage_narrate",
+    arguments: {
+      feature: {
+        feature_one_liner: "smoke fixture",
+        audience: "smoke fixture",
+        failure_modes: "smoke fixture",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "eval: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }
 

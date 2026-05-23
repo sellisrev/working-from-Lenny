@@ -2,219 +2,73 @@
   "resource": {
     "uri": "ui://working-from-lenny/founder-pm-hire",
     "name": "Founder PM hire",
-    "description": "Eight-input diagnostic for founders. Collapses the two-step 'should I hire a PM?' + 'which level?' into one verdict: stay-founder-mode, not-yet (with interim playbook), hire-apm, hire-empowered-pm, or hire-head-of-product. Each verdict comes with what good looks like and the typical cost of getting it wrong.",
-    "mimeType": "text/html"
+    "description": "Eight-input wizard. Deterministic decision tree runs against your stage / team / founder-time / density / bottleneck / bandwidth signals and returns one of five verdicts (stay-founder-mode / not-yet / hire-apm / hire-empowered-pm / hire-head-of-product) plus an interim playbook when not-yet.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
-      "name": "founder_pm_hire_diagnose",
-      "description": "Deterministic. Returns the verdict + interim_playbook_id from the eight inputs. Does not call an LLM.",
+      "name": "founder_pm_hire_get_form",
+      "description": "Entry tool for the Founder PM hire diagnostic. Calling this triggers the host to mount the ui://working-from-lenny/founder-pm-hire resource (an interactive iframe with the 8-input wizard). If your host mounts the UI, that IS the questionnaire — do NOT additionally render the 8 inputs in chat as a duplicate surface; the user will fill them in the iframe, which calls founder_pm_hire_decide directly. The returned `fields` array is provided only as a fallback for hosts that cannot mount ui:// resources. The five possible verdicts are: stay-founder-mode, not-yet, hire-apm, hire-empowered-pm, hire-head-of-product. If the user already has the 8 inputs in hand, call founder_pm_hire_decide directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/founder-pm-hire" } }
+    },
+    {
+      "name": "founder_pm_hire_decide",
+      "description": "Runs the deterministic founder-PM-hire decision tree on the eight inputs (stage, team_size, pm_today, founder_time, enjoyment, ceo_bandwidth, product_density, bottleneck) and persists the verdict + corpus-grounded brief. Returns one of five verdicts: stay-founder-mode, not-yet (+ playbook), hire-apm, hire-empowered-pm, hire-head-of-product. AFTER receiving this result, call founder_pm_hire_get_pending_narration to fetch the brief and render it. Do not summarize the verdict on its own — the narration (verdict + what-good-looks-like / interim-playbook + cost-of-getting-it-wrong) is the user's deliverable. If `persistence_warning` is set, surface it and ask the user to re-submit.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "stage": {
-            "type": "string",
-            "enum": [
-              "pre-seed",
-              "seed",
-              "series-a",
-              "series-b-plus"
-            ]
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "stage": { "type": "string", "enum": ["pre-seed", "seed", "series-a", "series-b-plus"] },
+              "team_size": { "type": "integer", "minimum": 0, "maximum": 500 },
+              "pm_today": { "type": "string", "enum": ["the-founder", "doubling-up-engineer", "doubling-up-designer", "ceo-and-head-eng", "nobody"] },
+              "founder_time": { "type": "string", "enum": ["rarely", "some-of-the-time", "most-of-the-time", "full-time"] },
+              "enjoyment": { "type": "string", "enum": ["enjoy", "tolerate", "dislike"] },
+              "ceo_bandwidth": { "type": "string", "enum": ["room-to-add-product", "stretched-but-functioning", "overstretched"] },
+              "product_density": { "type": "string", "enum": ["light", "moderate", "heavy"] },
+              "bottleneck": { "type": "string", "enum": ["we-dont-know-what-to-build", "we-cant-keep-up-with-stakeholders", "engineering-builds-wrong-thing", "no-time-for-customer-research", "no-time-for-strategy"] }
+            },
+            "required": ["stage", "team_size", "pm_today", "founder_time", "enjoyment", "ceo_bandwidth", "product_density", "bottleneck"]
           },
-          "engineer_count": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "designer_count": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "pm_work_today": {
-            "type": "string",
-            "enum": [
-              "the-founder",
-              "doubling-engineer",
-              "doubling-designer",
-              "ceo-and-head-eng",
-              "nobody"
-            ]
-          },
-          "founder_time_on_product": {
-            "type": "string",
-            "enum": [
-              "rarely",
-              "some-of-the-time",
-              "most-of-the-time",
-              "full-time"
-            ]
-          },
-          "founder_enjoyment": {
-            "type": "string",
-            "enum": [
-              "enjoy",
-              "tolerate",
-              "dislike"
-            ]
-          },
-          "ceo_bandwidth": {
-            "type": "string",
-            "enum": [
-              "room-to-add-product",
-              "stretched-but-functioning",
-              "overstretched"
-            ]
-          },
-          "product_density_6mo": {
-            "type": "string",
-            "enum": [
-              "light",
-              "moderate",
-              "heavy"
-            ]
-          },
-          "biggest_bottleneck": {
-            "type": "string",
-            "enum": [
-              "we-dont-know-what-to-build",
-              "we-cant-keep-up-with-stakeholder-asks",
-              "engineering-builds-wrong-thing",
-              "no-time-for-customer-research",
-              "no-time-for-strategy"
-            ]
-          }
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "stage",
-          "engineer_count",
-          "designer_count",
-          "pm_work_today",
-          "founder_time_on_product",
-          "founder_enjoyment",
-          "ceo_bandwidth",
-          "product_density_6mo",
-          "biggest_bottleneck"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "verdict": {
-            "type": "string",
-            "enum": [
-              "stay-founder-mode",
-              "not-yet",
-              "hire-apm",
-              "hire-empowered-pm",
-              "hire-head-of-product"
-            ]
-          },
-          "interim_playbook_id": {
-            "type": "string",
-            "enum": [
-              "pre-seed-founder-owns-product",
-              "seed-early-team",
-              "seed-founder-distracted",
-              "need-product-clarity-first"
-            ],
-            "description": "Optional. Omitted from the output when the verdict does not warrant an interim playbook (i.e., when an actual PM hire is recommended)."
-          }
-        },
-        "required": [
-          "verdict"
-        ]
+        "required": ["inputs"]
       }
     },
     {
       "name": "founder_pm_hire_narrate",
-      "description": "LLM-narrated. Takes the diagnostic output and inputs, returns the three-section reading: verdict, level description (or interim playbook), wrong-fit cost.",
+      "description": "Packages a corpus-grounded founder-PM-hire brief from the eight inputs. Returns voice rules, structure (verdict / what-good-looks-like / cost-of-getting-it-wrong), the deterministic verdict + playbook, and corpus chunks. The host chat model renders the user-facing narration. Pure compute — no persistence side-effect. PREFER founder_pm_hire_get_pending_narration after a decide call (returns the brief decide already saved). Only call this tool directly if you need a brief without round-tripping through disk.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "verdict": {
-            "type": "string"
-          },
-          "interim_playbook_id": {
-            "type": "string"
-          },
-          "user_inputs": {
-            "type": "object",
-            "description": "The eight original inputs verbatim so the narration can reference specifics."
-          }
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "verdict",
-          "user_inputs"
-        ]
+        "required": ["inputs"]
       }
     },
     {
-      "name": "founder_pm_hire_drift",
-      "description": "MCP-only (stateful). Compares the current diagnostic to a previous run and reports what shifted. Stores diagnostic inputs locally across runs.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id"
-        ]
-      },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web/URL-trick versions don't expose this tool. State requires the MCP App; host's confirmation UI handles the consent surface."
-      }
+      "name": "founder_pm_hire_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their founder-PM-hire verdict, 'render my verdict', 'show me the founder PM read', or any follow-up to the diagnostic just taken — including any phrasing like 'should I hire a PM', 'tell me which level', 'I just filled in the founder form', or any message coming from the embedded widget. Do NOT respond with 'you haven't filled in the form' without calling this tool first: the diagnostic state lives on disk (persisted by founder_pm_hire_decide on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent founder_pm_hire_decide call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/founder-pm-hire resource or call founder_pm_hire_decide directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
     }
   ],
-  "ui": {
-    "renderHint": "card",
-    "preferredWidth": 560,
-    "preferredHeight": 640
-  },
+  "ui": { "renderHint": "card", "preferredWidth": 600, "preferredHeight": 820 },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for the merged Founder PM hire app (supersedes #12 + #38). Phase 2 .mcpb bundle target. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #12-38 Founder PM hire (merged from #12 + #38). Phase 2 .mcpb bundle target. Path 4 four-tool shape mirroring the worked examples: entry (get_form) → decide (deterministic decision tree + persists brief) → narrate (pure compute) → get_pending_narration (MUST CALL). Decision tree per apps/12-38-founder-pm-hire/prompt.md verbatim; smoke goldens cover all 5 verdicts + the bottleneck override + the head-of-product down-bias. Tool descriptions verbatim-match the runtime `meta.description` strings.",
     "dev.workingfromlenny.app": {
       "id": "12-38",
       "name": "Founder PM hire",
       "phase": 2,
-      "type": "wizard / diagnostic",
-      "supersedes": [
-        "12",
-        "38"
-      ]
+      "type": "wizard + deterministic decision tree + LLM narration"
     },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
-      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
-      "narration_tools": [
-        "founder_pm_hire_narrate"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
-    },
-    "dev.workingfromlenny.open_questions": [
-      "Decide how the diagnose tool exposes the bias-toward-not-yet (early stages) and bias-away-from-head-of-product (non-heavy density) — debug logs in the tool output, or surface only in narration?"
-    ],
-    "dev.workingfromlenny.proposed_answers": [
-      "Surface only in narration. Debug-style bias annotations in the diagnose tool output leak implementation detail and can confuse hosts that render tool output verbatim. The founder_pm_hire_narrate tool is the right place to explain why the bias applies. If internal testing requires visibility into the routing logic, attach it under _meta with a reverse-DNS key (e.g., _meta['dev.workingfromlenny.debug_trace']) on the diagnose tool's output — _meta is the only metadata channel the spec actually defines, and reverse-DNS namespacing is the documented convention."
-    ],
-    "dev.workingfromlenny.outputSchema_refactor_note": "interim_playbook_id was changed from `type: ['string', 'null']` with `null` in the enum, to an optional string field omitted when not applicable. Absent fields are unambiguous; explicit nulls add a deserialization edge case for hosts.",
-    "dev.workingfromlenny.spec_validation": {
-      "validated_on": "2026-05-18",
-      "sources": [
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
-        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
-      ],
-      "notes": [
-        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys.",
-        "interim_playbook_id refactored from nullable-enum to optional field; absent fields are unambiguous in the MCP output contract."
-      ]
+      "summary": "Narration tools return a narration_brief. Deterministic decision tree produces verdict + playbook; brief carries verdict + the user's 8 inputs + corpus chunks; host chat model renders verdict + what-good-looks-like + cost-of-getting-it-wrong.",
+      "worked_example": "bundle/src/tools/12-38-founder-pm-hire/narrate.ts and bundle/src/lib/build-founder-brief.ts",
+      "narration_tools": ["founder_pm_hire_narrate"]
     }
   }
 }

@@ -49,6 +49,21 @@ import {
   FIELDS as HYB_FIELDS,
   assembleInputBlock as hybAssembleInputBlock,
 } from "../src/tools/52-how-you-build/data";
+import * as founderGetForm from "../src/tools/12-38-founder-pm-hire/get-form";
+import * as founderDecide from "../src/tools/12-38-founder-pm-hire/decide";
+import * as founderNarrate from "../src/tools/12-38-founder-pm-hire/narrate";
+import * as founderGetPending from "../src/tools/12-38-founder-pm-hire/get-pending";
+import { decide as founderDecideFn } from "../src/tools/12-38-founder-pm-hire/data";
+import * as strategyGetForm from "../src/tools/2-strategy-pressure-test/get-form";
+import * as strategyTest from "../src/tools/2-strategy-pressure-test/pressure-test";
+import * as strategyNarrate from "../src/tools/2-strategy-pressure-test/narrate";
+import * as strategyGetPending from "../src/tools/2-strategy-pressure-test/get-pending";
+import { classifyDocType as strategyClassify } from "../src/tools/2-strategy-pressure-test/data";
+import * as evalGetForm from "../src/tools/6-ai-eval-coverage/get-form";
+import * as evalScore from "../src/tools/6-ai-eval-coverage/score-coverage";
+import * as evalNarrate from "../src/tools/6-ai-eval-coverage/narrate";
+import * as evalGetPending from "../src/tools/6-ai-eval-coverage/get-pending";
+import { CATEGORIES as EVAL_CATEGORIES } from "../src/tools/6-ai-eval-coverage/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -79,6 +94,9 @@ async function main(): Promise<void> {
   await checkLadderData();
   await checkPmifyData();
   await checkHowYouBuildData();
+  await checkFounderData();
+  await checkStrategyData();
+  await checkEvalData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -167,6 +185,18 @@ async function checkSchemas(): Promise<void> {
     hybGenerate,
     hybNarrate,
     hybGetPending,
+    founderGetForm,
+    founderDecide,
+    founderNarrate,
+    founderGetPending,
+    strategyGetForm,
+    strategyTest,
+    strategyNarrate,
+    strategyGetPending,
+    evalGetForm,
+    evalScore,
+    evalNarrate,
+    evalGetPending,
   ];
   for (const t of tools) {
     try {
@@ -302,7 +332,16 @@ async function checkDriftGoldens(): Promise<void> {
 }
 
 async function checkUiBuild(): Promise<void> {
-  for (const slug of ["pitfalls", "horoscope", "ladder", "pmify", "how-you-build"]) {
+  for (const slug of [
+    "pitfalls",
+    "horoscope",
+    "ladder",
+    "pmify",
+    "how-you-build",
+    "founder-pm-hire",
+    "strategy-pressure-test",
+    "ai-eval-coverage",
+  ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
       record(
@@ -775,6 +814,235 @@ async function checkHowYouBuildData(): Promise<void> {
     );
   } catch (err) {
     record("how-you-build: generate happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #12-38 Founder PM hire decision-tree goldens.
+ */
+async function checkFounderData(): Promise<void> {
+  // Pre-seed always → not-yet, pre-seed-founder-owns-product playbook.
+  const preSeed = founderDecideFn({
+    stage: "pre-seed",
+    team_size: 4,
+    pm_today: "the-founder",
+    founder_time: "full-time",
+    enjoyment: "enjoy",
+    ceo_bandwidth: "room-to-add-product",
+    product_density: "moderate",
+    bottleneck: "no-time-for-strategy",
+  });
+  record(
+    "founder: pre-seed → not-yet + pre-seed-founder-owns-product",
+    preSeed.verdict === "not-yet" && preSeed.playbook === "pre-seed-founder-owns-product",
+    JSON.stringify(preSeed),
+  );
+
+  // Seed + tiny team → not-yet seed-early-team.
+  const seedSmall = founderDecideFn({
+    stage: "seed",
+    team_size: 3,
+    pm_today: "the-founder",
+    founder_time: "full-time",
+    enjoyment: "enjoy",
+    ceo_bandwidth: "room-to-add-product",
+    product_density: "moderate",
+    bottleneck: "no-time-for-strategy",
+  });
+  record(
+    "founder: seed + team<5 → not-yet + seed-early-team",
+    seedSmall.verdict === "not-yet" && seedSmall.playbook === "seed-early-team",
+    JSON.stringify(seedSmall),
+  );
+
+  // Stay-founder-mode trigger: full-time + enjoy + non-heavy + bandwidth ok.
+  const stay = founderDecideFn({
+    stage: "seed",
+    team_size: 15,
+    pm_today: "the-founder",
+    founder_time: "full-time",
+    enjoyment: "enjoy",
+    ceo_bandwidth: "room-to-add-product",
+    product_density: "moderate",
+    bottleneck: "engineering-builds-wrong-thing",
+  });
+  record(
+    "founder: full-time+enjoy+moderate-density → stay-founder-mode",
+    stay.verdict === "stay-founder-mode",
+    JSON.stringify(stay),
+  );
+
+  // Head of product: heavy density + series-a + overstretched CEO.
+  const hop = founderDecideFn({
+    stage: "series-a",
+    team_size: 25,
+    pm_today: "ceo-and-head-eng",
+    founder_time: "most-of-the-time",
+    enjoyment: "tolerate",
+    ceo_bandwidth: "overstretched",
+    product_density: "heavy",
+    bottleneck: "no-time-for-strategy",
+  });
+  record(
+    "founder: heavy density + series-a + overstretched → hire-head-of-product",
+    hop.verdict === "hire-head-of-product",
+    JSON.stringify(hop),
+  );
+
+  // Empowered PM: moderate density + tolerate.
+  const empowered = founderDecideFn({
+    stage: "seed",
+    team_size: 10,
+    pm_today: "doubling-up-engineer",
+    founder_time: "full-time",
+    enjoyment: "tolerate",
+    ceo_bandwidth: "stretched-but-functioning",
+    product_density: "moderate",
+    bottleneck: "engineering-builds-wrong-thing",
+  });
+  record(
+    "founder: moderate density + full-time + tolerate → hire-empowered-pm",
+    empowered.verdict === "hire-empowered-pm",
+    JSON.stringify(empowered),
+  );
+
+  // Bottleneck override: 'we-dont-know-what-to-build' → not-yet need-product-clarity-first.
+  const clarity = founderDecideFn({
+    stage: "series-a",
+    team_size: 30,
+    pm_today: "the-founder",
+    founder_time: "most-of-the-time",
+    enjoyment: "tolerate",
+    ceo_bandwidth: "stretched-but-functioning",
+    product_density: "moderate",
+    bottleneck: "we-dont-know-what-to-build",
+  });
+  record(
+    "founder: bottleneck=we-dont-know-what-to-build overrides to not-yet+need-product-clarity-first",
+    clarity.verdict === "not-yet" && clarity.playbook === "need-product-clarity-first",
+    JSON.stringify(clarity),
+  );
+
+  // Head-of-product down-bias: should never appear when density is non-heavy.
+  const noHopWithoutHeavy = founderDecideFn({
+    stage: "series-b-plus",
+    team_size: 50,
+    pm_today: "ceo-and-head-eng",
+    founder_time: "rarely",
+    enjoyment: "dislike",
+    ceo_bandwidth: "overstretched",
+    product_density: "moderate",
+    bottleneck: "no-time-for-strategy",
+  });
+  record(
+    "founder: non-heavy density never returns hire-head-of-product",
+    noHopWithoutHeavy.verdict !== "hire-head-of-product",
+    JSON.stringify(noHopWithoutHeavy),
+  );
+}
+
+/**
+ * #2 Strategy Pressure-Tester router goldens + schema validation.
+ */
+async function checkStrategyData(): Promise<void> {
+  // Heavy roadmap signals → roadmap.
+  const roadmap = strategyClassify(
+    "Q1 deliverables: feature A, feature B. Q2 milestones: feature C. Q3 ship: feature D, feature E.",
+  );
+  record(
+    "strategy: heavy roadmap signals → roadmap",
+    roadmap === "roadmap",
+    `got ${roadmap}`,
+  );
+
+  // Strategy vocab → strategy.
+  const strategy = strategyClassify(
+    "Our diagnosis: the challenge is distribution. Our guiding policy is to win on developer experience. The bet we are making is on community-led growth.",
+  );
+  record(
+    "strategy: bet+diagnosis+challenge+guiding-policy → strategy",
+    strategy === "strategy",
+    `got ${strategy}`,
+  );
+
+  // Mixed: strategy vocab + heavy roadmap signals.
+  const mixed = strategyClassify(
+    "Our challenge is distribution. The bet is community-led growth. Q1 ship: onboarding. Q2 ship: dashboard. Q3 milestones: enterprise tier. Roadmap.",
+  );
+  record(
+    "strategy: strategy vocab + heavy roadmap → mixed",
+    mixed === "mixed",
+    `got ${mixed}`,
+  );
+
+  // PRD: success criteria + edge case + non-goal.
+  const prd = strategyClassify(
+    "Feature: improved search. Success criteria: 95% click-through. Non-goal: redesign. Edge case: empty state.",
+  );
+  record(
+    "strategy: success-criteria+non-goal+edge-case → prd",
+    prd === "prd",
+    `got ${prd}`,
+  );
+
+  // Schema: min 200 chars enforced.
+  const tooShort = strategyTest.meta.inputSchema.safeParse({
+    strategy_text: "short",
+  });
+  record("strategy: run inputSchema rejects <200 chars", !tooShort.success);
+
+  const tooLong = strategyTest.meta.inputSchema.safeParse({
+    strategy_text: "x".repeat(4001),
+  });
+  record("strategy: run inputSchema rejects >4000 chars", !tooLong.success);
+}
+
+/**
+ * #6 AI Eval Coverage Scorecard shape + schema validation.
+ */
+async function checkEvalData(): Promise<void> {
+  record(
+    "eval: 7 categories defined",
+    EVAL_CATEGORIES.length === 7 &&
+      EVAL_CATEGORIES.map((c) => c.slug).join(",") ===
+        "correctness,refusal-behavior,latency,hallucination-rate,jailbreak-resistance,regression-set,drift-detection",
+  );
+
+  // Schema: feature_one_liner ≤200, audience ≤200, failure_modes ≤300.
+  const longLiner = evalScore.meta.inputSchema.safeParse({
+    feature: { feature_one_liner: "x".repeat(201), audience: "users", failure_modes: "stuff" },
+  });
+  record(
+    "eval: score inputSchema rejects feature_one_liner > 200 chars",
+    !longLiner.success,
+  );
+
+  const longFailures = evalScore.meta.inputSchema.safeParse({
+    feature: { feature_one_liner: "x", audience: "y", failure_modes: "z".repeat(301) },
+  });
+  record(
+    "eval: score inputSchema rejects failure_modes > 300 chars",
+    !longFailures.success,
+  );
+
+  // Happy path runs through.
+  try {
+    const ok = (await evalScore.invoke({
+      feature: {
+        feature_one_liner: "AI summarization of customer support tickets",
+        audience: "Support agents and team leads",
+        failure_modes: "occasional hallucinated names; struggles with long threads",
+      },
+      user_context: "",
+    } as never)) as { feature: { feature_one_liner: string }; persistence_warning?: string };
+    record(
+      "eval: score happy path returns valid result + persists brief",
+      ok.feature.feature_one_liner === "AI summarization of customer support tickets" &&
+        ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 200),
+    );
+  } catch (err) {
+    record("eval: score happy path", false, (err as Error).message);
   }
 }
 

@@ -1,210 +1,79 @@
 {
   "resource": {
-    "uri": "ui://working-from-lenny/pressure-test",
+    "uri": "ui://working-from-lenny/strategy-pressure-test",
     "name": "Strategy Pressure-Tester",
-    "description": "Paste a strategy doc, PRD, or roadmap. Returns the five strongest objections a smart skeptic would raise (Rumelt-style diagnosis, missing tradeoffs, untested assumptions, six-month stress scenario), each anchored to the Lenny corpus.",
-    "mimeType": "text/html"
+    "description": "Paste a strategy doc / PRD / roadmap (200-4000 chars). Deterministic doc-type router classifies the document, then a four-pass corpus-grounded critique (Rumelt diagnosis / missing tradeoffs / untested assumptions / six-month stress scenario) renders as five objection cards.",
+    "mimeType": "text/html;profile=mcp-app"
   },
   "tools": [
     {
-      "name": "strategy_classify",
-      "description": "Deterministic. Classifies the input as strategy / roadmap / prd / mixed so downstream critique uses the right vocabulary.",
+      "name": "strategy_pressure_test_get_form",
+      "description": "Entry tool for the Strategy Pressure-Tester. Calling this triggers the host to mount the ui://working-from-lenny/strategy-pressure-test resource (an interactive iframe with a paste box for the strategy doc). If your host mounts the UI, that IS the input surface — do NOT additionally render a paste prompt in chat as a duplicate surface; the user will paste in the iframe, which calls strategy_pressure_test_run directly. Returns the four-pass critique structure (Rumelt diagnosis / missing tradeoffs / untested assumptions / six-month stress scenario) plus the closed corpus-anchor pool. Input length: 200-4000 chars. If the user already has a doc in hand, call strategy_pressure_test_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/strategy-pressure-test" } }
+    },
+    {
+      "name": "strategy_pressure_test_run",
+      "description": "Takes a strategy / roadmap / PRD text (200-4000 chars), classifies it deterministically via a cheap doc-type router, and persists the corpus-grounded critique brief. AFTER calling this, render the five (or six, when mixed) objection cards by calling strategy_pressure_test_get_pending_narration. Do not render objections on your own without the brief — the brief carries the closed corpus-anchor pool, the four-pass structure, and the voice rules the output depends on. If `persistence_warning` is set, ask the user to re-submit.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "strategy_text": {
             "type": "string",
             "minLength": 200,
-            "maxLength": 4000
-          }
+            "maxLength": 4000,
+            "description": "The strategy / roadmap / PRD text to critique. 200-4000 characters."
+          },
+          "user_context": { "type": "string", "default": "" }
         },
-        "required": [
-          "strategy_text"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "doc_type": {
-            "type": "string",
-            "enum": [
-              "strategy",
-              "roadmap",
-              "prd",
-              "mixed"
-            ]
-          },
-          "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1
-          },
-          "signals": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Short reasons for the classification (e.g., 'no named challenge', 'features-by-quarter pattern')."
-          }
-        }
+        "required": ["strategy_text"]
       }
     },
     {
-      "name": "strategy_critique",
-      "description": "LLM-narrated. Runs the four-pass critique (Rumelt diagnosis, missing tradeoffs, untested assumptions, six-month stress scenario) and returns five objection cards.",
+      "name": "strategy_pressure_test_narrate",
+      "description": "Packages a corpus-grounded pressure-test critique brief from strategy_text (+ optional doc_type override). Returns voice rules, structure, the deterministic doc_type, and corpus chunks for the closed anchor pool. The host chat model renders the user-facing five-card critique. Pure compute — no persistence side-effect. PREFER strategy_pressure_test_get_pending_narration after a run call. Only call this tool directly if you need a brief without round-tripping through disk, or to preview a different doc_type classification.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "strategy_text": {
-            "type": "string",
-            "minLength": 200,
-            "maxLength": 4000
-          },
-          "doc_type": {
-            "type": "string",
-            "enum": [
-              "strategy",
-              "roadmap",
-              "prd",
-              "mixed"
-            ]
-          },
-          "user_context": {
-            "type": "string",
-            "maxLength": 400
-          }
+          "strategy_text": { "type": "string", "minLength": 200, "maxLength": 4000 },
+          "user_context": { "type": "string", "default": "" },
+          "doc_type": { "type": "string", "enum": ["strategy", "roadmap", "prd", "mixed"] }
         },
-        "required": [
-          "strategy_text",
-          "doc_type"
-        ]
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "objections": {
-            "type": "array",
-            "minItems": 5,
-            "maxItems": 6,
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": {
-                  "type": "string"
-                },
-                "diagnosis": {
-                  "type": "string"
-                },
-                "anchor_topic": {
-                  "type": "string"
-                },
-                "anchor_quote": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
+        "required": ["strategy_text"]
       }
     },
     {
-      "name": "strategy_rehearse",
-      "description": "LLM-narrated. Multi-turn rehearsal of the counter to one chosen objection. Skeptic pushes back; user argues; ends with the strategy variant that survives.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "strategy_text": {
-            "type": "string"
-          },
-          "chosen_objection_index": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 5
-          },
-          "user_counter": {
-            "type": "string",
-            "minLength": 20,
-            "maxLength": 2000
-          }
-        },
-        "required": [
-          "strategy_text",
-          "chosen_objection_index",
-          "user_counter"
-        ]
-      }
-    },
-    {
-      "name": "strategy_calibration",
-      "description": "MCP-only (stateful). Compares the current critique against the prior critique for the same user. Surfaces assumptions that resolved, tradeoffs the user actually made, and the next-quarter stress scenario. Stores critique summaries locally across runs.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "string"
-          },
-          "current_critique_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "current_critique_id"
-        ]
-      },
-      "_meta": {
-        "annotations": {
-          "readOnlyHint": false
-        },
-        "dev.workingfromlenny.phase_note": "Web version does not expose this tool. Calibration requires persisted prior critiques in the .mcpb bundle's data dir; host's confirmation UI handles the consent surface."
-      }
+      "name": "strategy_pressure_test_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their strategy pressure-test critique, 'render the objections', 'show me the five cards', or any follow-up to a submission just made — including any phrasing like 'pressure-test it', 'critique my strategy', 'I just pasted my doc', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by strategy_pressure_test_run on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent strategy_pressure_test_run call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/strategy-pressure-test resource or call strategy_pressure_test_run directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
     }
   ],
-  "ui": {
-    "renderHint": "card",
-    "preferredWidth": 720,
-    "preferredHeight": 900
-  },
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 720 },
   "_meta": {
-    "dev.workingfromlenny.comment": "MCP resource spec for #2 Strategy Pressure-Tester. Phase 2 .mcpb bundle target. The lenny-pressure-test skill in this repo is the engine reference. Validated against MCP Apps spec (Jan 2026 release + current draft) on 2026-05-18.",
+    "dev.workingfromlenny.comment": "MCP resource spec for #2 Strategy Pressure-Tester. Phase 2 .mcpb bundle target. Path 4 four-tool shape. The pre-Phase-2 spec used uri 'ui://working-from-lenny/pressure-test'; bumped to 'ui://working-from-lenny/strategy-pressure-test' to match the per-app dir naming and avoid collision with future pressure-test-* apps. rehearse-the-counter multi-turn mode deferred to a follow-up. Tool descriptions verbatim-match the runtime `meta.description` strings.",
     "dev.workingfromlenny.app": {
       "id": 2,
       "name": "Strategy Pressure-Tester",
       "phase": 2,
-      "type": "paste + LLM critique"
+      "type": "paste + deterministic router + LLM critique"
     },
+    "dev.workingfromlenny.anchor_substitutions": [
+      {
+        "missing": "competitive-positioning",
+        "substituted_with": "positioning",
+        "decision": "Same substitution logged earlier in authoring.md; the positioning topic in knowledge/topics covers the competitive-positioning territory the prompt.md fourth-pass references."
+      },
+      {
+        "missing": "business-model-evolution",
+        "substituted_with": "seven-powers",
+        "decision": "Same substitution logged earlier in authoring.md; seven-powers covers the business-model evolution territory the prompt.md fourth-pass references."
+      }
+    ],
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
-      "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",
-      "worked_example": "bundle/src/tools/pm-pitfalls/narrate.ts and bundle/src/shared/schemas.ts (PitfallNarrateOutput). Sonnet clones this pattern for every narration tool listed below.",
-      "narration_tools": [
-        "strategy_critique",
-        "strategy_rehearse"
-      ],
-      "supersedes": "Earlier 'host sampling + api_key fallback' design. Sampling/createMessage was not exposed by Claude Desktop or Claude Code CLI to user-installed extensions in 2026-05; Path 4 makes the host chat model the renderer, which is the MCP-recommended idiom."
-    },
-    "dev.workingfromlenny.open_questions": [
-      "Confirm tool composition pattern (classify → critique → rehearse) matches MCP-Apps recommended flow.",
-      "Decide whether strategy_text should be stored hashed for calibration, or only the critique summary. Privacy posture in plan says default-off retention.",
-      "Engine sharing: should strategy_critique tool import directly from lenny-pressure-test skill, or duplicate the corpus-routing logic for .mcpb portability?"
-    ],
-    "dev.workingfromlenny.proposed_answers": [
-      "Yes. The spec encourages composable, separable tools within a single resource. The three-step flow (classify then critique then rehearse) maps cleanly to this pattern: the host can invoke each step independently or chain them, passing doc_type from strategy_classify into strategy_critique as a parameter. Tool chaining with explicit handoff values (not implicit session state) is the recommended flow.",
-      "Store the critique summary only, not the full strategy text. Strategy docs can contain confidential roadmaps; full-text retention is the highest-risk item. The calibration value comes from tracking which objection labels resolved and which the user rehearsed, not from replaying the original text. Recommended: store critique ID, timestamp, the five objection labels (not full text), and chosen_objection_index. Hash the strategy text for deduplication if needed; do not store plaintext. The MCP Apps spec has no manifest-level retention capability — the only normative hook is readOnlyHint: false on the calibration tool, which prompts the host's confirmation UI on first use. Document what is persisted in the tool description so the host can convey it.",
-      "Duplicate the corpus-routing logic for .mcpb portability. The .mcpb bundle format is self-contained; the host cannot be expected to install the lenny-pressure-test skill as a dependency. Bundle the relevant corpus chunks and routing logic directly. If the skill is updated, a bundle refresh is the update path. Portability over DRY is the right tradeoff for Phase 2. Flag the duplication with a comment in the bundle so a Phase 3 refactor can consolidate if the spec adds inter-bundle references."
-    ],
-    "dev.workingfromlenny.spec_validation": {
-      "validated_on": "2026-05-18",
-      "sources": [
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
-        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
-        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
-      ],
-      "notes": [
-        "ui:// scheme is valid; no rigid format is enforced — server-defined slugs after the scheme are acceptable.",
-        "No requires-consent / data-retention / fs-write capability exists in either ext-apps appCapabilities or .mcpb manifest. Consent is host-discretion; readOnlyHint: false on stateful tools is the only normative hook.",
-        "Underscore-prefixed fields at non-_meta paths have undefined host behavior; project metadata lives under _meta with reverse-DNS keys."
-      ]
+      "summary": "Narration tools return a narration_brief. Deterministic router classifies strategy/roadmap/prd/mixed; brief carries the four-pass structure + closed corpus-anchor pool + voice rules; host chat model renders the five-card critique (or six when mixed).",
+      "worked_example": "bundle/src/tools/2-strategy-pressure-test/narrate.ts and bundle/src/lib/build-strategy-brief.ts",
+      "narration_tools": ["strategy_pressure_test_narrate"]
     }
   }
 }
