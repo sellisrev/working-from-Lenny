@@ -1,9 +1,9 @@
 ---
 topic_slug: founder-mode
 display_name: Founder mode and operating modes
-last_updated: 2026-05-07
+last_updated: 2026-05-10
 last_model: claude-opus-4-7
-sources_processed: 4
+sources_processed: 5
 date_range_processed: 2024 .. 2026
 ---
 
@@ -36,6 +36,15 @@ date_range_processed: 2024 .. 2026
 ### Anneka Gupta's framing (2024, Rubrik CPO)
 "Harnessing founder mode" — useful for non-founder execs adopting some of the patterns. Anneka's caveat: don't confuse "founder mode" with "skipping the management work." It's both/and.
 
+### Eric Ries's 2026 reframe: the founder-control trap
+Ries (Lenny's Podcast, 2026-05-10) argues founder mode in the *operating* sense is necessary but insufficient — the corpus framing has under-weighted the *governance* dimension. His load-bearing data point: **80% of venture-backed founders are no longer CEO three years after going public** (Harvard Law School). Most are ousted, not retired.
+
+His diagnosis: standard "best-practice" incorporation docs supplied by lawyers/VCs commit you to a fiduciary duty that converts "founder mode" into a temporary state. The founder who operates in detail across the org but hasn't paired that with mission-protective governance is doing high-effort operating with low-leverage durability. When success makes you a target (his framing: "success doesn't protect you — success *makes you a target*"), founder mode without governance is decapitated.
+
+Ries rejects the binary of *founder-controlled* vs *investor-controlled*. The durable third option is **mission-controlled** — extra votes, mission-protective provisions, foundation-owned equity, board seats reserved for mission trustees. The Anthropic LTBT is the high-profile example. See [`founder-governance`](founder-governance.md) for the structural detail.
+
+Implication for the topic: a founder-mode operating playbook without the governance pairing has a roughly 80% chance of being run by someone else by year 3 of public-company life. Skip-levels and IC-CEO patterns don't outlast that handover.
+
 ## What this means for non-PM consumers
 
 - **If you're a CEO/founder**: don't reflexively reject delegation as "manager mode" or reflexively reject hands-on as "micromanagement." Both are tools; pick contextually.
@@ -47,8 +56,9 @@ date_range_processed: 2024 .. 2026
 - **Pre-corpus**: Brian Chesky / Paul Graham essay establishes "founder mode" as a public framing (2024).
 - **2024**: Anneka Gupta on Lenny's Podcast — "harnessing founder mode" framing.
 - **2025-2026**: AI-augmented founder mode emerges; IC CEO pattern (Howie Liu) demonstrates the upper bound.
+- **2026-05**: Eric Ries on Lenny's Podcast — founder mode pivots from operating-craft framing to a governance-durability framing. The operating practices are necessary but get re-set every 3-5 years unless paired with structural protection.
 
 ## See also
 
-- Related topics: `conscious-leadership`, `empathy-in-leadership`, `ai-org-restructuring`, `pm-influence`, `defending-big-bets`, `decision-making-frameworks`.
-- Books: [The Hard Thing About Hard Things](../books/hard-thing-about-hard-things.md) (Horowitz) — wartime CEO canon overlaps; [What You Do Is Who You Are](../books/what-you-do-is-who-you-are.md) (Horowitz) — culture-mode thinking.
+- Related topics: `conscious-leadership`, `empathy-in-leadership`, `ai-org-restructuring`, `pm-influence`, `defending-big-bets`, `decision-making-frameworks`, [`founder-governance`](founder-governance.md) (companion governance-side topic, 2026-05).
+- Books: [The Hard Thing About Hard Things](../books/hard-thing-about-hard-things.md) (Horowitz) — wartime CEO canon overlaps; [What You Do Is Who You Are](../books/what-you-do-is-who-you-are.md) (Horowitz) — culture-mode thinking; [Incorruptible](../books/incorruptible.md) (Ries) — the founder-control trap and mission-controlled third option.

@@ -197,7 +197,18 @@ books:
     domain: business
     guest_authored: true
     verified_corpus_mentions: 8
-    notes: "Author Eric Ries is podcast guest (eric-ries.md). Strong AI-era decay candidate: MVP/build-measure-learn pre-AI vs AI-prototyping era."
+    notes: "Author Eric Ries appears on Lenny's pod 2026-05-10 (`how-to-build-a-company-that-withstands-any-era-eric-ries-lea`) plugging his new book `incorruptible`. AI-era decay flag *retracted* after that episode — Ries himself argues AI labs are running classic Lean Startup methodology. Digest at knowledge/books/lean-startup.md (light pass against public starter pack; expand against full archive)."
+
+  incorruptible:
+    title: "Incorruptible: Why Good Companies Go Bad and How Great Companies Stay Great"
+    author: "Eric Ries"
+    aliases:
+      - "Incorruptible"
+      - "Incorruptible book"
+    domain: business
+    guest_authored: true
+    verified_corpus_mentions: 5
+    notes: "Published 2026 (pre-order at writing); thesis from Lenny's pod ep 2026-05-10: 80% of venture-backed founders ousted within 3 years of IPO; 'financial gravity' as the unified theory of corporate decay; defenses are ethos + integrity (Public Benefit Corps, mission guardians, director's oath, founders-preferred + mission-protective provisions). Case studies: Novo Nordisk 100-year fortress, ZEISS since 1885, Anthropic LTBT, Cloudflare, Costco, Patagonia, H-E-B. Anti-patterns: Groupon email-frequency death spiral, Vectura/Philip Morris, Whole Foods sale. Digest at knowledge/books/incorruptible.md. Informs `founder-mode`, `mission-vision-strategy`, `bootstrapping`; triggers candidate new topic `founder-governance`."
 
   hacking-growth:
     title: "Hacking Growth: How Today's Fastest-Growing Companies Drive Breakout Success"

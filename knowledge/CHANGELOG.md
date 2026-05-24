@@ -21,6 +21,43 @@ Each entry follows this template:
 
 <!-- entries below this line -->
 
+## 2026-05-10 Eric Ries priority drop — topic re-verifies + new topic + book digests
+- Mode: topic re-verify (x4) + new topic + book digest
+- Source: `03-podcasts/eric-ries-2.md` (2026-05-10, 20,428 words). Single primary source for this batch; the Ries episode is the trigger event.
+- Topic files re-verified (Ries layer added; existing consensus preserved):
+  - **`founder-mode`** — added "Eric Ries's 2026 reframe: the founder-control trap" subsection. 80% ousting stat from Harvard Law; reframes founder mode from operating-craft to governance-durability. Bumped `last_updated` to 2026-05-10, sources to 5.
+  - **`mission-vision-strategy`** — added "Mission-driven vs mission-hopeful (Ries, 2026-05)" subsection. Reframes mission layer as apparatus, not statement; introduces the Don't-Be-Evil-vs-Quarterly-Report contrast; brings *fiduciary* and *ethos* into the corpus vocabulary.
+  - **`bootstrapping`** — added "The governance-protection angle (Ries, 2026-05)" subsection. Pre-Series-A as the cheapest mission-protection install window; PBC, founders-preferred, director's oath, mission-trustee structures.
+  - **`pivots-art`** — added "Eric Ries's 2026 view: the lean-startup author on his own framework" subsection. Ries reaffirms the pivot mechanics 15 years post-publication; AI labs cited as the strongest current validation; warning that pivots without governance often end with founder ouster.
+- New topic created: **`founder-governance`** — structural-legal complement to `founder-mode` and `mission-vision-strategy`. Covers PBC, director's oath, founders-preferred + mission-protective provisions, LTBT / spiritual holding company patterns. Added to `references/topics.yml`. Single-source at creation; flagged for re-verify once 3+ corroborating corpus sources accumulate.
+- Book digests written:
+  - **`incorruptible`** (Ries, 2026): single-source primary digest — book is pre-launch, no third-party review consensus yet.
+  - **`lean-startup`** (Ries, 2011): light digest against the public starter pack (3 of 8 expected mentions visible). AI-era decay flag retracted in `books.yml` based on Ries's own 2026 framing that AI labs are running classic Lean Startup methodology.
+- Web citations added: 0 (the Ries episode is the source-of-record; web-search consensus deferred until book has been out long enough for review coverage).
+- Flagged for review:
+  - Several claims rest entirely on Ries's 2026 framing — the Harvard Law 80% ouster stat, the 6x year-50 survival multiplier for governance-fortress companies, the Mary Parker Follett rediscovery framing. Each `Critical reading` section in the affected files lists the specific items to verify when external citations become available.
+- Model: claude-opus-4-7
+- Notable decisions:
+  - Wrote `founder-governance` as a new first-class topic rather than expanding `founder-mode`. The two are coupled but distinct: `founder-mode` is operating-craft, `founder-governance` is structural-legal. Cross-linked in both directions.
+  - Wrote both book digests despite single-source coverage rather than waiting for review consensus, since they unblock the topic re-verifies that depend on them.
+  - Did not write `obsolete/` or `cautions/` entries for any of these — Ries's framework reinforces or extends existing corpus claims; it does not retire any.
+
+## 2026-05-10 book digest: `incorruptible` (Eric Ries)
+- Mode: book
+- Sources processed: 1 (`03-podcasts/eric-ries-2.md`, 2026-05-10, 20,428 words; 5 mentions of the book within the same episode)
+- Contradictions found: 0 (single-source — book is pre-launch)
+- Web citations added: 0 (no third-party review consensus exists yet; flagged in digest)
+- Flagged for review: claims that deserve independent citation chains once the book lands — the Harvard Law 80%-founder-ouster stat, the 6x year-50 survival multiplier for governance-fortress companies, the Mary Parker Follett rediscovery framing.
+- Model: claude-opus-4-7
+- Notable decisions:
+  - Wrote the digest as a single-source primary distillation rather than waiting for the consensus literature; the book is the trigger for several priority-drop topic re-verifies and a candidate new `founder-governance` topic, so blocking on review consensus would delay the dependent work.
+  - Marked the `lean-startup` book digest as the natural companion (still pending). Ries's framing makes the two books a pair, and the same episode is the strongest evidence yet for re-evaluating the AI-era decay flag on `lean-startup`.
+- Notes: Episode also flagged in `RUNBOOK.md` Priority drops section. Topic re-verifies (`founder-mode`, `mission-vision-strategy`, `bootstrapping`, `pivots-art`) and the candidate new topic `founder-governance` not yet processed.
+
+## 2026-05-10 plumbing: cross-platform UTF-8 on Windows
+- Mode: scripts
+- Notes: Patched 6 scripts (parse_corpus, topic_chunks, book_mentions, export_digest, find_external_overlap, list_topics) to specify `encoding="utf-8"` on every `open()` / `read_text()` / `write_text()`; added `sys.stdout.reconfigure(...)` shims to the two scripts that print JSON. Windows default cp1252 was breaking parse on curly quotes in the licensed index.json. Documented in `RUNBOOK.md`. Also loosened `topic_chunks.file_matches_body` to not reject rows with empty `tags: []` (the free public starter pack omits tags; the full licensed archive does not).
+
 ## 2026-05-07 batch-9 (taxonomy completion: 21 final topics + 3 episode comments) — **154/154 = 100%**
 
 ### Final 21 topics

@@ -945,6 +945,24 @@ topics:
       - "founder mode"
     related_tags: [leadership, startups]
 
+  founder-governance:
+    display_name: "Founder governance and mission protection"
+    seed_keywords:
+      - "Public Benefit Corporation"
+      - "PBC"
+      - "mission protective"
+      - "founder ousted"
+      - "founders preferred"
+      - "Long-Term Benefit Trust"
+      - "LTBT"
+      - "director's oath"
+      - "mission-controlled"
+      - "shareholder primacy"
+      - "Incorruptible"
+      - "spiritual holding company"
+    related_tags: [leadership, startups, strategy]
+    notes: "Added 2026-05-10 from Eric Ries `Incorruptible` framework. Structural-legal complement to `founder-mode` (operating side) and `mission-vision-strategy` (intent side)."
+
   conscious-leadership:
     display_name: "Conscious leadership and emotional embrace"
     seed_keywords:

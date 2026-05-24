@@ -1,10 +1,10 @@
 ---
 topic_slug: bootstrapping
 display_name: Bootstrapping a business
-last_updated: 2026-05-07
+last_updated: 2026-05-10
 last_model: claude-opus-4-7
-sources_processed: 4
-date_range_processed: 2023 .. 2024
+sources_processed: 5
+date_range_processed: 2023 .. 2026
 ---
 
 # Bootstrapping a business
@@ -42,6 +42,18 @@ Anchored in Patrick Campbell ("10 lessons on bootstrapping a $200m business", 20
 - **AI tooling makes bootstrapping more viable.** A solo founder + AI tools can build what required a team in 2020. Cf. [vibe-coding](vibe-coding.md), [ai-coding-agents](ai-coding-agents.md). Anton Osika's Lovable went $0 → $10M ARR in 60 days with 15 people.
 - **The bootstrapped + AI-native combo is producing notable winners** (Lovable, Cursor, others).
 
+### The governance-protection angle (Ries, 2026-05)
+Eric Ries (Lenny's Podcast, 2026-05-10) adds an under-discussed bootstrapper-specific advantage: **pre-raise founders have maximum optionality on governance structures**, and the cost of installing them is near zero. The bootstrapper case for `Incorruptible`-style protection:
+
+- **Pre-Series-A is the cheapest moment.** Once you have outside investors, mission-protective provisions need their sign-off. Bootstrapped or SAFE-only founders can install everything unilaterally. Ries: *"If you haven't raised money yet or you've only raised money on SAFEs, you can do absolutely whatever you want."*
+- **Public Benefit Corporation filing**: two pages, Delaware, "the easiest thing to do on the whole podcast." States the company's purpose so future investors can't sue for shareholder-primacy breach. No ongoing cost; no tradeoff for a customer-funded business.
+- **Founders-preferred shares + mission-protective provisions**: extra board votes, mission-trustee seats, foundation-pledged equity. These are *expected* concessions when you later raise institutional money; installed pre-raise they are just defaults.
+- **Director's oath**: written into the charter as a precondition of board service. Hippocratic-equivalent. Cheap, durable.
+
+Bootstrappers often frame their advantage as "no dilution" and "no exit pressure." Ries reframes the same advantage as **durable structural sovereignty** — your company can outlive a sale, a death, a founder's loss of interest, *because the governance was set up while no one had veto power over you*.
+
+The compounding insight: many bootstrapped companies eventually take outside money at Series B/C from a position of strength. The founders who installed mission protection pre-raise enter that negotiation with concrete structural commitments already in place; those who delayed enter it being told "now is not the right moment." Ries argues there is no right moment — only *before money* and *after money*.
+
 ## What this means for non-PM consumers
 
 - **If you're considering bootstrapping**: read Patrick Campbell's playbook + Jason Fried's writing. Calibrate your market context.
@@ -53,8 +65,9 @@ Anchored in Patrick Campbell ("10 lessons on bootstrapping a $200m business", 20
 - **2021-2022**: Lenny corpus references bootstrapping in passing.
 - **2023-09**: Patrick Campbell "10 lessons on bootstrapping a $200m business" — corpus-canonical.
 - **2024-2025**: Jason Fried, Andrew Wilkinson episodes; bootstrapping legitimacy in AI era.
+- **2026-05**: Eric Ries — bootstrapping reframed not only as cash/dilution choice but as a *governance-installation window*. Pre-raise is the moment to lock in mission protection at zero cost.
 
 ## See also
 
-- Related topics: `raising-seed`, `fundraising-playbook`, `venture-scale`, `startup-validation`, `vibe-coding`, `ai-coding-agents`.
-- Books: ProfitWell content + Patrick Campbell writing; Jason Fried & DHH books (*Rework*, *Remote*, *It Doesn't Have to Be Crazy at Work*).
+- Related topics: `raising-seed`, `fundraising-playbook`, `venture-scale`, `startup-validation`, `vibe-coding`, `ai-coding-agents`, [`founder-governance`](founder-governance.md) (mission-protective structures most easily installed during the bootstrapping window).
+- Books: ProfitWell content + Patrick Campbell writing; Jason Fried & DHH books (*Rework*, *Remote*, *It Doesn't Have to Be Crazy at Work*); [Incorruptible](../books/incorruptible.md) (Ries) — pre-raise governance window.
