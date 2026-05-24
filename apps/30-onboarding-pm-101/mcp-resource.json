@@ -1,0 +1,156 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/onboarding-pm-101",
+    "name": "Onboarding to PM 101 for Non-PMs",
+    "description": "A generator (no scoring, no per-user state) of five short orientation lessons for a non-PM who just joined a PM-led company. Two required inputs (role, company stage) plus optional PM ratio and a free-text 'biggest confusion'. The five lesson titles are fixed; the content is tailored to role + stage and rendered by the host chat model from a corpus-grounded brief. Earnest and useful, lightly wry, never reverent about the PM role: it names what a bad PM looks like and how to push back.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "onboarding_get_modes",
+      "description": "Entry tool for Onboarding to PM 101. Calling this triggers the host to mount the ui://working-from-lenny/onboarding-pm-101 resource (an interactive iframe with a role picker, a company-stage picker, an optional PM-ratio picker, and an optional one-line 'biggest confusion' field). If your host mounts the UI, that IS the input surface — do NOT additionally render the form in chat as a duplicate surface; the user will fill it in the iframe, which calls onboarding_generate directly. The returned `lessons` array is the five fixed lesson titles (the orientation always produces all five, tailored to the inputs; there is no mode to pick). The returned `fields` array is the input fallback for hosts that cannot mount ui:// resources. If the user already has role + stage in hand, call onboarding_generate directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "lessons": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 5 },
+                "title": { "type": "string" }
+              }
+            }
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": { "type": "string" },
+                "label": { "type": "string" },
+                "kind": { "type": "string", "enum": ["enum", "text"] },
+                "options": { "type": "array", "items": { "type": "string" } },
+                "optional": { "type": "boolean" }
+              }
+            }
+          },
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/onboarding-pm-101" } }
+    },
+    {
+      "name": "onboarding_generate",
+      "description": "Takes the non-PM's inputs (role, company_stage, optional pm_ratio, optional biggest_confusion) and persists the corpus-grounded orientation brief. The deterministic side validates the inputs and resolves the role lens and stage-calibration for each of the five fixed lessons (artifacts / pushing back / good-vs-bad PM / cross-functional rituals / escalation), selecting the corpus anchors per lesson; the five lessons themselves come from the host chat model. AFTER receiving this result, call onboarding_get_pending_narration to fetch the brief and render the five lessons (plus the confusion coda when biggest_confusion was supplied). Do not render the lessons on your own without the brief — the brief carries the voice rules (#30 plain, useful, lightly wry, never reverent, honesty over advocacy) and the closed corpus-anchor pool. Optional `user_context` flows into the persisted brief. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["engineer", "designer", "sales", "customer-success", "other-cross-functional"] },
+              "company_stage": { "type": "string", "enum": ["seed", "series-a-b", "growth", "enterprise"] },
+              "pm_ratio": { "type": "string", "enum": ["solo-pm", "pm-per-squad", "heavy-pm-org"] },
+              "biggest_confusion": { "type": "string", "maxLength": 200, "default": "" }
+            },
+            "required": ["role", "company_stage"]
+          },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when generate's persistence side-effect failed. Presence indicates onboarding_get_pending_narration will return no_pending and the host should surface the message, recommending re-submission."
+          }
+        }
+      }
+    },
+    {
+      "name": "onboarding_narrate",
+      "description": "Packages a corpus-grounded orientation brief from the structured inputs. Returns voice rules, structure (LESSON_1..5 plus an optional CONFUSION_CODA), the resolved role lens and stage calibration, and corpus chunks. Pure compute — no persistence side-effect. PREFER onboarding_get_pending_narration after a generate call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": { "type": "object" },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of anchor slug to corpus chunk text."
+          }
+        }
+      }
+    },
+    {
+      "name": "onboarding_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their onboarding lessons, 'give me my onboarding lessons', 'explain what PMs do', 'render my orientation', or any follow-up to a submission just made — including any phrasing like 'what should I know about working with PMs', 'show me my five lessons', 'I just filled in the onboarding form', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by onboarding_generate on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent onboarding_generate call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/onboarding-pm-101 resource or call onboarding_generate directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
+      }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 720 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #30 Onboarding to PM 101 for Non-PMs. Phase 3 .mcpb bundle target. Path 4 four-tool clone of #52 How [You] Build (generator shape, no scoring engine), with two differences from #52: the output is earnest and corpus-grounded (the corpus map is populated, not empty), and the five lesson titles are fixed sections rather than a one-of-three mode pick. The deterministic side resolves the role lens + stage calibration + per-lesson anchors; the lessons come from the host chat model. No stateful follow-up is natural here (orientation runs once), so there is no calibration/history tool by design — a reviewer should not expect one. Pairs with #46 for the same non-PM audience (#30 is the orientation, #46 is the diagnostic). Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 30,
+      "name": "Onboarding to PM 101 for Non-PMs",
+      "phase": 3,
+      "type": "generator (tailored lesson set, no scoring state)",
+      "companion_to": 46
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. The deterministic engine resolves the role lens and stage calibration for each of the five fixed lessons and selects the corpus anchors; the brief carries the resolved lenses + user inputs + corpus chunks (how-x-builds-product, product-strategy, okrs, getting-buy-in, communicating-tradeoffs, saying-no, top-1-percent-pm, spotting-bad-pm-behaviors, pm-pitfalls, continuous-discovery, communicating-bad-news, managing-up, decision-making-frameworks). Host chat model renders LESSON_1..5 (each role-lensed and stage-calibrated) plus a CONFUSION_CODA when biggest_confusion was supplied.",
+      "worked_example": "bundle/src/tools/30-onboarding-pm-101/narrate.ts and bundle/src/lib/build-onboarding-brief.ts. Mirrors bundle/src/tools/52-how-you-build/narrate.ts (generator shape) but with a populated corpus map.",
+      "narration_tools": ["onboarding_narrate"]
+    }
+  }
+}
