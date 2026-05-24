@@ -2,7 +2,9 @@
 
 The Phase 2 MCP App bundle. Architecture is locked in [`../PHASE2_BUILD.md`](../PHASE2_BUILD.md); status in [`../STATUS.md`](../STATUS.md).
 
-This directory is what `mcpb-pack` walks at release time to produce the `.mcpb` ZIP attached to GitHub Releases on `sellisrev/from-Lenny`.
+> **Stale-section warning:** the "host sampling" / "api-key fallback" mentions below (smoke-test steps 3 & 5, the #44 narrate description, the "Sampling fallback" section) predate **Path 4** and are no longer how the bundle works. Narration tools return a `narration_brief`; the host chat model renders it; the bundle makes **no** inference call. [`../PHASE2_BUILD.md`](../PHASE2_BUILD.md) decision #2 is authoritative. This file needs a Path-4 refresh pass.
+
+This directory is what `mcpb-pack` walks at release time to produce the `.mcpb` ZIP attached to GitHub Releases on `sellisrev/working-from-Lenny`.
 
 ## Layout
 
