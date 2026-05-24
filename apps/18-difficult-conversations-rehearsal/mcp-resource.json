@@ -1,0 +1,87 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/difficult-conversations",
+    "name": "Difficult-Conversations Rehearsal",
+    "description": "Pick a difficult-conversation scenario (poor performance / peer escalation / layoff delivery / scope cut to a customer / killing a pet project / PIP kickoff) and rehearse it in a short back-and-forth with the host playing the counterparty. Clones the #17 host-driven multi-turn pattern: the host runs the dialog from a rehearsal brief; the bundle tracks no turn state. The coach scores empathy, clarity, decisiveness, willingness to let silence work, and dignity, then delivers the canonical handling with the silence beat marked. A 'fournier' mode skips the role-play and contrasts the user's intended opening against canonical leadership guidance.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "difficult_conversations_get_scenario",
+      "description": "Entry tool for the Difficult-Conversations Rehearsal. Calling this triggers the host to mount the ui://working-from-lenny/difficult-conversations resource (an interactive iframe: a scenario picker, an optional relationship field, an optional intended-approach field for fournier mode, and a mode toggle of rehearse / show-me / fournier). If your host mounts the UI, that IS the input surface — do NOT additionally render the picker in chat as a duplicate surface; the user will set up the scenario in the iframe, which calls difficult_conversations_start directly. The returned `scenarios` array (with each one's realistic counterparty reaction) and `modes` array are the fallback for hosts that cannot mount ui:// resources. If the user already knows the scenario, call difficult_conversations_start directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/difficult-conversations" } }
+    },
+    {
+      "name": "difficult_conversations_start",
+      "description": "Takes the rehearsal setup (situation.scenario, optional situation.your_relationship, optional situation.intended_approach for fournier mode, and mode of rehearse | show-me | fournier) and persists the corpus-grounded rehearsal brief. The deterministic side selects the scenario persona and the trap it sets, the five-dimension scoring rubric (empathy / clarity / decisiveness / silence / dignity), the canonical-handling anchor with the silence beat, and the turn limits, then writes the setup brief via the single-pending pattern. The brief is ephemeral setup, NOT durable user data, so this tool stays read-only. The rehearsal itself (the dialog, the scoring, the canonical version, or the fournier comparison) is conducted by the host chat model. AFTER receiving this result, call difficult_conversations_get_pending_narration to fetch the brief; on status='ready' the host CONDUCTS the rehearsal per the brief's directive. Do not improvise the role-play without the brief — it carries the persona, the rubric, the canonical-handling anchor, and the turn limits. Optional `user_context` flows into the brief. If `persistence_warning` is set, surface it and ask the user to re-start.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "situation": {
+            "type": "object",
+            "properties": {
+              "scenario": { "type": "string", "enum": ["poor-performance", "peer-escalation", "layoff-delivery", "scope-cut-to-customer", "killing-pet-project", "pip-kickoff"] },
+              "your_relationship": { "type": "string", "maxLength": 200, "default": "" },
+              "intended_approach": { "type": "string", "maxLength": 600, "default": "", "description": "Used in fournier mode: the user's intended opening, contrasted against canonical leadership guidance." }
+            },
+            "required": ["scenario"]
+          },
+          "mode": { "type": "string", "enum": ["rehearse", "show-me", "fournier"], "default": "rehearse" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["situation"]
+      }
+    },
+    {
+      "name": "difficult_conversations_narrate",
+      "description": "Packages the corpus-grounded rehearsal brief from the situation inputs. Returns voice rules, the rehearsal directive (conduct a role-play, not render a reading), the scenario persona and its trap, the five-dimension rubric (empathy / clarity / decisiveness / silence / dignity), the turn limits, the mode, the canonical-handling anchor with the silence beat marked, and corpus chunks. In fournier mode the brief carries the keep / cut / one-move-you're-missing comparison structure instead of the role-play directive. Pure compute — no persistence side-effect. PREFER difficult_conversations_get_pending_narration after a start call. Only call this tool directly if you need the brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "situation": {
+            "type": "object",
+            "properties": {
+              "scenario": { "type": "string", "enum": ["poor-performance", "peer-escalation", "layoff-delivery", "scope-cut-to-customer", "killing-pet-project", "pip-kickoff"] },
+              "your_relationship": { "type": "string", "maxLength": 200, "default": "" },
+              "intended_approach": { "type": "string", "maxLength": 600, "default": "" }
+            },
+            "required": ["scenario"]
+          },
+          "mode": { "type": "string", "enum": ["rehearse", "show-me", "fournier"], "default": "rehearse" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["situation"]
+      }
+    },
+    {
+      "name": "difficult_conversations_get_pending_narration",
+      "description": "MUST CALL whenever the user asks to run their rehearsal, 'rehearse this conversation', 'practice the layoff talk', 'help me tell them', or any follow-up to a setup just made — including any phrasing like 'let's run it', 'play the report', 'what would Camille Fournier do', 'I just set up a difficult-conversations rehearsal', or any message coming from the embedded widget. Do NOT respond with 'you haven't set anything up' without calling this tool first: the rehearsal setup lives on disk (persisted by difficult_conversations_start on submission), NOT in the chat conversation context — the user may have set it up via the embedded widget, in which case the chat history shows no prior setup but a brief is waiting on disk. Returns the rehearsal brief saved by the most recent difficult_conversations_start call. On status='ready', CONDUCT the rehearsal following the brief's directive and voice_rules: open in the counterparty's persona, let the user respond, push back once fairly, cap at the brief's turn limit, then break character, score against the rubric, and deliver the canonical handling with the silence beat marked (in show-me mode, skip to the canonical handling; in fournier mode, skip the role-play and give keep / cut / the one move the user is missing). This family's directive runs a dialog rather than rendering a one-shot reading. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/difficult-conversations resource or call difficult_conversations_start directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 600, "preferredHeight": 700 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #18 Difficult-Conversations Rehearsal. Phase 3 .mcpb bundle target. CLONES #17 Saying No verbatim (HOST-DRIVEN MULTI-TURN, PHASE2_BUILD.md #9): the host runs the dialog from a Path-4 rehearsal brief; the bundle tracks NO turn state and persists only the ephemeral setup brief (single-pending), so difficult_conversations_start stays readOnlyHint:true. Deltas from #17: a six-scenario set (counterparty is scenario-defined, not a stakeholder enum), a different rubric (empathy / clarity / decisiveness / silence / dignity; silence is the dimension most people fail and the corpus most emphasizes), and a 'fournier' comparison mode that contrasts the user's intended opening against canonical leadership guidance. ATTRIBUTION CAUTION (open question #2, settled in Stage C): name Camille Fournier only where knowledge/topics/ actually quotes her (giving-feedback-as-leader.md, performance-reviews.md); otherwise frame as 'canonical leadership guidance in the corpus' to avoid putting words in a real person's mouth. Stage A implementation should literally copy #17's tool files and swap scenario data + rubric + brief builder. Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 18,
+      "name": "Difficult-Conversations Rehearsal",
+      "phase": 3,
+      "type": "multi-turn rehearsal (host-driven dialog from a Path 4 brief)",
+      "clones": 17
+    },
+    "dev.workingfromlenny.multi_turn": {
+      "model": "host-driven-dialog",
+      "decided": "2026-05-23",
+      "ref": "PHASE2_BUILD.md #9",
+      "principle": "The conversation is the state. No turn counter, transcript, or dialog state crosses the tool boundary; the host's native multi-turn loop conducts the role-play from the brief's directive. The bundle persists only the setup brief (ephemeral, single-pending). Identical to #17.",
+      "directive_difference": "The get_pending directive conducts a role-play (or, in fournier mode, a keep/cut/missing-move comparison) rather than rendering a one-shot reading."
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "difficult_conversations_narrate returns a narration_brief whose directive conducts a rehearsal. The deterministic engine selects the scenario persona and its trap, the five-dimension rubric (empathy / clarity / decisiveness / silence / dignity), the canonical handling with the silence beat, and the turn limits; the brief carries those + corpus chunks (difficult-conversations, communicating-bad-news, giving-feedback-as-leader, performance-reviews). Host chat model conducts the dialog, scores, and delivers the canonical handling, or in fournier mode contrasts the user's intended opening against canonical guidance. No sampling; no turn state.",
+      "worked_example": "bundle/src/tools/18-difficult-conversations-rehearsal/narrate.ts and bundle/src/lib/build-rehearsal-brief.ts. Clones bundle/src/tools/17-saying-no-rehearsal/ with swapped scenario data + rubric + brief builder.",
+      "narration_tools": ["difficult_conversations_narrate"]
+    }
+  }
+}
