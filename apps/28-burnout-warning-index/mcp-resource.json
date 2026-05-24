@@ -1,0 +1,74 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/burnout-index",
+    "name": "Burnout Warning Index for Product People",
+    "description": "A short structured check: a calendar-load block (meetings, deep-work blocks left, after-hours share, weeks since a real vacation, sleep) plus three honest qualitative answers (last good day, morning dread, what falls away first). Deterministic composite index (0-100) and tier (green / yellow / red) with a dread-plus-no-good-day override that floors the tier at yellow; the two top drivers, named plainly, and a phased recovery prescription (stop the bleeding / rebuild recovery / change the system) come from the host chat model. Non-clinical, behavioral, no medical claims.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "burnout_get_form",
+      "description": "Entry tool for the Burnout Warning Index. Calling this triggers the host to mount the ui://working-from-lenny/burnout-index resource (a single short page: a load block of numbers and enums plus three qualitative checks and one optional textarea). If your host mounts the UI, that IS the input surface — do NOT additionally render the inputs in chat as a duplicate surface; the user will fill them in the iframe, which calls burnout_score directly. The returned `fields` array is the fallback for hosts that cannot mount ui:// resources. If the user already has all inputs in hand, call burnout_score directly. The check is short by design — a long burnout quiz is its own irony.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/burnout-index" } }
+    },
+    {
+      "name": "burnout_score",
+      "description": "Takes the structured burnout-check inputs (meetings_per_week, deep_work_blocks_remaining, after_hours_meeting_pct, weeks_since_real_vacation, sleep_self_report, last_good_day, dread_signal, optional recovery_capacity) and persists the corpus-grounded recovery brief. The deterministic side maps each input to 0-2 risk points (the qualitative trio counts double), normalizes to a 0-100 index, tiers it (green <= 30, yellow 31-60, red >= 61), applies the override (dread most-mornings AND last-good-day can't-remember floors the tier at yellow regardless of load), names the two highest-risk drivers, and selects the recovery phases. It echoes the inputs so the host has them in context. The two-driver narration and the ordered three-phase prescription come from the host chat model. AFTER receiving this result, call burnout_get_pending_narration to fetch the brief and render the INDEX + drivers + ordered recovery. Do not render the prescription on your own without the brief — the brief carries the voice rules (#28 non-clinical, non-alarmist, no medical claims, direct-but-kind) and the closed corpus-anchor pool. Optional `user_context` (role / season) flows into the persisted brief. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "meetings_per_week": { "type": "integer", "minimum": 0, "maximum": 100 },
+              "deep_work_blocks_remaining": { "type": "integer", "minimum": 0, "maximum": 40 },
+              "after_hours_meeting_pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+              "weeks_since_real_vacation": { "type": "integer", "minimum": 0, "maximum": 520 },
+              "sleep_self_report": { "type": "string", "enum": ["solid", "uneven", "poor"] },
+              "last_good_day": { "type": "string", "enum": ["this-week", "this-month", "cant-remember"] },
+              "dread_signal": { "type": "string", "enum": ["rarely", "some-mornings", "most-mornings"] },
+              "recovery_capacity": { "type": "string", "maxLength": 200, "default": "" }
+            },
+            "required": ["meetings_per_week", "deep_work_blocks_remaining", "after_hours_meeting_pct", "weeks_since_real_vacation", "sleep_self_report", "last_good_day", "dread_signal"]
+          },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      }
+    },
+    {
+      "name": "burnout_narrate",
+      "description": "Packages a corpus-grounded Burnout Warning brief from the structured inputs. Returns voice rules, structure (INDEX → DRIVERS → PHASE_1 → PHASE_2 → PHASE_3), the computed index and tier, the override flag, the two top drivers, and corpus chunks. Pure compute — no persistence side-effect. PREFER burnout_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      }
+    },
+    {
+      "name": "burnout_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their burnout reading, 'read my burnout index', 'am I burning out', 'my recovery plan', or any follow-up to a submission just made — including any phrasing like 'what's driving my burnout', 'how bad is it', 'I just filled in the burnout check', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by burnout_score on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent burnout_score call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/burnout-index resource or call burnout_score directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 760 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #28 Burnout Warning Index. Phase 3 .mcpb bundle target. Path 4 four-tool shape; the deterministic engine clones #3 PM Ladder's tier logic and #44's weighted picker, with the entry tool cloning the #37/#9 form-field shape (enums + numbers + one optional textarea). The differentiator is corpus-specific recovery (burnout-and-resilience, long-healthy-life), not generic wellness copy: the prescription is ordered (stop the bleeding / rebuild recovery / change the system), not a menu. Non-clinical, non-alarmist, no medical claims. The dread-plus-no-good-day override floors the tier at yellow because load can look fine while the person is already gone. OPTIONAL WEEKLY CHECK-IN is deferred: it implies scheduling and state the local bundle can't own cleanly; the natural stateful follow-up is a burnout_history tool that compares this week's index to prior runs (mirrors the other deferred calibration tools). Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 28,
+      "name": "Burnout Warning Index for Product People",
+      "phase": 3,
+      "type": "wizard-quiz + deterministic score + LLM narration"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. The deterministic engine maps inputs to 0-2 risk points (qualitative trio doubled), normalizes to a 0-100 index, tiers it, applies the dread-plus-no-good-day override, names the two top drivers, and selects the recovery phases; the brief carries the index + tier + override flag + drivers + phase selection + user inputs + corpus chunks (burnout-and-resilience, long-healthy-life, saying-no, top-1-percent-pm). Host chat model renders the INDEX + what's driving it + the ordered recovery (Phase 1 cut this week / Phase 2 restoration / Phase 3 structural fix), and references recovery_capacity in Phase 1 when supplied.",
+      "worked_example": "bundle/src/tools/28-burnout-warning-index/narrate.ts and bundle/src/lib/build-burnout-brief.ts. Tier logic mirrors bundle/src/tools/3-pm-ladder/; form shape mirrors bundle/src/tools/9-nsm-finder/.",
+      "narration_tools": ["burnout_narrate"]
+    }
+  }
+}
