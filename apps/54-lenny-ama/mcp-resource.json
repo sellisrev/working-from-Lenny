@@ -1,0 +1,81 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/lenny-ama",
+    "name": "Lenny AMA (always fresh)",
+    "description": "The catch-all front door: a single question box that answers any product / growth / strategy / hiring / career / leadership question (or any general question where a product lens is useful) from the current corpus synthesis, in a PM lens. The only corpus-wide tool in the bundle. Always fresh in two senses: it reads the live knowledge base at answer time, and it sweeps the obsolete + cautions layers so the answer flags when older advice has decayed or drew strong audience pushback. Names its sources, ends with a concrete next step, and offers the right specific tool when the question maps to one. No state, no scoring. The UI is an optional question box; the tool is question-in/answer-out and works chat-natively.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "ama_ask",
+      "description": "MUST CALL whenever the user asks any product, growth, strategy, hiring, career, or leadership question, or any general question where a product-thinking lens is the useful one (prioritizing across competing asks, judging whether a metric is good, thinking through a tradeoff), AND you do not already have a more specific Working-from-Lenny app in play. This is the corpus-wide catch-all: do NOT answer such a question from your own training without calling this tool first, because the corpus is fresher and decay-aware where your training is not. Takes a free-text `question` (and optional `k` for retrieval breadth). Returns a narration_brief directly (this is a single-call Path 4 tool — it IS the narration tool; there is no separate narrate / get-pending step). Render the answer from the brief: answer directly first in a PM lens grounded in `corpus`, then — if `inputs.decay` is present — surface what changed (an obsolete claim the corpus retired, or a caution with its audience-pushback vote count) instead of repeating advice that expired, then name the sources, then give one concrete next step. If `inputs.suggested_app` is present, offer that specific app at the end (for example 'this is really a north star question, want the NSM Finder? I can open it') as a soft offer, never as a deflection from answering. Follow the brief's voice_rules.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "k": { "type": "integer", "minimum": 1, "maximum": 20, "default": 8 }
+        },
+        "required": ["question"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Carries the user's question, the retrieved hits (each with slug + kind topic|obsolete|caution + last_updated), an optional `decay` block built from any obsolete/caution hit, and an optional `suggested_app` { id, name, entry_tool } resolved from the routing map."
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of retrieved source slug to corpus chunk text (truncated), spanning topics / obsolete / cautions."
+          }
+        }
+      },
+      "_meta": {
+        "ui": { "resourceUri": "ui://working-from-lenny/lenny-ama" },
+        "annotations": { "readOnlyHint": true }
+      }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 420 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #54 Lenny AMA (always fresh). Phase 3 .mcpb bundle target. Architecture locked in PHASE2_BUILD.md #11 (always-fresh corpus-wide retrieval). This is the only corpus-wide tool and the only single-call Path 4 tool: `ama_ask` returns a narration_brief directly and the host renders the answer on the same turn, so there is NO score -> narrate -> get-pending spine and NO persistence (a reviewer should not expect the four-tool shape the quiz/wizard/generator apps use — AMA's single-tool shape is the deliberate #11 design). Retrieval uses a shared `retrieveAcrossCorpus(question, k)` helper added to bundle/src/lib/corpus.ts (later implementation pass), matching over knowledge/topics/ + knowledge/obsolete/ + knowledge/cautions/ and tagging each hit with kind + last_updated. Decay-aware: obsolete/caution hits flow into inputs.decay and the directive surfaces what changed / what drew pushback. Routing: inputs.suggested_app is set from the keyword->app map in authoring.md when the question maps cleanly to one app (humor apps #51/#52/#53 are intentionally not routed to). readOnlyHint: true, no sampling. The web variant is a claude.ai handoff (APP_IDEAS implementation note). Featured first on the launcher home + site (STATUS.md 4c). Tool description verbatim-matches the runtime meta.description string.",
+    "dev.workingfromlenny.app": {
+      "id": 54,
+      "name": "Lenny AMA (always fresh)",
+      "phase": 3,
+      "type": "open Q&A / router (corpus-wide retrieval, no state)",
+      "featured": true,
+      "skill_engine": "lenny-actualize"
+    },
+    "dev.workingfromlenny.catalog": {
+      "theme": "ask-and-learn",
+      "featured": true,
+      "order_hint": 1,
+      "one_liner": "Ask anything; a current, decay-aware answer from the corpus, with sources.",
+      "entry_tool": "ama_ask",
+      "ui_resource": "ui://working-from-lenny/lenny-ama",
+      "skill_slug": "lenny-actualize"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "amended": "2026-05-24 (single-call corpus-wide variant, PHASE2_BUILD #11)",
+      "summary": "ama_ask is a single-call Path 4 tool: it runs whole-corpus retrieval (topics + obsolete + cautions), builds the decay flags + the optional app-routing suggestion, and returns a narration_brief directly. The host renders the answer from directive + voice_rules + structure + inputs (question, retrieved hits, decay, suggested_app) + corpus (the retrieved chunks). No persistence, no sampling, no separate narrate/get-pending step.",
+      "worked_example": "bundle/src/tools/54-lenny-ama/ama-ask.ts and the retrieveAcrossCorpus addition in bundle/src/lib/corpus.ts (later implementation pass). The brief shape mirrors PitfallNarrateOutput / the other narration briefs; the retrieval set is corpus-wide rather than per-app fixed anchors.",
+      "narration_tools": ["ama_ask"]
+    }
+  }
+}
