@@ -39,7 +39,7 @@ def normalize(corpus_root: Path) -> list[dict]:
     index_path = corpus_root / "01-start-here" / "index.json"
     if not index_path.exists():
         sys.exit(f"index.json not found at {index_path}")
-    with open(index_path) as f:
+    with open(index_path, encoding="utf-8") as f:
         idx = json.load(f)
 
     rows: list[dict] = []
@@ -77,7 +77,7 @@ def normalize(corpus_root: Path) -> list[dict]:
     hia_index = corpus_root / "04-how-i-ai" / "_index.json"
     if hia_index.exists():
         try:
-            hia = json.loads(hia_index.read_text())
+            hia = json.loads(hia_index.read_text(encoding="utf-8"))
             for h in hia.get("rows", []):
                 rows.append({
                     "id": h.get("id"),
@@ -100,7 +100,7 @@ def normalize(corpus_root: Path) -> list[dict]:
     lpy_index = corpus_root / "06-lennys-podcast-yt" / "_index.json"
     if lpy_index.exists():
         try:
-            lpy = json.loads(lpy_index.read_text())
+            lpy = json.loads(lpy_index.read_text(encoding="utf-8"))
             for h in lpy.get("rows", []):
                 rows.append({
                     "id": h.get("id"),
@@ -198,12 +198,12 @@ def main() -> None:
 
     out_path = Path(args.out) if args.out else (Path(__file__).resolve().parent.parent / "references" / "_corpus_normalized.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump({
             "corpus_root": str(corpus_root),
             "row_count": len(rows),
             "rows": rows,
-        }, f, indent=2)
+        }, f, indent=2, ensure_ascii=False)
 
     n_pod = sum(1 for r in rows if r["kind"] == "podcast")
     n_news = sum(1 for r in rows if r["kind"] == "newsletter")

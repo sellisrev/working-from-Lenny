@@ -26,7 +26,7 @@ def main() -> None:
 
     skill_root = Path(__file__).resolve().parent.parent
     ext_yml = Path(args.external_yml) if args.external_yml else (skill_root / "references" / "external_skills.yml")
-    with open(ext_yml) as f:
+    with open(ext_yml, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     matches = []
     for slug, repo in (data.get("repos") or {}).items():

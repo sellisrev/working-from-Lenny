@@ -14,6 +14,11 @@ import sys
 from pathlib import Path
 
 try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, OSError):
+    pass
+
+try:
     import yaml
 except ImportError:
     sys.exit("PyYAML required: pip install pyyaml")
@@ -30,11 +35,11 @@ def main() -> None:
 
     skill_root = Path(__file__).resolve().parent.parent
     norm_path = Path(args.normalized) if args.normalized else (skill_root / "references" / "_corpus_normalized.json")
-    with open(norm_path) as f:
+    with open(norm_path, encoding="utf-8") as f:
         norm = json.load(f)
     rows = norm["rows"]
 
-    with open(args.books_yml) as f:
+    with open(args.books_yml, encoding="utf-8") as f:
         books = yaml.safe_load(f) or {}
     if args.book not in books.get("books", {}):
         sys.exit(f"book '{args.book}' not in {args.books_yml}")

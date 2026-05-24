@@ -52,7 +52,7 @@ def main() -> None:
     knowledge_dir = skill_root / "knowledge" / "topics"
     out_path = Path(args.out) if args.out else (skill_root / "knowledge" / f"DIGEST_{args.format}.md")
 
-    with open(topics_yml) as f:
+    with open(topics_yml, encoding="utf-8") as f:
         tdata = yaml.safe_load(f) or {}
     topics = tdata.get("topics") or {}
 

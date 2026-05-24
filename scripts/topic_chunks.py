@@ -22,13 +22,18 @@ import sys
 from pathlib import Path
 
 try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, OSError):
+    pass
+
+try:
     import yaml
 except ImportError:
     sys.exit("PyYAML required: pip install pyyaml")
 
 
 def load_topic(topics_yml: Path, slug: str) -> dict:
-    with open(topics_yml) as f:
+    with open(topics_yml, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     topics = data.get("topics", {})
     if slug not in topics:
@@ -62,7 +67,8 @@ def file_matches_body(row: dict, topic: dict, abs_path: Path) -> bool:
     if not seed_keywords or not abs_path.exists():
         return False
     related_tags = set(topic.get("related_tags") or [])
-    if related_tags and not related_tags.intersection(set(row.get("tags") or [])):
+    row_tags = set(row.get("tags") or [])
+    if related_tags and row_tags and not related_tags.intersection(row_tags):
         return False
     try:
         text = abs_path.read_text(encoding="utf-8", errors="replace").lower()
@@ -111,7 +117,7 @@ def main() -> None:
     if not norm_path.exists():
         sys.exit(f"normalized corpus not found at {norm_path}; run parse_corpus.py first")
 
-    with open(norm_path) as f:
+    with open(norm_path, encoding="utf-8") as f:
         norm = json.load(f)
     rows = norm["rows"]
 

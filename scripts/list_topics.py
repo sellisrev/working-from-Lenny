@@ -34,9 +34,9 @@ def main() -> None:
     norm_path = Path(args.normalized) if args.normalized else (skill_root / "references" / "_corpus_normalized.json")
     knowledge_dir = Path(args.knowledge_dir) if args.knowledge_dir else (skill_root / "knowledge" / "topics")
 
-    with open(topics_yml) as f:
+    with open(topics_yml, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
-    with open(norm_path) as f:
+    with open(norm_path, encoding="utf-8") as f:
         norm = json.load(f)
     rows = norm["rows"]
 
