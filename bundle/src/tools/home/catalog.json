@@ -1,0 +1,258 @@
+{
+  "app_count": 23,
+  "apps": [
+    {
+      "app_id": "12-38-founder-pm-hire",
+      "name": "Founder PM hire",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 7,
+      "one_liner": "Decide whether, and at what level, to make your first PM hire.",
+      "entry_tool": "founder_pm_hire_get_form",
+      "ui_resource": "ui://working-from-lenny/founder-pm-hire",
+      "skill_slug": "lenny-hire"
+    },
+    {
+      "app_id": "17-saying-no-rehearsal",
+      "name": "\"Saying No\" Rehearsal",
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 5,
+      "one_liner": "Rehearse a hard no out loud before you have to say it for real.",
+      "entry_tool": "saying_no_get_scenario",
+      "ui_resource": "ui://working-from-lenny/saying-no",
+      "skill_slug": "saying-no-rehearsal"
+    },
+    {
+      "app_id": "18-difficult-conversations-rehearsal",
+      "name": "Difficult-Conversations Rehearsal",
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 6,
+      "one_liner": "Rehearse the hard conversation: feedback, bad news, a PIP, before it happens.",
+      "entry_tool": "difficult_conversations_get_scenario",
+      "ui_resource": "ui://working-from-lenny/difficult-conversations",
+      "skill_slug": "difficult-conversations-rehearsal"
+    },
+    {
+      "app_id": "2-strategy-pressure-test",
+      "name": "Strategy Pressure-Tester",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "Pressure-test whether your strategy is real or just ambitious words.",
+      "entry_tool": "strategy_pressure_test_get_form",
+      "ui_resource": "ui://working-from-lenny/strategy-pressure-test",
+      "skill_slug": "lenny-pressure-test"
+    },
+    {
+      "app_id": "24-okr-critique",
+      "name": "OKR Critique",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 5,
+      "one_liner": "Critique your OKRs for activity disguised as outcome, with rewrites.",
+      "entry_tool": "okr_critique_get_form",
+      "ui_resource": "ui://working-from-lenny/okr-critique",
+      "skill_slug": "okr-critique"
+    },
+    {
+      "app_id": "25-decision-log-calibration",
+      "name": "Decision Log + Brier Calibration Tracker",
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 4,
+      "one_liner": "Log decisions with your confidence; get Brier-scored on whether you were calibrated.",
+      "entry_tool": "decision_log_get_form",
+      "ui_resource": "ui://working-from-lenny/decision-log",
+      "skill_slug": "decision-log-calibration"
+    },
+    {
+      "app_id": "28-burnout-warning-index",
+      "name": "Burnout Warning Index for Product People",
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "A quick wellbeing index with a phased recovery plan, not a pep talk.",
+      "entry_tool": "burnout_get_form",
+      "ui_resource": "ui://working-from-lenny/burnout-index",
+      "skill_slug": "burnout-warning-index"
+    },
+    {
+      "app_id": "3-pm-ladder",
+      "name": "PM Ladder Self-Assessment",
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "Self-assess your PM level across five dimensions, with an honest read.",
+      "entry_tool": "pm_ladder_get_questions",
+      "ui_resource": "ui://working-from-lenny/ladder",
+      "skill_slug": "pm-ladder"
+    },
+    {
+      "app_id": "30-onboarding-pm-101",
+      "name": "Onboarding to PM 101 for Non-PMs",
+      "theme": "for-non-pms",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "A fast orientation to what PMs do, for people who work with them.",
+      "entry_tool": "onboarding_get_modes",
+      "ui_resource": "ui://working-from-lenny/onboarding-pm-101",
+      "skill_slug": "onboarding-pm-101"
+    },
+    {
+      "app_id": "31-pm-non-pm-manual",
+      "name": "PM-for-Non-PMs Operating Manual",
+      "theme": "for-non-pms",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "PM frameworks adapted for principals, nonprofit EDs, hospital and lab leaders.",
+      "entry_tool": "pm_non_pm_get_modes",
+      "ui_resource": "ui://working-from-lenny/pm-non-pm-manual",
+      "skill_slug": "pm-non-pm-manual"
+    },
+    {
+      "app_id": "33-seven-powers-classifier",
+      "name": "7 Powers Self-Classifier",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 8,
+      "one_liner": "Test which of the 7 Powers you actually have, claim versus evidence.",
+      "entry_tool": "seven_powers_get_questions",
+      "ui_resource": "ui://working-from-lenny/seven-powers",
+      "skill_slug": "seven-powers-classifier"
+    },
+    {
+      "app_id": "34-crossing-the-chasm-stage",
+      "name": "Crossing-the-Chasm Stage Finder",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 9,
+      "one_liner": "Find your real adoption stage and the playbook that fits it.",
+      "entry_tool": "chasm_get_form",
+      "ui_resource": "ui://working-from-lenny/chasm-stage",
+      "skill_slug": "crossing-the-chasm-stage"
+    },
+    {
+      "app_id": "37-activation-metric-finder",
+      "name": "Activation Metric Finder",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "Pin down your activation moment, the first-value step that predicts retention.",
+      "entry_tool": "activation_finder_get_form",
+      "ui_resource": "ui://working-from-lenny/activation-finder",
+      "skill_slug": "activation-metric-finder"
+    },
+    {
+      "app_id": "44-pm-pitfalls",
+      "name": "PM Pitfalls Self-Audit",
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "Rate yourself on twenty corpus-derived PM pitfalls; get the three worth fixing.",
+      "entry_tool": "pm_pitfalls_get_questions",
+      "ui_resource": "ui://working-from-lenny/pitfalls",
+      "skill_slug": "pm-pitfalls"
+    },
+    {
+      "app_id": "46-spotting-bad-pm-behaviors",
+      "name": "Spotting Bad PM Behaviors (field guide)",
+      "theme": "for-non-pms",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "Tell whether your PM's behavior is a bad week or a bad pattern, and what to do.",
+      "entry_tool": "spotting_get_questions",
+      "ui_resource": "ui://working-from-lenny/spotting-bad-pm",
+      "skill_slug": "spotting-bad-pm-behaviors"
+    },
+    {
+      "app_id": "47-mission-vision-alignment",
+      "name": "Mission / Vision / Strategy Alignment",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 6,
+      "one_liner": "Check whether your mission, vision, and strategy actually line up.",
+      "entry_tool": "mvs_alignment_get_form",
+      "ui_resource": "ui://working-from-lenny/mvs-alignment",
+      "skill_slug": "mission-vision-alignment"
+    },
+    {
+      "app_id": "51-pmify-inbox",
+      "name": "PM-ify My Inbox",
+      "theme": "just-for-fun",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "Turn a human message into corporate PM-speak, against your better judgment.",
+      "entry_tool": "pmify_get_modes",
+      "ui_resource": "ui://working-from-lenny/pmify",
+      "skill_slug": "pmify-inbox"
+    },
+    {
+      "app_id": "52-how-you-build",
+      "name": "How [You] Build Product",
+      "theme": "just-for-fun",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "A parody field guide to how your team actually builds product.",
+      "entry_tool": "how_you_build_get_modes",
+      "ui_resource": "ui://working-from-lenny/how-you-build",
+      "skill_slug": "how-you-build"
+    },
+    {
+      "app_id": "53-pm-horoscope",
+      "name": "PM Horoscope",
+      "theme": "just-for-fun",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "Your PM archetype as a horoscope, with a lucky corpus topic.",
+      "entry_tool": "pm_horoscope_get_quiz",
+      "ui_resource": "ui://working-from-lenny/horoscope",
+      "skill_slug": "pm-horoscope"
+    },
+    {
+      "app_id": "54-lenny-ama",
+      "name": "Lenny AMA (always fresh)",
+      "theme": "ask-and-learn",
+      "featured": true,
+      "order_hint": 1,
+      "one_liner": "Ask anything; a current, decay-aware answer from the corpus, with sources.",
+      "entry_tool": "ama_ask",
+      "ui_resource": "ui://working-from-lenny/lenny-ama",
+      "skill_slug": "lenny-actualize"
+    },
+    {
+      "app_id": "55-daily-dose",
+      "name": "Daily Dose of Knowledge",
+      "theme": "ask-and-learn",
+      "featured": true,
+      "order_hint": 2,
+      "one_liner": "One current lesson a day, paired with one thing the corpus has since taken back.",
+      "entry_tool": "daily_dose_pick",
+      "ui_resource": "ui://working-from-lenny/daily-dose",
+      "skill_slug": "daily-dose"
+    },
+    {
+      "app_id": "6-ai-eval-coverage",
+      "name": "AI Eval Coverage Scorecard",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 4,
+      "one_liner": "Score how well your AI feature is actually tested, not just shipped.",
+      "entry_tool": "ai_eval_coverage_get_form",
+      "ui_resource": "ui://working-from-lenny/ai-eval-coverage",
+      "skill_slug": "ai-eval-coverage"
+    },
+    {
+      "app_id": "9-nsm-finder",
+      "name": "North Star Metric Finder",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "Find the one metric that actually captures the value you deliver.",
+      "entry_tool": "nsm_finder_get_form",
+      "ui_resource": "ui://working-from-lenny/nsm-finder",
+      "skill_slug": "nsm-finder"
+    }
+  ]
+}

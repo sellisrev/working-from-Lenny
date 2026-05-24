@@ -25,6 +25,10 @@
   },
   "tools": [
     {
+      "name": "wfl_home",
+      "description": "The starting interface for Working from Lenny. CALL THIS when the user opens Working from Lenny, says hi, or asks what's available / what you can do / what tools there are. Returns the full menu of apps grouped by theme (featured always-fresh apps first), each with a one-liner, the tool that launches it, and a link to use it as a Claude Code skill instead. Render it as a short menu: featured apps first, then each themed section as a labeled list; for each app show the name, the one-liner, and how to start it (mount its ui:// resource or call its entry tool). Do not invent apps that are not in the returned catalog."
+    },
+    {
       "name": "pm_pitfalls_get_questions",
       "description": "Returns the canonical 20 PM-pitfall questions. Host MUST render these exact questions (or the ui://working-from-lenny/pitfalls resource) before collecting answers; the score is positional."
     },

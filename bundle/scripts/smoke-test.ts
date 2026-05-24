@@ -151,6 +151,7 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
   await client.connect(transport);
   try {
     await checkListTools(client);
+    await checkHome(client, installRoot);
     await checkGetPendingDescriptionForcesTheCall(client);
     await checkIframeStagedMessageNamesTheTool(installRoot);
     await checkResources(client);
@@ -214,6 +215,7 @@ async function checkListTools(client: Client): Promise<void> {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name).sort();
     const expected = [
+      "wfl_home",
       "pm_horoscope_get_pending_narration",
       "pm_horoscope_get_quiz",
       "pm_horoscope_narrate",
@@ -310,6 +312,87 @@ async function checkListTools(client: Client): Promise<void> {
  * circuit from chat history; the audit state is on disk). If a future
  * edit weakens those instructions, this test catches it.
  */
+/**
+ * Launcher home (PHASE2_BUILD #10). wfl_home reads the build-time catalog.json
+ * and returns the menu grouped by theme, featured apps first. Guards: the tool
+ * binds the home ui:// resource, the menu has the two featured always-fresh
+ * apps pinned, every catalog app surfaces (featured + sections == catalog
+ * count), and the home resource is mountable.
+ */
+async function checkHome(client: Client, installRoot: string): Promise<void> {
+  try {
+    const listed = await client.listTools();
+    const homeEntry = listed.tools.find((t) => t.name === "wfl_home") as
+      | { _meta?: { ui?: { resourceUri?: string } } }
+      | undefined;
+    record(
+      "home: wfl_home binds ui://working-from-lenny/home",
+      homeEntry?._meta?.ui?.resourceUri === "ui://working-from-lenny/home",
+      homeEntry?._meta?.ui?.resourceUri ?? "<no binding>",
+    );
+
+    const result = await client.callTool({ name: "wfl_home", arguments: {} });
+    if (result.isError) {
+      record("home: wfl_home call", false, contentText(result));
+      return;
+    }
+    const parsed = JSON.parse(contentText(result)) as {
+      type: string;
+      featured: Array<{ name: string; entry_tool: string; skill_url: string }>;
+      sections: Array<{ theme: string; label: string; apps: unknown[] }>;
+      total_apps: number;
+    };
+    record(
+      "home: wfl_home returns a home_menu",
+      parsed.type === "home_menu",
+      parsed.type,
+    );
+    record(
+      "home: two always-fresh apps featured (AMA first)",
+      parsed.featured.length === 2 &&
+        parsed.featured[0]!.entry_tool === "ama_ask",
+      JSON.stringify(parsed.featured.map((a) => a.entry_tool)),
+    );
+    const inSections = parsed.sections.reduce((n, s) => n + s.apps.length, 0);
+    record(
+      "home: featured + sections cover every catalog app",
+      parsed.featured.length + inSections === parsed.total_apps,
+      `featured ${parsed.featured.length} + sections ${inSections} vs total ${parsed.total_apps}`,
+    );
+    record(
+      "home: sections render in the canonical 4c theme order",
+      JSON.stringify(parsed.sections.map((s) => s.theme)) ===
+        JSON.stringify([
+          "self-reflective",
+          "business",
+          "for-non-pms",
+          "just-for-fun",
+        ]),
+      JSON.stringify(parsed.sections.map((s) => s.theme)),
+    );
+    record(
+      "home: every app carries a skill link",
+      parsed.featured.every((a) => a.skill_url.startsWith("https://")) &&
+        parsed.sections.every((s) =>
+          (s.apps as Array<{ skill_url: string }>).every((a) =>
+            a.skill_url.startsWith("https://"),
+          ),
+        ),
+    );
+
+    const homeHtml = path.join(installRoot, "dist", "ui", "home.html");
+    const body = await fs.readFile(homeHtml, "utf8");
+    record(
+      "home: built home.html inlines the mcp bridge + calls wfl_home",
+      body.includes("window.mcp") &&
+        body.includes('callTool("wfl_home"') &&
+        !body.includes("<!-- include:"),
+    );
+  } catch (err) {
+    record("home: wfl_home smoke", false, (err as Error).message);
+  }
+}
+
 async function checkGetPendingDescriptionForcesTheCall(
   client: Client,
 ): Promise<void> {

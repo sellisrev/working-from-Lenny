@@ -91,6 +91,74 @@ async function readManifestVersion(): Promise<string> {
   return parsed.version;
 }
 
+interface CatalogApp {
+  app_id: string;
+  name: string;
+  theme: string;
+  featured: boolean;
+  order_hint: number;
+  one_liner: string;
+  entry_tool: string;
+  ui_resource: string;
+  skill_slug: string;
+}
+
+/**
+ * Launcher-home catalog assembly (PHASE2_BUILD decision #10). Concatenates
+ * each app's `_meta.dev.workingfromlenny.catalog` block (single source — same
+ * discipline as the manifest tools array) into one catalog.json that the
+ * `wfl_home` tool reads at runtime. Written into src/tools/home/ so dev (tsx)
+ * reads it directly and copyToolDataFiles() mirrors it to dist/ for the packed
+ * server. Deterministic (no timestamp) so a rebuild is a no-op diff.
+ */
+async function buildCatalog(): Promise<void> {
+  const appsRoot = path.resolve(BUNDLE_ROOT, "..", "apps");
+  const homeToolDir = path.resolve(BUNDLE_ROOT, "src", "tools", "home");
+  const outPath = path.join(homeToolDir, "catalog.json");
+
+  const entries = await fs.readdir(appsRoot, { withFileTypes: true });
+  const apps: CatalogApp[] = [];
+  for (const e of entries) {
+    if (!e.isDirectory() || e.name.startsWith("_")) continue;
+    const resPath = path.join(appsRoot, e.name, "mcp-resource.json");
+    let raw: string;
+    try {
+      raw = await fs.readFile(resPath, "utf8");
+    } catch {
+      continue; // app dir without a resource manifest — skip
+    }
+    const parsed = JSON.parse(raw) as {
+      resource?: { name?: string };
+      _meta?: Record<string, unknown>;
+    };
+    const cat = parsed._meta?.["dev.workingfromlenny.catalog"] as
+      | Partial<CatalogApp>
+      | undefined;
+    if (!cat) continue;
+    apps.push({
+      app_id: e.name,
+      name: parsed.resource?.name ?? e.name,
+      theme: String(cat.theme ?? "uncategorized"),
+      featured: Boolean(cat.featured),
+      order_hint: typeof cat.order_hint === "number" ? cat.order_hint : 999,
+      one_liner: String(cat.one_liner ?? ""),
+      entry_tool: String(cat.entry_tool ?? ""),
+      ui_resource: String(cat.ui_resource ?? ""),
+      skill_slug: String(cat.skill_slug ?? ""),
+    });
+  }
+  // Stable sort: app_id then order_hint, so the file is deterministic. The
+  // home tool applies the theme-section + featured-first ordering at runtime.
+  apps.sort((a, b) =>
+    a.app_id === b.app_id ? a.order_hint - b.order_hint : a.app_id < b.app_id ? -1 : 1,
+  );
+
+  await fs.mkdir(homeToolDir, { recursive: true });
+  await fs.writeFile(outPath, JSON.stringify({ app_count: apps.length, apps }, null, 2) + "\n", "utf8");
+  // eslint-disable-next-line no-console
+  console.log(`  catalog: assembled ${apps.length} apps -> ${path.relative(BUNDLE_ROOT, outPath)}`);
+}
+
 async function copyToolDataFiles(): Promise<void> {
   // Per-tool data lives as .json files alongside the .ts under src/tools/.
   // tsc does not copy non-TS files to outDir, so mirror them by hand. Keeps
@@ -138,6 +206,7 @@ async function main(): Promise<void> {
   for (const h of htmls) {
     await buildOne(path.join(SRC_UI, h.name), version);
   }
+  await buildCatalog();
   await copyToolDataFiles();
 }
 

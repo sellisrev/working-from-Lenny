@@ -87,6 +87,8 @@ import * as activationNarrate from "./tools/37-activation-metric-finder/narrate"
 import * as activationGetPending from "./tools/37-activation-metric-finder/get-pending";
 import { cleanupOrphanedTmp as cleanupActivationTmp } from "./tools/37-activation-metric-finder/pending";
 
+import * as homeTool from "./tools/home/home";
+
 interface RegisteredTool {
   meta: ToolMeta;
   invoke: (args: unknown) => Promise<unknown>;
@@ -101,6 +103,7 @@ interface ResourceEntry {
 }
 
 const TOOLS: RegisteredTool[] = [
+  homeTool as unknown as RegisteredTool,
   questionsTool as unknown as RegisteredTool,
   scoreTool as unknown as RegisteredTool,
   narrateTool as unknown as RegisteredTool,
@@ -155,6 +158,14 @@ const TOOLS: RegisteredTool[] = [
 ];
 
 const RESOURCES: ResourceEntry[] = [
+  {
+    uri: "ui://working-from-lenny/home",
+    name: "Working from Lenny",
+    description:
+      "The launcher home / starting interface. Lists every app grouped by theme (featured always-fresh apps first), each tile launching the app or linking to its Claude Code skill.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "home.html"),
+  },
   {
     uri: "ui://working-from-lenny/pitfalls",
     name: "PM Pitfalls Self-Audit",
