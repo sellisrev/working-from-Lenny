@@ -1,0 +1,86 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/saying-no",
+    "name": "\"Saying No\" Rehearsal",
+    "description": "Pick a stakeholder type (CEO / biggest customer / sales VP / eng peer / board member) and the specific ask you need to decline, then rehearse your no in a short back-and-forth. This is the first true multi-turn app: the host chat model runs the role-play from a rehearsal brief the bundle hands it (persona + 5-dimension scoring rubric + corpus-canonical firm-no anchor + turn limits). The bundle tracks no turn state; the conversation is the state. The coach names where your no landed and where you weakened, then delivers the canonical polite firm no for that stakeholder.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "saying_no_get_scenario",
+      "description": "Entry tool for the Saying No Rehearsal. Calling this triggers the host to mount the ui://working-from-lenny/saying-no resource (an interactive iframe: a stakeholder picker, an ask textarea, an optional constraint field, and a mode toggle of rehearse / show-me). If your host mounts the UI, that IS the input surface — do NOT additionally render the picker in chat as a duplicate surface; the user will set up the scenario in the iframe, which calls saying_no_start directly. The returned `stakeholders` array (with each one's pressure style) and `modes` array are the fallback for hosts that cannot mount ui:// resources. If the user already has stakeholder + ask in hand, call saying_no_start directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/saying-no" } }
+    },
+    {
+      "name": "saying_no_start",
+      "description": "Takes the rehearsal setup (scenario.stakeholder, scenario.the_ask, optional scenario.your_constraint, and mode of rehearse | show-me) and persists the corpus-grounded rehearsal brief. The deterministic side selects the stakeholder persona, the rationale anchor that stakeholder can hear, the five-dimension scoring rubric, and the turn limits, then writes the setup brief via the single-pending pattern. The brief is ephemeral setup, NOT durable user data, so this tool stays read-only. The rehearsal itself (the dialog, the scoring, the canonical no) is conducted by the host chat model. AFTER receiving this result, call saying_no_get_pending_narration to fetch the brief; on status='ready' the host CONDUCTS the rehearsal per the brief's directive. Do not improvise the role-play without the brief — it carries the persona, the rubric, the canonical-no anchor, and the turn limits. Optional `user_context` flows into the brief. If `persistence_warning` is set, surface it and ask the user to re-start.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scenario": {
+            "type": "object",
+            "properties": {
+              "stakeholder": { "type": "string", "enum": ["ceo", "biggest-customer", "sales-vp", "eng-peer", "board-member"] },
+              "the_ask": { "type": "string", "minLength": 1, "maxLength": 300 },
+              "your_constraint": { "type": "string", "maxLength": 200, "default": "" }
+            },
+            "required": ["stakeholder", "the_ask"]
+          },
+          "mode": { "type": "string", "enum": ["rehearse", "show-me"], "default": "rehearse" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["scenario"]
+      }
+    },
+    {
+      "name": "saying_no_narrate",
+      "description": "Packages the corpus-grounded rehearsal brief from the scenario inputs. Returns voice rules, the rehearsal directive (conduct a role-play, not render a reading), the stakeholder persona, the five-dimension rubric (firmness / brevity / rationale fit / door management / relationship), the turn limits, the mode, the canonical firm-no anchor, and corpus chunks. Pure compute — no persistence side-effect. PREFER saying_no_get_pending_narration after a start call. Only call this tool directly if you need the brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scenario": {
+            "type": "object",
+            "properties": {
+              "stakeholder": { "type": "string", "enum": ["ceo", "biggest-customer", "sales-vp", "eng-peer", "board-member"] },
+              "the_ask": { "type": "string", "minLength": 1, "maxLength": 300 },
+              "your_constraint": { "type": "string", "maxLength": 200, "default": "" }
+            },
+            "required": ["stakeholder", "the_ask"]
+          },
+          "mode": { "type": "string", "enum": ["rehearse", "show-me"], "default": "rehearse" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["scenario"]
+      }
+    },
+    {
+      "name": "saying_no_get_pending_narration",
+      "description": "MUST CALL whenever the user asks to run their rehearsal, 'rehearse my no', 'practice saying no', 'help me decline this', or any follow-up to a setup just made — including any phrasing like 'let's run it', 'play the stakeholder', 'I just set up a saying-no rehearsal', or any message coming from the embedded widget. Do NOT respond with 'you haven't set anything up' without calling this tool first: the rehearsal setup lives on disk (persisted by saying_no_start on submission), NOT in the chat conversation context — the user may have set it up via the embedded widget, in which case the chat history shows no prior setup but a brief is waiting on disk. Returns the rehearsal brief saved by the most recent saying_no_start call. On status='ready', CONDUCT the rehearsal following the brief's directive and voice_rules: open in the stakeholder's persona with the ask, let the user respond, push back once fairly, cap at the brief's turn limit, then break character, score against the rubric, and deliver the canonical firm no (in show-me mode, skip straight to the canonical no). This is the one app whose directive runs a dialog rather than rendering a one-shot reading. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/saying-no resource or call saying_no_start directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 600, "preferredHeight": 680 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #17 Saying No Rehearsal. Phase 3 .mcpb bundle target. This is the HOST-DRIVEN MULTI-TURN pattern of PHASE2_BUILD.md #9: the host chat model runs the dialog from a Path-4 rehearsal brief whose directive says 'conduct a role-play' instead of 'render a reading'. The bundle tracks NO turn state, transcript, or dialog state across the tool boundary — the host's native multi-turn loop does the work, which is what keeps it consistent with the no-sampling lock (decision #2). The bundle persists ONLY the setup brief, via the ordinary single-pending pattern, so saying_no_start stays readOnlyHint:true (ephemeral setup, not durable user data). Tool family: get_scenario (entry + UI) -> start (validate + persist setup brief) -> narrate (pure compute, returns the brief) -> get_pending_narration (MUST CALL; on ready the host CONDUCTS the rehearsal). Session history (did your real conversation go the way you rehearsed?) deferred as a clean stateful follow-up. Voice/voice-mode practice is out of scope for the .mcpb (text only). #18 Difficult Conversations clones this family verbatim, swapping scenario data + rubric + brief builder. Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 17,
+      "name": "\"Saying No\" Rehearsal",
+      "phase": 3,
+      "type": "multi-turn rehearsal (host-driven dialog from a Path 4 brief)"
+    },
+    "dev.workingfromlenny.multi_turn": {
+      "model": "host-driven-dialog",
+      "decided": "2026-05-23",
+      "ref": "PHASE2_BUILD.md #9",
+      "principle": "The conversation is the state. No turn counter, transcript, or dialog state crosses the tool boundary; the host's native multi-turn loop conducts the role-play from the brief's directive. The bundle persists only the setup brief (ephemeral, single-pending).",
+      "directive_difference": "Unlike every other narration tool (which says 'render this reading'), this family's get_pending directive says 'conduct this role-play': open in persona, let the user respond, push back once fairly, cap at the turn limit, break character, score against the rubric, deliver the canonical version."
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "saying_no_narrate returns a narration_brief whose directive conducts a rehearsal. The deterministic engine selects the stakeholder persona, the rationale anchor that stakeholder can hear, the five-dimension rubric (firmness / brevity / rationale fit / door management / relationship), and the turn limits; the brief carries those + the canonical firm-no exemplar + corpus chunks (saying-no, communicating-tradeoffs, getting-buy-in, managing-up, defending-big-bets). Host chat model conducts the dialog, scores, and delivers the canonical no. No sampling; no turn state.",
+      "worked_example": "bundle/src/tools/17-saying-no-rehearsal/narrate.ts and bundle/src/lib/build-rehearsal-brief.ts. Generalizes #2's deferred Mode-2 (rehearse-the-counter). #18 clones this builder.",
+      "narration_tools": ["saying_no_narrate"]
+    }
+  }
+}
