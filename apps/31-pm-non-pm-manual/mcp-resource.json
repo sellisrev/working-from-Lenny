@@ -1,0 +1,165 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/pm-non-pm-manual",
+    "name": "PM-for-Non-PMs Operating Manual",
+    "description": "A generator (no scoring, no per-user state) of three working artifacts that translate core PM frameworks for a leader in a non-software domain. One required input (domain: school principal / nonprofit ED / hospital service-line lead / research-lab PI) plus optional scale and a free-text 'biggest friction'. The three artifact titles are fixed (a jobs-to-be-done interview kit, a prioritization rubric, a 'stop doing' list); the content is tailored to the domain + scale and rendered by the host chat model from a corpus-grounded brief. Plain and practical, respectful of the user's domain expertise, never reverent about product management. Parenting is intentionally out of scope (a separate incumbent occupies it).",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "pm_non_pm_get_modes",
+      "description": "Entry tool for the PM-for-Non-PMs Operating Manual. Calling this triggers the host to mount the ui://working-from-lenny/pm-non-pm-manual resource (an interactive iframe with a domain picker, an optional scale picker, and an optional one-line 'biggest friction' field). If your host mounts the UI, that IS the input surface — do NOT additionally render the form in chat as a duplicate surface; the user will fill it in the iframe, which calls pm_non_pm_generate directly. The returned `artifacts` array is the three fixed artifact titles (the manual always produces all three, tailored to the domain; there is no mode to pick). The returned `fields` array is the input fallback for hosts that cannot mount ui:// resources. If the user already has their domain in hand, call pm_non_pm_generate directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "artifacts": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 3 },
+                "title": { "type": "string" }
+              }
+            }
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": { "type": "string" },
+                "label": { "type": "string" },
+                "kind": { "type": "string", "enum": ["enum", "text"] },
+                "options": { "type": "array", "items": { "type": "string" } },
+                "optional": { "type": "boolean" }
+              }
+            }
+          },
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/pm-non-pm-manual" } }
+    },
+    {
+      "name": "pm_non_pm_generate",
+      "description": "Takes the non-PM leader's inputs (domain, optional scale, optional biggest_friction) and persists the corpus-grounded manual brief. The deterministic side validates the inputs and resolves, for the chosen domain, the stakeholder roster (users vs buyers/funders), the relabeled RICE axes plus the one override gate, and the 'stop doing' candidates, selecting the corpus anchors per artifact; the three artifacts themselves come from the host chat model. AFTER receiving this result, call pm_non_pm_get_pending_narration to fetch the brief and render the three artifacts (plus the friction coda when biggest_friction was supplied). Do not render the artifacts on your own without the brief — the brief carries the voice rules (#31 plain, practical, respectful of the user's domain, never reverent about product management) and the closed corpus-anchor pool. Optional `user_context` flows into the persisted brief. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "domain": { "type": "string", "enum": ["school-principal", "nonprofit-ed", "hospital-service-line", "research-lab-pi"] },
+              "scale": { "type": "string", "enum": ["small", "mid", "large"], "default": "mid" },
+              "biggest_friction": { "type": "string", "maxLength": 200, "default": "" }
+            },
+            "required": ["domain"]
+          },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when generate's persistence side-effect failed. Presence indicates pm_non_pm_get_pending_narration will return no_pending and the host should surface the message, recommending re-submission."
+          }
+        }
+      }
+    },
+    {
+      "name": "pm_non_pm_narrate",
+      "description": "Packages a corpus-grounded operating-manual brief from the structured inputs. Returns voice rules, structure (ARTIFACT_1..3 plus an optional FRICTION_CODA), the resolved stakeholder roster, relabeled rubric axes, override gate, stop-doing candidates, and corpus chunks. Pure compute — no persistence side-effect. PREFER pm_non_pm_get_pending_narration after a generate call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": { "type": "object" },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of anchor slug to corpus chunk text."
+          }
+        }
+      }
+    },
+    {
+      "name": "pm_non_pm_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their operating manual, 'give me my operating manual', 'build my PM manual', 'render my artifacts', or any follow-up to a submission just made — including any phrasing like 'show me my three artifacts', 'translate the PM frameworks for my domain', 'I just filled in the domain form', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by pm_non_pm_generate on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent pm_non_pm_generate call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/pm-non-pm-manual resource or call pm_non_pm_generate directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
+      }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 720 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #31 PM-for-Non-PMs Operating Manual. Phase 3 .mcpb bundle target. Path 4 four-tool clone of #30 Onboarding to PM 101 (generator shape, no scoring engine), with two differences from #30: the fixed sections are three working artifacts (JTBD interview kit / prioritization rubric / 'stop doing' list) rather than five lessons, and the primary tailoring axis is the user's non-software domain rather than a cross-functional role. The deterministic side resolves, per domain, the stakeholder roster + relabeled RICE axes + override gate + stop-doing candidates + per-artifact anchors; the artifacts come from the host chat model. PARENTING IS OUT OF SCOPE (incumbent: tinyStakeholders.com); the four domains are school-principal / nonprofit-ed / hospital-service-line / research-lab-pi only. No stateful follow-up is natural here (generator, run per domain), so there is no calibration/history tool by design — a reviewer should not expect one (same posture as #30). Cross-domain sibling of #30 (orientation) and #46 (diagnostic). Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 31,
+      "name": "PM-for-Non-PMs Operating Manual",
+      "phase": 3,
+      "type": "generator (per-domain artifact set, no scoring state)",
+      "sibling_to": [30, 46],
+      "out_of_scope": "parenting (incumbent tinyStakeholders.com)"
+    },
+    "dev.workingfromlenny.catalog": {
+      "theme": "for-non-pms",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "PM frameworks adapted for principals, nonprofit EDs, hospital and lab leaders.",
+      "entry_tool": "pm_non_pm_get_modes",
+      "ui_resource": "ui://working-from-lenny/pm-non-pm-manual",
+      "skill_slug": "pm-non-pm-manual"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. The deterministic engine resolves, for the chosen domain, the stakeholder roster, the relabeled RICE axes, the one override gate, and the stop-doing candidates, and selects the corpus anchors; the brief carries the resolved structure + user inputs + corpus chunks (jobs-to-be-done, continuous-discovery, prioritization-frameworks, decision-making-frameworks, saying-no, communicating-tradeoffs, okrs, getting-buy-in). Host chat model renders ARTIFACT_1..3 (the JTBD interview kit, the prioritization rubric, the 'stop doing' list — each domain-lensed and scale-calibrated) plus a FRICTION_CODA when biggest_friction was supplied.",
+      "worked_example": "bundle/src/tools/31-pm-non-pm-manual/narrate.ts and bundle/src/lib/build-pm-non-pm-brief.ts (later implementation pass). Mirrors bundle/src/tools/30-onboarding-pm-101/narrate.ts (generator shape, populated corpus map).",
+      "narration_tools": ["pm_non_pm_narrate"]
+    }
+  }
+}
