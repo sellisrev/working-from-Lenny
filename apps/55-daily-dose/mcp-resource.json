@@ -1,0 +1,217 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/daily-dose",
+    "name": "Daily Dose of Knowledge",
+    "description": "One thing to learn today, paired with one thing the corpus has quietly taken back. A 'today's dose' card: open it and get one current lesson (a topic with a real passage and a concrete action, grounded in the live synthesis) plus an 'unlearn' half drawn from the corpus's obsolete + cautions layers (advice it has retired, or a popular claim that drew strong audience pushback, and what changed). The pick is deterministic and stable for the day: date-seeded random by default, gap-weighted toward your under-covered areas when this app's local data exists, and degrades to random with no setup. It remembers what you have seen so the unlearning feed advances instead of repeating. No scoring; light single-record local state. The UI is a daily card; the dose renders in chat.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "daily_dose_pick",
+      "description": "Entry tool for the Daily Dose. Calling this triggers the host to mount the ui://working-from-lenny/daily-dose resource (a 'today's dose' card) AND selects today's dose, records it, and prepares the personalized narration brief. There is no questionnaire; the selection is what this tool does, not something the user fills in. The pick is deterministic and stable for the calendar day: date-seeded random across the knowledge base by default, gap-weighted toward the user's under-covered topics when this app's local data exists (the pitfalls they flagged in #44, the dimensions they scored low in #3, the areas they do not log in #25), degrading to plain random with no setup. An optional `topic_slug` forces a specific topic ('dose me on retention'); optional `user_context` (role/stage) sharpens the action. The tool also builds the 'unlearn' half from the obsolete + cautions layers (the most recent entry the user has not seen, preferring one tied to today's topic) and advances the user's place in that feed. AFTER receiving this result, call daily_dose_get_pending_narration to fetch the corpus-grounded brief, then render it for the user following its `directive` and `voice_rules`. Do not summarize the topic title on its own; the lesson + unlearn narration is the deliverable. If the returned `persistence_warning` field is set, the brief could not be persisted: surface the warning and recommend re-opening the dose.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic_slug": {
+            "type": "string",
+            "description": "Optional. Force a specific topic by its knowledge/topics slug ('dose me on retention'). Absent by default; when absent the pick is deterministic (date-seeded random, gap-weighted when local data exists)."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. Role/stage/company-size context forwarded into the persisted narration brief's inputs.user_context for downstream rendering. Empty by default; the iframe never sets one, chat-side Claude may.",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "object",
+            "description": "The selected topic (identifier-level result the iframe shows).",
+            "properties": {
+              "slug": { "type": "string" },
+              "display_name": { "type": "string" },
+              "last_updated": { "type": "string", "description": "The topic file's last_updated date." }
+            }
+          },
+          "invalidation_headline": {
+            "type": "string",
+            "description": "One-line headline for the unlearn half (e.g. 'the corpus has retired the lowest-cost-SEO-channel claim'), or empty when nothing new has been retired since the user last looked."
+          },
+          "gap_weighted": {
+            "type": "boolean",
+            "description": "True when in-bundle user data tilted the pick; false on a plain date-seeded random pick (first run / no data)."
+          },
+          "weighting_signal": {
+            "type": "string",
+            "description": "Optional. Names the signal that biased the pick (e.g. '#44 flagged pitfalls', '#3 low dimension: strategy'). Present only when gap_weighted is true."
+          },
+          "streak": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Count of doses taken (a quiet habit nudge, not a score)."
+          },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when the persistence side-effect failed. Presence indicates daily_dose_get_pending_narration will return no_pending for this dose and the host should surface the message, recommending the user re-open the dose."
+          }
+        }
+      },
+      "_meta": {
+        "ui": { "resourceUri": "ui://working-from-lenny/daily-dose" },
+        "annotations": { "readOnlyHint": false },
+        "dev.workingfromlenny.phase_note": "readOnlyHint: false because the pick records durable cross-day state (the shown list, the streak, and the user's place in the invalidation feed), unlike #44's ephemeral pending-brief write. Web/URL-trick version is a claude.ai handoff and exposes no state."
+      }
+    },
+    {
+      "name": "daily_dose_narrate",
+      "description": "Packages a corpus-grounded narration brief for a Daily Dose: the lesson half (the topic chunk + one passage + one concrete action) and the unlearn half (the recent_invalidation block). Pure compute: no persistence side-effect, no state read. Takes a `topic_slug` (required) and optional `user_context`. When called directly (not via the pick handoff) the unlearn half defaults to the single most-recent obsolete/caution entry, since this tool does not read the user's feed position. The host chat model renders the user-facing dose from this brief. To pick up the brief that daily_dose_pick saved for the chat-side handoff (which respects the user's feed position and gap-weighting), call daily_dose_get_pending_narration instead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic_slug": {
+            "type": "string",
+            "description": "The knowledge/topics slug to build the lesson half from."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. User's role, stage, company size; sharpens the action. Empty string if not provided."
+          }
+        },
+        "required": ["topic_slug"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "object",
+                "properties": {
+                  "slug": { "type": "string" },
+                  "display_name": { "type": "string" },
+                  "last_updated": { "type": "string" }
+                }
+              },
+              "user_context": { "type": "string" },
+              "streak": { "type": "integer" },
+              "gap_weighted": { "type": "boolean" },
+              "weighting_signal": { "type": "string" },
+              "recent_invalidation": {
+                "type": "object",
+                "description": "The unlearn half. status 'obsolete' or 'caution' carries a retired/flagged claim; status 'none_new' means nothing new since the user last looked (the directive then says so rather than inventing one).",
+                "properties": {
+                  "status": { "type": "string", "enum": ["obsolete", "caution", "none_new"] },
+                  "slug": { "type": "string" },
+                  "claim": { "type": "string" },
+                  "what_changed": { "type": "string" },
+                  "source": { "type": "string", "description": "Guest/source + date behind the claim." },
+                  "vote_count": { "type": "integer", "description": "Present for a caution: the top-comment audience-pushback vote count." },
+                  "confidence": { "type": "string", "description": "Present for an obsolete entry: confidence in retirement (high/medium/low)." },
+                  "paired_with_topic": { "type": "boolean", "description": "True when the invalidation is about today's lesson topic (a coherent paired dose)." }
+                }
+              }
+            }
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of source slug to corpus chunk text (truncated): today's topic chunk plus the invalidation source chunk (from topics / obsolete / cautions)."
+          }
+        }
+      }
+    },
+    {
+      "name": "daily_dose_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for 'today's dose', 'my daily dose', 'what should I learn today', the 'lesson and unlearn', or any follow-up to a dose just opened, including any phrasing like 'give me my dose', 'show me today's', 'I just opened the daily dose', or any message coming from the embedded widget. Do NOT respond with 'there's nothing waiting' or 'you haven't opened a dose' without calling this tool first: the dose state lives on disk (persisted by daily_dose_pick when the dose is selected), NOT in the chat conversation context. The user may have opened the dose via the embedded widget, in which case the chat history shows no prior dose-opening but a brief is waiting on disk. Returns the narration brief saved by the most recent daily_dose_pick call. On status='ready', render the dose following its directive and voice_rules (lead with the lesson, then the passage, then one action, then the unlearn half; keep the streak line quiet). ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/daily-dose resource or call daily_dose_pick to get today's dose.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
+      }
+    }
+  ],
+  "ui": {
+    "renderHint": "card",
+    "preferredWidth": 560,
+    "preferredHeight": 420
+  },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #55 Daily Dose of Knowledge. Phase 3 .mcpb bundle target. Architecture locked in PHASE2_BUILD.md #12 (gap-weighted selector + invalidation feed). Three-tool Path 4 spine cloned from #44 PM Pitfalls (score -> narrate -> get-pending); the #12 difference is the selection logic and the invalidation feed, not the spine. daily_dose_pick is the entry tool (binds the UI), selects today's topic (date-seeded random; gap-weighted toward under-covered topics when this app's own data dir holds #44/#3/#25 state; degrades to random on first run; topic_slug override), builds the unlearn half from knowledge/obsolete/ + knowledge/cautions/ (most-recent-unseen, preferring a topic-paired entry), records the single-record state (shown / streak / last_seen_invalidation per PHASE2_BUILD #6, NOT the #8 collection store), and persists the pending narration brief (the single persistence point; iframe submit and chat-side both call it). readOnlyHint: false because that state is durable cross-day user data, unlike #44's ephemeral pending write. daily_dose_narrate is pure compute (no persistence, no state read); called directly it defaults the unlearn half to most-recent. daily_dose_get_pending_narration reads disk with the #44 MUST-CALL anti-short-circuit framing. No sampling. Selection reads ONLY the bundle's own data dir, never the skills library's ~/.lenny-actualize/. Per the iframe-output design rule the iframe shows the identifier-level result (today's topic title + invalidation headline) + the staged message; the chat narration adds the lesson + passage + action + unlearn block and is not duplicated in the iframe. There is no 'doses I have seen' browse tool by design (single-record state, not a collection). The guest_tracker old-vs-new diff is the planned third invalidation source; v1 uses obsolete/ + cautions/ only and the shape leaves room to fold it in. The web variant is a claude.ai handoff (APP_IDEAS implementation note). Featured in the launcher home + site 'Ask & learn' band, second after #54 AMA (STATUS.md 4c). Tool descriptions verbatim-match the runtime meta.description strings.",
+    "dev.workingfromlenny.app": {
+      "id": 55,
+      "name": "Daily Dose of Knowledge",
+      "phase": 3,
+      "type": "selector + narration (date-seeded / gap-weighted pick, single-record state, invalidation feed)",
+      "featured": true,
+      "sibling_to": [44, 54],
+      "skill_engine": "lenny-actualize"
+    },
+    "dev.workingfromlenny.catalog": {
+      "theme": "ask-and-learn",
+      "featured": true,
+      "order_hint": 2,
+      "one_liner": "One current lesson a day, paired with one thing the corpus has since taken back.",
+      "entry_tool": "daily_dose_pick",
+      "ui_resource": "ui://working-from-lenny/daily-dose",
+      "skill_slug": "daily-dose"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "amended": "2026-05-24 (selector + invalidation-feed variant, PHASE2_BUILD #12)",
+      "summary": "Narration tools return a narration_brief, not prose. daily_dose_pick selects + records + persists the brief; daily_dose_narrate is the pure recompute; daily_dose_get_pending_narration reads the persisted brief. The brief carries the lesson (topic chunk + passage + action) and the unlearn half (inputs.recent_invalidation, status obsolete|caution|none_new, with the source/date and vote_count for a caution or confidence for an obsolete). The host chat model renders the dose from directive + voice_rules + structure {lesson, passage, action, unlearn} + inputs + corpus.",
+      "worked_example": "bundle/src/tools/55-daily-dose/{pick,narrate,get-pending,pending,select}.ts and the single-record persistence in bundle/src/lib/persistence.ts (later implementation pass). The spine mirrors bundle/src/tools/pm-pitfalls/{score,narrate,get-pending}.ts; the selection + invalidation logic is the #12 addition.",
+      "narration_tools": ["daily_dose_narrate"]
+    },
+    "dev.workingfromlenny.spec_validation": {
+      "validated_on": "2026-05-24",
+      "sources": [
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx",
+        "https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx",
+        "https://github.com/anthropics/mcpb/blob/main/MANIFEST.md"
+      ],
+      "notes": [
+        "Spine + _meta shape match the 11 shipped files and #54; readOnlyHint: false on daily_dose_pick per PHASE2_BUILD #12 (durable cross-day state), the only normative consent hook.",
+        "Single-record state (PHASE2_BUILD #6 envelope), not the #8 collection store; whole-file atomic write.",
+        "No invented capability flags; consent is host-discretion; persisted data (shown / streak / last_seen_invalidation) documented in the daily_dose_pick description for the host's confirmation UI.",
+        "Tool descriptions verbatim-match the runtime meta.description (drift between manifest/spec/runtime is the bug class that caused v0.1.6-v0.1.10)."
+      ]
+    }
+  }
+}
