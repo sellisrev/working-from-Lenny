@@ -57,6 +57,15 @@
       "phase": 2,
       "type": "paste + deterministic router + LLM critique"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "Pressure-test whether your strategy is real or just ambitious words.",
+      "entry_tool": "strategy_pressure_test_get_form",
+      "ui_resource": "ui://working-from-lenny/strategy-pressure-test",
+      "skill_slug": "lenny-pressure-test"
+    },
     "dev.workingfromlenny.anchor_substitutions": [
       {
         "missing": "competitive-positioning",

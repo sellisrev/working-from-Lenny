@@ -70,6 +70,15 @@
       "phase": 3,
       "type": "wizard + deterministic stage assignment + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 9,
+      "one_liner": "Find your real adoption stage and the playbook that fits it.",
+      "entry_tool": "chasm_get_form",
+      "ui_resource": "ui://working-from-lenny/chasm-stage",
+      "skill_slug": "crossing-the-chasm-stage"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. The deterministic engine runs the categorical rule cascade to assign one Moore stage and names the placing signals; the brief carries the stage + placing_signals + user inputs + corpus chunks (crossing-the-chasm, category-creation, consumer-business-stages, b2b-pmf, gtm-motions). Host chat model renders the STAGE + placing signals + the play for the next transition + the failure mode of running that play wrong (and, at the chasm, the one move that matters).",

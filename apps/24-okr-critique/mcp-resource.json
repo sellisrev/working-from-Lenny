@@ -55,6 +55,15 @@
       "phase": 2,
       "type": "paste + deterministic parser + LLM four-test critique with stance picker"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 5,
+      "one_liner": "Critique your OKRs for activity disguised as outcome, with rewrites.",
+      "entry_tool": "okr_critique_get_form",
+      "ui_resource": "ui://working-from-lenny/okr-critique",
+      "skill_slug": "okr-critique"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. Deterministic parser produces the objective/KR tree + too-many flag; brief carries the parse + stance + level + corpus chunks; host chat model renders per-KR four-test critique + stance synthesis + (org-level) cross-team coherence + rewritten set.",

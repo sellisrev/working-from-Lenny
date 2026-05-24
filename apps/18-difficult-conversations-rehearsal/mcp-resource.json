@@ -70,6 +70,15 @@
       "type": "multi-turn rehearsal (host-driven dialog from a Path 4 brief)",
       "clones": 17
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 6,
+      "one_liner": "Rehearse the hard conversation: feedback, bad news, a PIP, before it happens.",
+      "entry_tool": "difficult_conversations_get_scenario",
+      "ui_resource": "ui://working-from-lenny/difficult-conversations",
+      "skill_slug": "difficult-conversations-rehearsal"
+    },
     "dev.workingfromlenny.multi_turn": {
       "model": "host-driven-dialog",
       "decided": "2026-05-23",

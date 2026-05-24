@@ -324,6 +324,15 @@
       "phase": 2,
       "type": "quiz + deterministic engine + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "just-for-fun",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "Your PM archetype as a horoscope, with a lucky corpus topic.",
+      "entry_tool": "pm_horoscope_get_quiz",
+      "ui_resource": "ui://working-from-lenny/horoscope",
+      "skill_slug": "pm-horoscope"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The deterministic engine produces aspect / prediction / nudge / topic (the spine); the host chat model renders the user-facing horoscope around that spine, following voice_rules and per_section_template.",

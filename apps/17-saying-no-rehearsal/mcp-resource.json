@@ -69,6 +69,15 @@
       "phase": 3,
       "type": "multi-turn rehearsal (host-driven dialog from a Path 4 brief)"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 5,
+      "one_liner": "Rehearse a hard no out loud before you have to say it for real.",
+      "entry_tool": "saying_no_get_scenario",
+      "ui_resource": "ui://working-from-lenny/saying-no",
+      "skill_slug": "saying-no-rehearsal"
+    },
     "dev.workingfromlenny.multi_turn": {
       "model": "host-driven-dialog",
       "decided": "2026-05-23",

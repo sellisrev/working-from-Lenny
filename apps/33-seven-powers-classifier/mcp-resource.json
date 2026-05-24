@@ -112,6 +112,15 @@
       "phase": 3,
       "type": "wizard-quiz + deterministic claim-vs-evidence classification + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 8,
+      "one_liner": "Test which of the 7 Powers you actually have, claim versus evidence.",
+      "entry_tool": "seven_powers_get_questions",
+      "ui_resource": "ui://working-from-lenny/seven-powers",
+      "skill_slug": "seven-powers-classifier"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. The deterministic engine classifies each power from its evidence ratings (has-evidence >= 0.66, plausible 0.34-0.66, absent < 0.34 of the per-power evidence max) and raises the delusion / overstated / blind-spot flags where claim and evidence diverge; the brief carries the power_map + per-power claim/evidence/classification + corpus chunks (seven-powers, good-strategy-rumelt, distribution-as-moat, ai-data-as-moat, category-creation). Host chat model renders the POWER MAP + per-power benefit-and-barrier detail (each real or plausible power with its one observable test next quarter) + the honest headline.",

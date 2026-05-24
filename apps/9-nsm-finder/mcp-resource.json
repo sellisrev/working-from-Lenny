@@ -69,6 +69,15 @@
       "phase": 2,
       "type": "wizard + deterministic mapping + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "Find the one metric that actually captures the value you deliver.",
+      "entry_tool": "nsm_finder_get_form",
+      "ui_resource": "ui://working-from-lenny/nsm-finder",
+      "skill_slug": "nsm-finder"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. The wizard resolves the business-shape → NSM-family lookup; the brief carries the family + user inputs + normalized dashboard lines + corpus chunks (north-star-metric, activation-metric, growth-loops, pm-pitfalls). Host chat model renders the FAMILY + three candidates (each with vanity-risk / leading-vs-lagging / gameability / break-case / input-metrics slots) + optional dashboard audit.",

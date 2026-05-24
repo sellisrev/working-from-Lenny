@@ -146,6 +146,15 @@
       "type": "generator (tailored lesson set, no scoring state)",
       "companion_to": 46
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "for-non-pms",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "A fast orientation to what PMs do, for people who work with them.",
+      "entry_tool": "onboarding_get_modes",
+      "ui_resource": "ui://working-from-lenny/onboarding-pm-101",
+      "skill_slug": "onboarding-pm-101"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. The deterministic engine resolves the role lens and stage calibration for each of the five fixed lessons and selects the corpus anchors; the brief carries the resolved lenses + user inputs + corpus chunks (how-x-builds-product, product-strategy, okrs, getting-buy-in, communicating-tradeoffs, saying-no, top-1-percent-pm, spotting-bad-pm-behaviors, pm-pitfalls, continuous-discovery, communicating-bad-news, managing-up, decision-making-frameworks). Host chat model renders LESSON_1..5 (each role-lensed and stage-calibrated) plus a CONFUSION_CODA when biggest_confusion was supplied.",

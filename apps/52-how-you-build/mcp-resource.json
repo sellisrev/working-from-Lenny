@@ -195,6 +195,15 @@
       "phase": 2,
       "type": "structured-input + LLM-generated parody (multi-mode)"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "just-for-fun",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "A parody field guide to how your team actually builds product.",
+      "entry_tool": "how_you_build_get_modes",
+      "ui_resource": "ui://working-from-lenny/how-you-build",
+      "skill_slug": "how-you-build"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The deterministic engine has nothing to compute — the prompt itself is the product. The brief carries the structured team inputs + pre-assembled [INPUT] block + mode-specific directive + voice rules; the host chat model renders the parody. Corpus map is intentionally empty: this app is voice/structure work, not corpus-citation work.",

@@ -64,6 +64,15 @@
       "phase": 2,
       "type": "wizard + deterministic decision tree + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 7,
+      "one_liner": "Decide whether, and at what level, to make your first PM hire.",
+      "entry_tool": "founder_pm_hire_get_form",
+      "ui_resource": "ui://working-from-lenny/founder-pm-hire",
+      "skill_slug": "lenny-hire"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. Deterministic decision tree produces verdict + playbook; brief carries verdict + the user's 8 inputs + corpus chunks; host chat model renders verdict + what-good-looks-like + cost-of-getting-it-wrong.",

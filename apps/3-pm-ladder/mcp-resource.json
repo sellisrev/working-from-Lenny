@@ -253,6 +253,15 @@
       "phase": 2,
       "type": "quiz + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "Self-assess your PM level across five dimensions, with an honest read.",
+      "entry_tool": "pm_ladder_get_questions",
+      "ui_resource": "ui://working-from-lenny/ladder",
+      "skill_slug": "pm-ladder"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The outputSchema(s) defined above describe the target rendering structure the host chat model is asked to produce. At runtime each narration tool returns { type: 'narration_brief', audience: 'user', directive, voice_rules, structure: { sections, per_section_template, length_cap }, inputs: <tool-specific>, corpus: { anchor_slug: chunk_text } }. The host chat model then renders the user-facing prose from the brief.",

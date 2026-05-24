@@ -70,6 +70,15 @@
       "type": "wizard + deterministic mapping + LLM narration",
       "paired_with": 9
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "Pin down your activation moment, the first-value step that predicts retention.",
+      "entry_tool": "activation_finder_get_form",
+      "ui_resource": "ui://working-from-lenny/activation-finder",
+      "skill_slug": "activation-metric-finder"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. Deterministic engine resolves the business-shape → activation-event-family lookup; brief carries the family + user inputs + normalized funnel lines + ai_product_flagged + corpus chunks (activation-metric, retention, cohort-retention, hierarchy-of-engagement, marketplace-metrics, pm-pitfalls). Host chat model renders the FAMILY + three candidates (each with vanity-risk / leading-vs-retention / friction-balance / customer-interview-signal / benchmark / input-metrics slots) + optional funnel audit.",

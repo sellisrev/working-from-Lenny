@@ -223,6 +223,15 @@
       "type": "quiz + LLM narration",
       "companion_to": 44
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "for-non-pms",
+      "featured": false,
+      "order_hint": 2,
+      "one_liner": "Tell whether your PM's behavior is a bad week or a bad pattern, and what to do.",
+      "entry_tool": "spotting_get_questions",
+      "ui_resource": "ui://working-from-lenny/spotting-bad-pm",
+      "skill_slug": "spotting-bad-pm-behaviors"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. The deterministic engine computes the severity tier (green <= 6, yellow 7-16, red >= 17 of summed pattern_weight = observed_score x severity_weight), the top three patterns, and the action rung per pattern; the brief carries the tier + patterns + per-pattern action rung + the fairness-check applicability + corpus chunks (spotting-bad-pm-behaviors, pm-pitfalls, continuous-discovery, saying-no, defending-big-bets, decision-making-frameworks, top-1-percent-pm, getting-buy-in, communicating-bad-news, managing-up). Host chat model renders the READ + the three patterns (diagnosis + proportionate move) + the fairness check.",

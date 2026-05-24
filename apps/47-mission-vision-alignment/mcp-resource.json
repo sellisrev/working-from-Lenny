@@ -55,6 +55,15 @@
       "phase": 2,
       "type": "paste-three + LLM drift analysis"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 6,
+      "one_liner": "Check whether your mission, vision, and strategy actually line up.",
+      "entry_tool": "mvs_alignment_get_form",
+      "ui_resource": "ui://working-from-lenny/mvs-alignment",
+      "skill_slug": "mission-vision-alignment"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. Deterministic side validates lengths + flags strategy_too_vague via a cheap concrete-signal count; brief carries the three docs + the three pair labels + corpus chunks; host chat model renders the four-section reading.",

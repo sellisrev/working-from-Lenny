@@ -192,6 +192,15 @@
       "phase": 2,
       "type": "paste-and-critique"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "just-for-fun",
+      "featured": false,
+      "order_hint": 1,
+      "one_liner": "Turn a human message into corporate PM-speak, against your better judgment.",
+      "entry_tool": "pmify_get_modes",
+      "ui_resource": "ui://working-from-lenny/pmify",
+      "skill_slug": "pmify-inbox"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools in this app return a narration_brief, not the structured prose directly. The deterministic engine has nothing to compute — the prompt itself is the product. The brief carries the user_text + mode + closed pattern pool + corpus chunks; the host chat model renders the user-facing translation + footnotes.",

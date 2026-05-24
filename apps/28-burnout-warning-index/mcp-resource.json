@@ -64,6 +64,15 @@
       "phase": 3,
       "type": "wizard-quiz + deterministic score + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 3,
+      "one_liner": "A quick wellbeing index with a phased recovery plan, not a pep talk.",
+      "entry_tool": "burnout_get_form",
+      "ui_resource": "ui://working-from-lenny/burnout-index",
+      "skill_slug": "burnout-warning-index"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. The deterministic engine maps inputs to 0-2 risk points (qualitative trio doubled), normalizes to a 0-100 index, tiers it, applies the dread-plus-no-good-day override, names the two top drivers, and selects the recovery phases; the brief carries the index + tier + override flag + drivers + phase selection + user inputs + corpus chunks (burnout-and-resilience, long-healthy-life, saying-no, top-1-percent-pm). Host chat model renders the INDEX + what's driving it + the ordered recovery (Phase 1 cut this week / Phase 2 restoration / Phase 3 structural fix), and references recovery_capacity in Phase 1 when supplied.",

@@ -262,6 +262,15 @@
       "phase": 3,
       "type": "stateful log + deterministic Brier math + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "self-reflective",
+      "featured": false,
+      "order_hint": 4,
+      "one_liner": "Log decisions with your confidence; get Brier-scored on whether you were calibrated.",
+      "entry_tool": "decision_log_get_form",
+      "ui_resource": "ui://working-from-lenny/decision-log",
+      "skill_slug": "decision-log-calibration"
+    },
     "dev.workingfromlenny.persistence": {
       "model": "mutable-collection",
       "decided": "2026-05-23",

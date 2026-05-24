@@ -73,6 +73,15 @@
       "phase": 2,
       "type": "wizard + deterministic scoring + LLM narration"
     },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 4,
+      "one_liner": "Score how well your AI feature is actually tested, not just shipped.",
+      "entry_tool": "ai_eval_coverage_get_form",
+      "ui_resource": "ui://working-from-lenny/ai-eval-coverage",
+      "skill_slug": "ai-eval-coverage"
+    },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",
       "summary": "Narration tools return a narration_brief. Seven categories are fixed; the host chat model classifies each as covered / partial / missing from the user's three inputs, computes the score deterministically from inputs.scoring_formula, and renders the score + category table + starter eval prompts. Corpus chunks (evals-for-ai-products + ai-pm-skills) anchor the starter prompts.",
