@@ -1,0 +1,80 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/chasm-stage",
+    "name": "Crossing-the-Chasm Stage Finder",
+    "description": "Multi-field wizard (customer mix as three numbers summing to ~100, acquisition trend, pain specificity, whole-product completeness, beachhead naming, optional reference-customer mix). Deterministic stage assignment via a categorical rule cascade over Moore's adoption curve (early market / at the chasm / bowling alley / tornado / main street); the placing signals, the play for the next transition, and the most common way that play gets run wrong come from the host chat model.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "chasm_get_form",
+      "description": "Entry tool for the Crossing-the-Chasm Stage Finder. Calling this triggers the host to mount the ui://working-from-lenny/chasm-stage resource (an interactive iframe with a multi-field wizard: customer mix as three numbers, acquisition trend, pain specificity, whole-product completeness, beachhead naming, plus optional reference-customer mix). If your host mounts the UI, that IS the input surface — do NOT additionally render the inputs in chat as a duplicate surface; the user will fill them in the iframe, which calls chasm_score directly. The returned `fields` array is the fallback for hosts that cannot mount ui:// resources; `stages` is the Moore adoption-curve reference. If the user already has all inputs in hand, call chasm_score directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/chasm-stage" } }
+    },
+    {
+      "name": "chasm_score",
+      "description": "Takes the structured stage-finder inputs (customer_mix, acquisition_trend, pain_specificity, whole_product, beachhead_named, optional reference_customers) and persists the corpus-grounded chasm brief. The deterministic side runs the categorical rule cascade to assign one Moore stage (early market / at the chasm / bowling alley / tornado / main street) and names the two or three signals that placed the user; it does not score a sum, because chasm position has dispositive signals (a heavy-visionary, stalling, no-whole-product company is at the chasm regardless of other inputs). It echoes the inputs so the host has them in context. The placing-signal narration, the play for the next transition, and the failure mode of running that play wrong come from the host chat model. AFTER receiving this result, call chasm_get_pending_narration to fetch the brief and render the STAGE + placing signals + next-stage play + failure mode. Do not render the stage on your own without the brief — the brief carries the voice rules (#34 forward-looking stage-reframe, Moore-faithful 'the chasm is lethal', no AI tells) and the closed corpus-anchor pool. Optional `user_context` (company stage / GTM motion) flows into the persisted brief. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "customer_mix": {
+                "type": "object",
+                "properties": {
+                  "innovators_visionaries": { "type": "integer", "minimum": 0, "maximum": 100 },
+                  "pragmatists": { "type": "integer", "minimum": 0, "maximum": 100 },
+                  "dont_know": { "type": "integer", "minimum": 0, "maximum": 100 }
+                },
+                "required": ["innovators_visionaries", "pragmatists", "dont_know"]
+              },
+              "acquisition_trend": { "type": "string", "enum": ["accelerating", "steady", "stalling", "lumpy-referral-only"] },
+              "pain_specificity": { "type": "string", "enum": ["one-sentence-named-pain", "broad-value-prop", "still-figuring-it-out"] },
+              "whole_product": { "type": "string", "enum": ["yes-complete", "partial", "no"] },
+              "beachhead_named": { "type": "string", "enum": ["yes-one-segment", "several-segments", "no-we-sell-to-anyone"] },
+              "reference_customers": { "type": "string", "enum": ["pragmatist-references-exist", "only-visionary-references", "none"] }
+            },
+            "required": ["customer_mix", "acquisition_trend", "pain_specificity", "whole_product", "beachhead_named"]
+          },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      }
+    },
+    {
+      "name": "chasm_narrate",
+      "description": "Packages a corpus-grounded Crossing-the-Chasm brief from the structured inputs. Returns voice rules, structure (STAGE → PLACING_SIGNALS → NEXT_PLAY → FAILURE_MODE), the assigned stage, the placing signals, and corpus chunks. Pure compute — no persistence side-effect. PREFER chasm_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["inputs"]
+      }
+    },
+    {
+      "name": "chasm_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their Crossing-the-Chasm reading, 'where am I on the chasm', 'what stage are we in', 'read my chasm diagnosis', or any follow-up to a submission just made — including any phrasing like 'am I at the chasm', 'what's my next play', 'I just filled in the stage finder', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by chasm_score on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent chasm_score call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/chasm-stage resource or call chasm_score directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 820 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #34 Crossing-the-Chasm Stage Finder. Phase 3 .mcpb bundle target. Path 4 four-tool shape mirroring #9 NSM Finder / #33 7 Powers. The novel mechanic is the categorical rule cascade (not a score sum): chasm position has dispositive signals, so the order of the cascade is load-bearing and 'at the chasm' surfaces as its own diagnosis even though Moore treats it as a gap. Deterministic side assigns the stage and names the placing signals; the next-stage play and its failure mode come from the host chat model. Per-user quarter-over-quarter stage-movement re-assessment deferred to a follow-up like the other calibration tools. Pairs conceptually with #33 (both board-meeting strategy artifacts) but no inter-tool messaging — same documentary-link convention as #37/#9. Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 34,
+      "name": "Crossing-the-Chasm Stage Finder",
+      "phase": 3,
+      "type": "wizard + deterministic stage assignment + LLM narration"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. The deterministic engine runs the categorical rule cascade to assign one Moore stage and names the placing signals; the brief carries the stage + placing_signals + user inputs + corpus chunks (crossing-the-chasm, category-creation, consumer-business-stages, b2b-pmf, gtm-motions). Host chat model renders the STAGE + placing signals + the play for the next transition + the failure mode of running that play wrong (and, at the chasm, the one move that matters).",
+      "worked_example": "bundle/src/tools/34-crossing-the-chasm-stage/narrate.ts and bundle/src/lib/build-chasm-brief.ts. Mirrors bundle/src/tools/9-nsm-finder/narrate.ts.",
+      "narration_tools": ["chasm_narrate"]
+    }
+  }
+}
