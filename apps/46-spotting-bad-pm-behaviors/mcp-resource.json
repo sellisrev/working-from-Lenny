@@ -1,0 +1,233 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/spotting-bad-pm",
+    "name": "Spotting Bad PM Behaviors (field guide)",
+    "description": "A field guide for the non-PM (engineer, designer, sales, CS) who suspects the friction with their PM has a name. Fifteen corpus-derived behaviors rated on observed frequency (often / sometimes / haven't seen it). Deterministic severity tier (green / yellow / red) + the top three patterns + a proportionate action rung; the corpus-grounded diagnosis, the script, and a fairness check (when the answers suggest the gap is partly the user's own expectation) come from the host chat model. Single-user, local-only, advisory; no team reporting.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "spotting_get_questions",
+      "description": "Entry tool for the Spotting Bad PM Behaviors field guide. Calling this triggers the host to mount the ui://working-from-lenny/spotting-bad-pm resource (an interactive iframe with the 15 behaviors, observed-frequency rating, and submit). If your host mounts the UI, that IS the questionnaire — do NOT additionally render the 15 behaviors in chat as a duplicate surface; the user will rate them in the iframe, which calls spotting_score directly. The returned `behaviors` array is provided only as a fallback for hosts that cannot mount ui:// resources. Scoring is positional against this list — if you do render behaviors in chat (only when ui:// is unavailable), use these exact 15 verbatim; never substitute generic bad-PM behaviors.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "behaviors": {
+            "type": "array",
+            "minItems": 15,
+            "maxItems": 15,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 15 },
+                "text": { "type": "string" }
+              }
+            }
+          },
+          "note": { "type": "string" }
+        }
+      },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/spotting-bad-pm" } }
+    },
+    {
+      "name": "spotting_score",
+      "description": "Scores the user's field-guide ratings and prepares their narration brief. Returns the composite severity tier (green / yellow / red), the running total, the top three patterns (behavior + pattern weight + the deterministically-chosen action rung), and the canonical 15 behaviors. Ratings are interpreted positionally against the canonical behaviors — call spotting_get_questions or render ui://working-from-lenny/spotting-bad-pm first; never substitute generic behaviors. The green 'haven't seen it on everything' case returns no patterns and a fairness-check headline. AFTER receiving this score result, call spotting_get_pending_narration to fetch the corpus-grounded narration brief, then render it for the user following its `directive` and `voice_rules`. Do not summarize the tier on its own — the diagnosis + proportionate move + fairness check are the deliverable. Optional `user_context` (the user's role, how long they've worked with this PM) flows into the persisted brief. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["often", "sometimes", "havent-seen-it"] },
+            "minItems": 15,
+            "maxItems": 15,
+            "description": "Fifteen observed-frequency ratings in behavior-ID order (1 through 15). Display labels: often / sometimes / haven't seen it."
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. The user's role and tenure with this PM, forwarded into the persisted brief's inputs.user_context. Empty by default; iframe submission never sets one, chat-side Claude may.",
+            "default": ""
+          }
+        },
+        "required": ["answers"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "severity_tier": { "type": "string", "enum": ["green", "yellow", "red"] },
+          "total": { "type": "integer", "minimum": 0 },
+          "top_patterns": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 3,
+            "description": "The top three behaviors with pattern_weight > 0, sorted by pattern weight then severity. Empty when the user has not observed any pattern (the green expectation-gap case).",
+            "items": {
+              "type": "object",
+              "properties": {
+                "behavior_id": { "type": "integer", "minimum": 1, "maximum": 15 },
+                "behavior_text": { "type": "string" },
+                "pattern_weight": { "type": "integer" },
+                "action_rung": { "type": "string", "enum": ["private_feedback", "document_then_feedback", "document_and_escalate", "reframe_or_leave"] }
+              }
+            }
+          },
+          "behaviors": {
+            "type": "array",
+            "minItems": 15,
+            "maxItems": 15,
+            "description": "Canonical 15 behaviors (id + text), echoed so the host has them in context for downstream rendering.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "minimum": 1, "maximum": 15 },
+                "text": { "type": "string" }
+              }
+            }
+          },
+          "persistence_warning": {
+            "type": "string",
+            "description": "Set only when score's persistence side-effect failed. Presence indicates spotting_get_pending_narration will return no_pending for this submission and the host should surface the message to the user, recommending they re-submit."
+          }
+        }
+      }
+    },
+    {
+      "name": "spotting_narrate",
+      "description": "Packages a corpus-grounded narration brief for the user's field-guide result. Returns voice rules, structure (READ → PATTERN_1..3 → FAIRNESS_CHECK), the picked patterns (behavior text + action rung + corpus anchors), the fairness-check applicability, and the corpus chunks themselves. Pure compute — no persistence side-effect. The host chat model renders the user-facing narration from this brief. To pick up the brief that score saved for the chat-side handoff, call spotting_get_pending_narration instead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "severity_tier": { "type": "string", "enum": ["green", "yellow", "red"] },
+          "total": { "type": "integer" },
+          "top_patterns": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "behavior_id": { "type": "integer", "minimum": 1, "maximum": 15 },
+                "behavior_text": { "type": "string" },
+                "pattern_weight": { "type": "integer" },
+                "action_rung": { "type": "string", "enum": ["private_feedback", "document_then_feedback", "document_and_escalate", "reframe_or_leave"] }
+              }
+            }
+          },
+          "user_context": {
+            "type": "string",
+            "description": "Optional. The user's role and tenure with this PM. Empty string if not provided."
+          },
+          "answers": {
+            "type": "array",
+            "minItems": 15,
+            "maxItems": 15,
+            "items": { "type": "string", "enum": ["often", "sometimes", "havent-seen-it"] },
+            "description": "Optional. Pass through the user's 15 ratings (in behavior-id order) from the score call so the brief can ground the fairness check and severity in actual answers."
+          }
+        },
+        "required": ["severity_tier", "top_patterns"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "properties": {
+              "severity_tier": { "type": "string", "enum": ["green", "yellow", "red"] },
+              "total": { "type": "integer" },
+              "user_context": { "type": "string" },
+              "patterns": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 3,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "behavior_id": { "type": "integer" },
+                    "behavior_text": { "type": "string" },
+                    "action_rung": { "type": "string", "enum": ["private_feedback", "document_then_feedback", "document_and_escalate", "reframe_or_leave"] },
+                    "corpus_anchors": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              },
+              "full_audit": {
+                "type": "array",
+                "minItems": 15,
+                "maxItems": 15,
+                "description": "Optional. Per-behavior user rating mapping. Present only when narrate was called with the answers array. Use to ground the fairness check; do NOT invent ratings when this field is absent.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "behavior_id": { "type": "integer", "minimum": 1, "maximum": 15 },
+                    "behavior_text": { "type": "string" },
+                    "user_rating": { "type": "string", "enum": ["often", "sometimes", "havent-seen-it"] }
+                  }
+                }
+              }
+            }
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of anchor slug to corpus chunk text."
+          }
+        }
+      }
+    },
+    {
+      "name": "spotting_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their field-guide 'read', 'narration', 'what should I do about my PM', or any follow-up to a field guide just filled in — including any phrasing like 'is my PM bad', 'read my field guide', 'give me my results', 'I just filled in the field guide', or any message coming from the embedded widget. Do NOT respond with 'you haven't filled anything in' without calling this tool first: the field-guide state lives on disk (persisted by spotting_score on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent spotting_score call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' (meaning the disk check came back empty) direct the user to render the ui://working-from-lenny/spotting-bad-pm resource to fill in the field guide.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "outputSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "ready" },
+              "saved_at": { "type": "string" },
+              "brief": { "type": "object" }
+            },
+            "required": ["status", "saved_at", "brief"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "const": "no_pending" },
+              "note": { "type": "string" }
+            },
+            "required": ["status", "note"]
+          }
+        ]
+      }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 560, "preferredHeight": 720 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #46 Spotting Bad PM Behaviors. Phase 3 .mcpb bundle target. Path 4 four-tool clone of #44 PM Pitfalls; two differences from #44: the audience is the non-PM cross-functional partner, and each surfaced pattern carries a proportionate action rung (the what-to-do path) instead of #44's self-improvement exemplar. The composite severity tier is the shareable headline; the green 'haven't seen it on everything' case returns no patterns and a fairness-check headline. SCOPE GUARDRAIL: single-user, local-only, advisory. No anonymous team reporting bucket (it implies multi-user collection the local-file model does not support and can be weaponized); do not reintroduce it. Per-user re-assessment (the patterns you flagged last quarter, better or worse?) deferred to a follow-up like the other drift tools. Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 46,
+      "name": "Spotting Bad PM Behaviors (field guide)",
+      "phase": 3,
+      "type": "quiz + LLM narration",
+      "companion_to": 44
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. The deterministic engine computes the severity tier (green <= 6, yellow 7-16, red >= 17 of summed pattern_weight = observed_score x severity_weight), the top three patterns, and the action rung per pattern; the brief carries the tier + patterns + per-pattern action rung + the fairness-check applicability + corpus chunks (spotting-bad-pm-behaviors, pm-pitfalls, continuous-discovery, saying-no, defending-big-bets, decision-making-frameworks, top-1-percent-pm, getting-buy-in, communicating-bad-news, managing-up). Host chat model renders the READ + the three patterns (diagnosis + proportionate move) + the fairness check.",
+      "worked_example": "bundle/src/tools/46-spotting-bad-pm-behaviors/narrate.ts and bundle/src/shared/schemas.ts. Mirrors bundle/src/tools/pm-pitfalls/narrate.ts.",
+      "narration_tools": ["spotting_narrate"]
+    }
+  }
+}
