@@ -1,0 +1,122 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/seven-powers",
+    "name": "7 Powers Self-Classifier",
+    "description": "Claim-vs-evidence diagnostic over Hamilton Helmer's seven powers (scale economies, network economies, counter-positioning, switching costs, branding, cornered resource, process power). For each power the user states a claim (have / maybe / no) and answers 2-3 specific observable evidence questions (true / partly / false). Deterministic per-power classification (has-evidence / plausible / absent) plus the #33-specific delusion / overstated / blind-spot flags where the claim and the evidence diverge; the per-power benefit-and-barrier reading, the one-observable-test-next-quarter per real or plausible power, and the honest headline come from the host chat model.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "seven_powers_get_questions",
+      "description": "Entry tool for the 7 Powers Self-Classifier. Calling this triggers the host to mount the ui://working-from-lenny/seven-powers resource (an interactive iframe with the claim + evidence questions grouped by power, and submit). If your host mounts the UI, that IS the questionnaire — do NOT additionally render the questions in chat as a duplicate surface; the user will answer in the iframe, which calls seven_powers_score directly. The returned `powers` array is the fallback for hosts that cannot mount ui:// resources; each power carries its one claim question (have / maybe / no) and its 2-3 evidence questions (true / partly / false). Classification is positional against this canonical bank — if you do render questions in chat (only when ui:// is unavailable), use these exact questions verbatim; never substitute generic strategy questions. If the user already has all answers in hand, call seven_powers_score directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+      "_meta": { "ui": { "resourceUri": "ui://working-from-lenny/seven-powers" } }
+    },
+    {
+      "name": "seven_powers_score",
+      "description": "Takes the structured 7 Powers answers (per power: a claim of have / maybe / no, plus 2-3 evidence ratings of true / partly / false) and persists the corpus-grounded power-map brief. The deterministic side classifies each power as has-evidence / plausible / absent from its evidence ratings, then raises the #33-specific flags where claim and evidence diverge: DELUSIONAL (claimed have, evidence absent), OVERSTATED (claimed have, evidence only plausible), BLIND SPOT (claimed no, evidence says has-evidence). It echoes the canonical questions and the user's answers so the host has them in context. The per-power benefit-and-barrier reading, the one observable test next quarter per real or plausible power, and the honest headline come from the host chat model. AFTER receiving this result, call seven_powers_get_pending_narration to fetch the brief and render the POWER MAP + per-power detail + headline. Do not render the power map on your own without the brief — the brief carries the voice rules (#33 unsentimental delusion-puncture, Helmer benefit-and-barrier discipline, no AI tells) and the closed corpus-anchor pool. Optional `user_context` (company stage / who is being assessed) flows into the persisted brief. If `persistence_warning` is set, surface it and ask the user to re-submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "object",
+            "properties": {
+              "scale_economies": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 3, "maxItems": 3 }
+                },
+                "required": ["claim", "evidence"]
+              },
+              "network_economies": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 3, "maxItems": 3 }
+                },
+                "required": ["claim", "evidence"]
+              },
+              "counter_positioning": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 3, "maxItems": 3 }
+                },
+                "required": ["claim", "evidence"]
+              },
+              "switching_costs": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 3, "maxItems": 3 }
+                },
+                "required": ["claim", "evidence"]
+              },
+              "branding": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 2, "maxItems": 2 }
+                },
+                "required": ["claim", "evidence"]
+              },
+              "cornered_resource": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 2, "maxItems": 2 }
+                },
+                "required": ["claim", "evidence"]
+              },
+              "process_power": {
+                "type": "object",
+                "properties": {
+                  "claim": { "type": "string", "enum": ["have", "maybe", "no"] },
+                  "evidence": { "type": "array", "items": { "type": "string", "enum": ["true", "partly", "false"] }, "minItems": 2, "maxItems": 2 }
+                },
+                "required": ["claim", "evidence"]
+              }
+            },
+            "required": ["scale_economies", "network_economies", "counter_positioning", "switching_costs", "branding", "cornered_resource", "process_power"]
+          },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["answers"]
+      }
+    },
+    {
+      "name": "seven_powers_narrate",
+      "description": "Packages a corpus-grounded 7 Powers brief from the structured answers. Returns voice rules, structure (POWER_MAP → PER_POWER_DETAIL → HEADLINE), the per-power classification and divergence flags, the user's claims and evidence ratings, and corpus chunks. Pure compute — no persistence side-effect. PREFER seven_powers_get_pending_narration after a score call. Only call this tool directly if you need a brief without round-tripping through disk.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "answers": { "type": "object" },
+          "user_context": { "type": "string", "default": "" }
+        },
+        "required": ["answers"]
+      }
+    },
+    {
+      "name": "seven_powers_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their 7 Powers reading, 'read my power map', 'which moats do I actually have', 'am I deluded about network effects', or any follow-up to a submission just made — including any phrasing like 'classify my powers', 'do I have a moat', 'I just took the 7 powers diagnostic', or any message coming from the embedded widget. Do NOT respond with 'you haven't submitted anything' without calling this tool first: the submission state lives on disk (persisted by seven_powers_score on submission), NOT in the chat conversation context — the user may have submitted via the embedded widget, in which case the chat history shows no prior submission but a brief is waiting on disk. Returns the narration brief saved by the most recent seven_powers_score call. On status='ready', render the brief following its directive and voice_rules. ONLY on status='no_pending' direct the user to render the ui://working-from-lenny/seven-powers resource or call seven_powers_score directly.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 820 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #33 7 Powers Self-Classifier. Phase 3 .mcpb bundle target. Path 4 four-tool shape mirroring #9 NSM Finder; the novel mechanic is the claim-vs-evidence matrix and the delusion / overstated / blind-spot flags raised where a power's claim and evidence diverge. Deterministic side classifies each power (has-evidence / plausible / absent) from evidence ratings and raises the divergence flags; the benefit-and-barrier reading, the one observable test next quarter, and the headline come from the host chat model. Per-user re-classification history (last quarter you were delusional about switching costs; did the churn test confirm?) deferred to a follow-up like the other calibration tools. Tool descriptions verbatim-match the runtime `meta.description` strings.",
+    "dev.workingfromlenny.app": {
+      "id": 33,
+      "name": "7 Powers Self-Classifier",
+      "phase": 3,
+      "type": "wizard-quiz + deterministic claim-vs-evidence classification + LLM narration"
+    },
+    "dev.workingfromlenny.path_4": {
+      "decided": "2026-05-20",
+      "summary": "Narration tools return a narration_brief. The deterministic engine classifies each power from its evidence ratings (has-evidence >= 0.66, plausible 0.34-0.66, absent < 0.34 of the per-power evidence max) and raises the delusion / overstated / blind-spot flags where claim and evidence diverge; the brief carries the power_map + per-power claim/evidence/classification + corpus chunks (seven-powers, good-strategy-rumelt, distribution-as-moat, ai-data-as-moat, category-creation). Host chat model renders the POWER MAP + per-power benefit-and-barrier detail (each real or plausible power with its one observable test next quarter) + the honest headline.",
+      "worked_example": "bundle/src/tools/33-seven-powers-classifier/narrate.ts and bundle/src/lib/build-seven-powers-brief.ts. Mirrors bundle/src/tools/9-nsm-finder/narrate.ts.",
+      "narration_tools": ["seven_powers_narrate"]
+    }
+  }
+}
