@@ -1782,3 +1782,183 @@ export const SpottingGetPendingNarrationOutput = z.discriminatedUnion("status", 
     note: z.string(),
   }),
 ]);
+
+// ── #28 Burnout Warning Index ─────────────────────────────────────────────────
+
+export const BurnoutSleepEnum = z.enum(["solid", "uneven", "poor"]);
+export const BurnoutLastGoodDayEnum = z.enum(["this-week", "this-month", "cant-remember"]);
+export const BurnoutDreadSignalEnum = z.enum(["rarely", "some-mornings", "most-mornings"]);
+export const BurnoutTierEnum = z.enum(["green", "yellow", "red"]);
+
+export const BurnoutDriver = z.object({
+  key: z.string(),
+  label: z.string(),
+  weighted_points: z.number(),
+});
+
+export const BurnoutInputsSchema = z.object({
+  meetings_per_week: z.number().int().min(0).max(100),
+  deep_work_blocks_remaining: z.number().int().min(0).max(40),
+  after_hours_meeting_pct: z.number().int().min(0).max(100),
+  weeks_since_real_vacation: z.number().int().min(0).max(520),
+  sleep_self_report: BurnoutSleepEnum,
+  last_good_day: BurnoutLastGoodDayEnum,
+  dread_signal: BurnoutDreadSignalEnum,
+  recovery_capacity: z.string().max(200).optional(),
+});
+
+export const BurnoutGetFormInput = z.object({}).strict();
+export const BurnoutGetFormOutput = z.object({
+  fields: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.enum(["number", "enum", "text"]),
+      required: z.boolean(),
+      options: z.array(z.string()).optional(),
+      min: z.number().optional(),
+      max: z.number().optional(),
+      max_length: z.number().optional(),
+    }),
+  ),
+  note: z.string(),
+});
+
+export const BurnoutScoreInput = z.object({
+  inputs: BurnoutInputsSchema,
+  user_context: z.string().default(""),
+});
+export const BurnoutScoreOutput = z.object({
+  index: z.number().int().min(0).max(100),
+  tier: BurnoutTierEnum,
+  override_fired: z.boolean(),
+  top_drivers: z.array(BurnoutDriver).max(2),
+  inputs: z.record(z.unknown()),
+  persistence_warning: z.string().optional(),
+});
+
+export const BurnoutNarrateInput = z.object({
+  inputs: z.record(z.unknown()),
+  user_context: z.string().default(""),
+});
+export const BurnoutNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    index: z.number(),
+    tier: BurnoutTierEnum,
+    override_fired: z.boolean(),
+    top_drivers: z.array(BurnoutDriver),
+    recovery_capacity: z.string(),
+    user_context: z.string(),
+    raw_inputs: z.record(z.unknown()),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const BurnoutGetPendingNarrationInput = z.object({}).strict();
+export const BurnoutGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: BurnoutNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ── #30 Onboarding to PM 101 for Non-PMs ─────────────────────────────────────
+
+export const OnboardingRoleEnum = z.enum([
+  "engineer",
+  "designer",
+  "sales",
+  "customer-success",
+  "other-cross-functional",
+]);
+export const OnboardingStageEnum = z.enum(["seed", "series-a-b", "growth", "enterprise"]);
+export const OnboardingPmRatioEnum = z.enum(["solo-pm", "pm-per-squad", "heavy-pm-org"]);
+
+export const OnboardingLesson = z.object({
+  id: z.number().int().min(1).max(5),
+  title: z.string(),
+});
+
+export const OnboardingGetModesInput = z.object({}).strict();
+export const OnboardingGetModesOutput = z.object({
+  lessons: z.array(OnboardingLesson).length(5),
+  fields: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.enum(["enum", "text"]),
+      options: z.array(z.string()).optional(),
+      optional: z.boolean().optional(),
+    }),
+  ),
+  note: z.string(),
+});
+
+export const OnboardingInputsSchema = z.object({
+  role: OnboardingRoleEnum,
+  company_stage: OnboardingStageEnum,
+  pm_ratio: OnboardingPmRatioEnum.optional(),
+  biggest_confusion: z.string().max(200).optional(),
+});
+
+export const OnboardingGenerateInput = z.object({
+  inputs: OnboardingInputsSchema,
+  user_context: z.string().default(""),
+});
+export const OnboardingGenerateOutput = z.object({
+  inputs: z.record(z.unknown()),
+  persistence_warning: z.string().optional(),
+});
+
+export const OnboardingNarrateInput = z.object({
+  inputs: z.record(z.unknown()),
+  user_context: z.string().default(""),
+});
+export const OnboardingNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    role: OnboardingRoleEnum,
+    company_stage: OnboardingStageEnum,
+    pm_ratio: OnboardingPmRatioEnum.optional(),
+    biggest_confusion: z.string(),
+    user_context: z.string(),
+    role_lens: z.string(),
+    stage_calibration: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const OnboardingGetPendingNarrationInput = z.object({}).strict();
+export const OnboardingGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: OnboardingNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Burnout Warning Index</title>
+  <!-- include: styles.css -->
+  <style>
+    .bi-section { margin:18px 0 0; }
+    .bi-section-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:#888; margin:0 0 10px; }
+    .bi-field { margin:10px 0; }
+    .bi-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 5px; line-height:1.4; }
+    .bi-number { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:14px; background:#fff; box-sizing:border-box; }
+    .bi-opts { display:flex; gap:7px; flex-wrap:wrap; }
+    .bi-opt { padding:6px 14px; border:1px solid #cfcfcf; border-radius:20px; font-size:13px; background:#fff; cursor:pointer; transition:all .12s; }
+    .bi-opt:hover { border-color:#555; }
+    .bi-opt.selected { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
+    .bi-textarea { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; resize:vertical; min-height:60px; box-sizing:border-box; }
+    .bi-opt.unset { border-color:#e0a800; }
+    .bi-tier { font-size:22px; font-weight:700; margin:6px 0 4px; }
+    .bi-tier.green { color:#1a7f37; }
+    .bi-tier.yellow { color:#9a6700; }
+    .bi-tier.red { color:#b00020; }
+    .bi-override-note { font-size:13px; color:#9a6700; margin:4px 0; }
+    .bi-drivers { margin:8px 0 0; font-size:14px; }
+    .bi-driver { display:inline-block; background:#f0f0f0; border-radius:4px; padding:2px 8px; margin:2px 3px 2px 0; font-size:12px; }
+    .bi-narrate-hint { font-size:13px; color:#555; margin:10px 0 0; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Burnout Warning Index</h1>
+  <p class="app-tagline">A short, honest read on your load and recovery. Non-clinical, no medical claims — a mirror and a prescription.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="bi-form" novalidate>
+
+    <div class="bi-section">
+      <p class="bi-section-title">Load block</p>
+
+      <div class="bi-field">
+        <label class="bi-label" for="bi-meetings">Meetings per week</label>
+        <input class="bi-number" type="number" id="bi-meetings" min="0" max="100" placeholder="e.g. 20">
+      </div>
+
+      <div class="bi-field">
+        <label class="bi-label" for="bi-deepwork">90-min deep-work blocks left in a typical week</label>
+        <input class="bi-number" type="number" id="bi-deepwork" min="0" max="40" placeholder="e.g. 3">
+      </div>
+
+      <div class="bi-field">
+        <label class="bi-label" for="bi-afterhours">After-hours meetings (% outside core hours, 0–100)</label>
+        <input class="bi-number" type="number" id="bi-afterhours" min="0" max="100" placeholder="e.g. 15">
+      </div>
+
+      <div class="bi-field">
+        <label class="bi-label" for="bi-vacation">Weeks since a real vacation (phone off, no Slack)</label>
+        <input class="bi-number" type="number" id="bi-vacation" min="0" max="520" placeholder="e.g. 8">
+      </div>
+
+      <div class="bi-field">
+        <label class="bi-label">Sleep quality</label>
+        <div class="bi-opts" id="bi-sleep-opts">
+          <button type="button" class="bi-opt" data-field="sleep" data-val="solid">Solid</button>
+          <button type="button" class="bi-opt" data-field="sleep" data-val="uneven">Uneven</button>
+          <button type="button" class="bi-opt" data-field="sleep" data-val="poor">Poor</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bi-section">
+      <p class="bi-section-title">The honest three</p>
+
+      <div class="bi-field">
+        <label class="bi-label">When did you last finish a workday feeling good about something specific?</label>
+        <div class="bi-opts" id="bi-lastgood-opts">
+          <button type="button" class="bi-opt" data-field="lastgood" data-val="this-week">This week</button>
+          <button type="button" class="bi-opt" data-field="lastgood" data-val="this-month">This month</button>
+          <button type="button" class="bi-opt" data-field="lastgood" data-val="cant-remember">Can't remember</button>
+        </div>
+      </div>
+
+      <div class="bi-field">
+        <label class="bi-label">How often do you feel dread before the workday starts?</label>
+        <div class="bi-opts" id="bi-dread-opts">
+          <button type="button" class="bi-opt" data-field="dread" data-val="rarely">Rarely</button>
+          <button type="button" class="bi-opt" data-field="dread" data-val="some-mornings">Some mornings</button>
+          <button type="button" class="bi-opt" data-field="dread" data-val="most-mornings">Most mornings</button>
+        </div>
+      </div>
+
+      <div class="bi-field">
+        <label class="bi-label" for="bi-recovery">What's the first thing that falls away when you're underwater? <span style="color:#888;font-weight:400;">(optional)</span></label>
+        <textarea class="bi-textarea" id="bi-recovery" maxlength="200" placeholder="e.g. exercise, cooking, calling friends…"></textarea>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="bi-submit">Get my index</button>
+    </div>
+
+    <p class="pitfalls-validation" id="bi-validation" role="alert">Please fill in all required fields.</p>
+  </form>
+
+  <div class="pitfalls-error" id="bi-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="bi-output">
+    <p class="bi-tier" id="bi-tier-text"></p>
+    <p class="bi-override-note" id="bi-override-note" style="display:none;">Your calendar looks manageable. The dread and no-good-day pairing matters more than the load numbers.</p>
+    <p id="bi-drivers" class="bi-drivers"></p>
+    <p class="bi-narrate-hint" id="bi-narrate-hint">
+      <span id="bi-narrate-hint-auto">Queueing your recovery prescription in chat&hellip;</span>
+      <span id="bi-narrate-hint-staged" style="display:none;">Your recovery prescription is rendering in chat below.</span>
+      <span id="bi-narrate-hint-fallback" style="display:none;">Auto-narration unavailable. Ask Claude in the chat: <strong>"read my burnout index"</strong>.</span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="bi-retake-btn">Retake</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var TIER_LABELS = {
+    "green": "Sustainable for now. Keep the guardrails.",
+    "yellow": "Drifting. Two signals are converging.",
+    "red": "This is not a busy season. It's a debt."
+  };
+
+  var state = {
+    sleep: null,
+    lastgood: null,
+    dread: null
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  function pickOpt(field, val) {
+    state[field] = val;
+    var container = document.getElementById("bi-" + field + "-opts") ||
+                    document.getElementById("bi-lastgood-opts");
+    if (field === "lastgood") container = $("bi-lastgood-opts");
+    if (field === "dread") container = $("bi-dread-opts");
+    if (field === "sleep") container = $("bi-sleep-opts");
+    if (!container) return;
+    Array.prototype.forEach.call(container.querySelectorAll(".bi-opt"), function (b) {
+      b.classList.toggle("selected", b.dataset.val === val);
+    });
+  }
+
+  function showError(msg) {
+    var el = $("bi-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("bi-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function getNumber(id) {
+    var v = parseFloat($$(id).value);
+    return isNaN(v) ? null : Math.round(v);
+  }
+
+  function $$(id) { return document.getElementById(id); }
+
+  function handleSubmit() {
+    clearError();
+    $("bi-validation").classList.remove("visible");
+
+    var meetings = getNumber("bi-meetings");
+    var deepwork = getNumber("bi-deepwork");
+    var afterhours = getNumber("bi-afterhours");
+    var vacation = getNumber("bi-vacation");
+
+    var missing = [];
+    if (meetings === null) missing.push("meetings per week");
+    if (deepwork === null) missing.push("deep-work blocks");
+    if (afterhours === null) missing.push("after-hours %");
+    if (vacation === null) missing.push("weeks since vacation");
+    if (!state.sleep) missing.push("sleep quality");
+    if (!state.lastgood) missing.push("last good day");
+    if (!state.dread) missing.push("dread signal");
+
+    if (missing.length > 0) {
+      $("bi-validation").classList.add("visible");
+      return;
+    }
+
+    var inputs = {
+      meetings_per_week: meetings,
+      deep_work_blocks_remaining: deepwork,
+      after_hours_meeting_pct: afterhours,
+      weeks_since_real_vacation: vacation,
+      sleep_self_report: state.sleep,
+      last_good_day: state.lastgood,
+      dread_signal: state.dread
+    };
+    var recovery = $$("bi-recovery").value.trim();
+    if (recovery) inputs.recovery_capacity = recovery;
+
+    var btn = $("bi-submit");
+    btn.disabled = true;
+    btn.textContent = "Scoring…";
+
+    window.mcp.callTool("burnout_score", { inputs: inputs })
+      .then(function (result) {
+        var scored = parseToolResult(result);
+        renderScore(scored);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Get my index";
+      });
+  }
+
+  function renderScore(scored) {
+    var tier = scored.tier || "green";
+    var label = TIER_LABELS[tier] || tier;
+    var tierEl = $("bi-tier-text");
+    tierEl.textContent = label + " (index: " + scored.index + "/100)";
+    tierEl.className = "bi-tier " + tier;
+
+    if (scored.override_fired) {
+      $("bi-override-note").style.display = "";
+    }
+
+    var driversEl = $("bi-drivers");
+    driversEl.innerHTML = "";
+    if (scored.top_drivers && scored.top_drivers.length > 0) {
+      var prefix = document.createTextNode("Driving it: ");
+      driversEl.appendChild(prefix);
+      scored.top_drivers.forEach(function (d) {
+        var span = document.createElement("span");
+        span.className = "bi-driver";
+        span.textContent = d.label;
+        driversEl.appendChild(span);
+      });
+    }
+
+    var out = $("bi-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(scored);
+  }
+
+  function requestNarration(scored) {
+    var auto = $("bi-narrate-hint-auto");
+    var staged = $("bi-narrate-hint-staged");
+    var fallback = $("bi-narrate-hint-fallback");
+
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just filled in the Burnout Warning Index in the embedded widget. " +
+        "Please call burnout_get_pending_narration to fetch my saved brief and render my recovery prescription."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    state = { sleep: null, lastgood: null, dread: null };
+    document.querySelectorAll(".bi-opt").forEach(function (b) { b.classList.remove("selected"); });
+    ["bi-meetings","bi-deepwork","bi-afterhours","bi-vacation"].forEach(function (id) { $$(id).value = ""; });
+    $$("bi-recovery").value = "";
+    $("bi-output").classList.remove("visible");
+    $("bi-override-note").style.display = "none";
+    $("bi-narrate-hint-auto").style.display = "";
+    $("bi-narrate-hint-staged").style.display = "none";
+    $("bi-narrate-hint-fallback").style.display = "none";
+    clearError();
+    $("bi-validation").classList.remove("visible");
+    $("bi-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.querySelectorAll(".bi-opt").forEach(function (btn) {
+    btn.addEventListener("click", function () { pickOpt(btn.dataset.field, btn.dataset.val); });
+  });
+  $("bi-submit").addEventListener("click", handleSubmit);
+  $("bi-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>

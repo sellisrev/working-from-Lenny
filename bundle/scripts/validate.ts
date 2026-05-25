@@ -119,6 +119,16 @@ import {
   computeActionRung as computeSpottingRung,
   computeSeverityTier as computeSpottingTier,
 } from "../src/tools/46-spotting-bad-pm-behaviors/data";
+import * as burnoutGetForm from "../src/tools/28-burnout-warning-index/get-form";
+import * as burnoutScore from "../src/tools/28-burnout-warning-index/score";
+import * as burnoutNarrate from "../src/tools/28-burnout-warning-index/narrate";
+import * as burnoutGetPending from "../src/tools/28-burnout-warning-index/get-pending";
+import { scoreInputs as burnoutScoreInputs } from "../src/tools/28-burnout-warning-index/data";
+import * as onboardingGetModes from "../src/tools/30-onboarding-pm-101/get-modes";
+import * as onboardingGenerate from "../src/tools/30-onboarding-pm-101/generate";
+import * as onboardingNarrate from "../src/tools/30-onboarding-pm-101/narrate";
+import * as onboardingGetPending from "../src/tools/30-onboarding-pm-101/get-pending";
+import { LESSONS as ONBOARDING_LESSONS } from "../src/tools/30-onboarding-pm-101/data";
 import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
 import { loadPrompt } from "../src/lib/prompt-loader";
@@ -161,6 +171,8 @@ async function main(): Promise<void> {
   await checkSevenPowersData();
   await checkChasmData();
   await checkSpottingData();
+  await checkBurnoutData();
+  await checkOnboardingData();
   await checkGeneralAppsData();
   await checkUiBuild();
   await checkInstalledLayout();
@@ -290,6 +302,14 @@ async function checkSchemas(): Promise<void> {
     spottingScore,
     spottingNarrate,
     spottingGetPending,
+    burnoutGetForm,
+    burnoutScore,
+    burnoutNarrate,
+    burnoutGetPending,
+    onboardingGetModes,
+    onboardingGenerate,
+    onboardingNarrate,
+    onboardingGetPending,
     pressureTestAsk,
     hirePlaybookAsk,
   ];
@@ -519,6 +539,121 @@ async function checkSpottingData(): Promise<void> {
   record("spotting: inputSchema rejects wrong answer enum", !badEnum.success);
 }
 
+async function checkBurnoutData(): Promise<void> {
+  // Tier thresholds: index = round(100 * rawSum / 16)
+  // green <=30 / yellow 31-60 / red >=61
+  type TierResult = { index: number; tier: string; override_fired: boolean };
+  const base = {
+    meetings_per_week: 0, deep_work_blocks_remaining: 5, after_hours_meeting_pct: 0,
+    weeks_since_real_vacation: 0, sleep_self_report: "solid" as const,
+    last_good_day: "this-week" as const, dread_signal: "rarely" as const,
+  };
+
+  // golden-burn-01: all-zero → green
+  const g01 = burnoutScoreInputs(base) as TierResult;
+  record("burnout: golden-01 all-healthy → green, index=0", g01.tier === "green" && g01.index === 0, JSON.stringify(g01));
+
+  // golden-burn-02: meetings=18+sleep=uneven → green, index=13
+  const g02 = burnoutScoreInputs({ ...base, meetings_per_week: 18, sleep_self_report: "uneven" }) as TierResult;
+  record("burnout: golden-02 light-load → green, index=13", g02.tier === "green" && g02.index === 13, JSON.stringify(g02));
+
+  // golden-burn-03: meetings=22, deep=1, after=20, vac=20, sleep=uneven, lastgood=this-month, dread=some-mornings
+  // rawSum = 1+1+1+1+1+1+(2*1)=8, index=50 → yellow
+  const g03 = burnoutScoreInputs({
+    meetings_per_week: 22, deep_work_blocks_remaining: 1, after_hours_meeting_pct: 20,
+    weeks_since_real_vacation: 20, sleep_self_report: "uneven",
+    last_good_day: "this-month", dread_signal: "some-mornings",
+  }) as TierResult;
+  record("burnout: golden-03 drifting → yellow, index=50", g03.tier === "yellow" && g03.index === 50, JSON.stringify(g03));
+
+  // golden-burn-04: meetings=30, deep=0, after=45, vac=40, sleep=poor, lastgood=this-month, dread=some-mornings
+  // rawSum = 2+2+2+2+2+1+(2*1)=13, index=81 → red
+  const g04 = burnoutScoreInputs({
+    meetings_per_week: 30, deep_work_blocks_remaining: 0, after_hours_meeting_pct: 45,
+    weeks_since_real_vacation: 40, sleep_self_report: "poor",
+    last_good_day: "this-month", dread_signal: "some-mornings",
+  }) as TierResult;
+  record("burnout: golden-04 clear-debt → red, index=81", g04.tier === "red" && g04.index === 81, JSON.stringify(g04));
+
+  // golden-burn-05: override fires — load looks fine (index=44 yellow normally), but override also fires
+  // meetings=14, deep=3, after=8, vac=8, sleep=uneven, lastgood=cant-remember, dread=most-mornings
+  // rawSum = 0+0+0+0+1+2+(2*2)=7, index=44 → yellow (and override fires)
+  const g05 = burnoutScoreInputs({
+    meetings_per_week: 14, deep_work_blocks_remaining: 3, after_hours_meeting_pct: 8,
+    weeks_since_real_vacation: 8, sleep_self_report: "uneven",
+    last_good_day: "cant-remember", dread_signal: "most-mornings",
+  }) as TierResult;
+  record("burnout: golden-05 override fired, tier=yellow, index=44", g05.tier === "yellow" && g05.index === 44 && g05.override_fired, JSON.stringify(g05));
+
+  // golden-burn-06: everything max → index=100, red, override fires
+  const g06 = burnoutScoreInputs({
+    meetings_per_week: 30, deep_work_blocks_remaining: 0, after_hours_meeting_pct: 50,
+    weeks_since_real_vacation: 35, sleep_self_report: "poor",
+    last_good_day: "cant-remember", dread_signal: "most-mornings",
+  }) as TierResult;
+  record("burnout: golden-06 max → red, index=100", g06.tier === "red" && g06.index === 100, JSON.stringify(g06));
+
+  // Schema rejects bad enum
+  const badEnum = burnoutScore.meta.inputSchema.safeParse({
+    inputs: { ...base, sleep_self_report: "excellent" }, // wrong enum
+  });
+  record("burnout: inputSchema rejects bad sleep_self_report", !badEnum.success);
+}
+
+async function checkOnboardingData(): Promise<void> {
+  // 5 fixed lessons defined
+  record(
+    "onboarding: 5 fixed lessons defined",
+    ONBOARDING_LESSONS.length === 5,
+    `got ${ONBOARDING_LESSONS.length}`,
+  );
+
+  // get-modes returns 5 lessons
+  const modesResult = await onboardingGetModes.invoke({} as never) as { lessons: { id: number; title: string }[] };
+  record("onboarding: get_modes returns 5 lessons", modesResult.lessons.length === 5, JSON.stringify(modesResult.lessons));
+
+  // generate returns inputs echoed (no persistence warning in test)
+  type GenerateResult = { inputs: Record<string, unknown>; persistence_warning?: string };
+  const genResult = await onboardingGenerate.invoke({
+    inputs: { role: "engineer", company_stage: "seed" },
+    user_context: "",
+  } as never) as GenerateResult;
+  record(
+    "onboarding: generate returns inputs + no persistence_warning",
+    genResult.inputs != null && !genResult.persistence_warning,
+    JSON.stringify(genResult),
+  );
+
+  // narrate returns a valid narration_brief
+  type NarrateResult = { type: string; voice_rules: unknown[]; structure: { sections: string[] } };
+  const narResult = await onboardingNarrate.invoke({
+    inputs: { role: "designer", company_stage: "growth", biggest_confusion: "What does the PM actually decide?" },
+    user_context: "",
+  } as never) as NarrateResult;
+  record(
+    "onboarding: narrate returns narration_brief with 6 sections (5 lessons + confusion_coda)",
+    narResult.type === "narration_brief" && narResult.structure.sections.length === 6,
+    JSON.stringify(narResult.structure.sections),
+  );
+
+  // narrate without confusion → 5 sections
+  const narResult2 = await onboardingNarrate.invoke({
+    inputs: { role: "sales", company_stage: "enterprise" },
+    user_context: "",
+  } as never) as NarrateResult;
+  record(
+    "onboarding: narrate without confusion → 5 sections",
+    narResult2.structure.sections.length === 5,
+    JSON.stringify(narResult2.structure.sections),
+  );
+
+  // Schema rejects unknown role
+  const badRole = onboardingGenerate.meta.inputSchema.safeParse({
+    inputs: { role: "cto", company_stage: "seed" },
+  });
+  record("onboarding: inputSchema rejects unknown role", !badRole.success);
+}
+
 /**
  * #57 Pressure-Test Anything + #58 Hiring Playbook (PHASE2_BUILD #11 single-call
  * Path 4). validate runs against the full repo knowledge/ tree (topics +
@@ -630,6 +765,8 @@ async function checkUiBuild(): Promise<void> {
     "seven-powers",
     "chasm-stage",
     "spotting-bad-pm",
+    "burnout-index",
+    "onboarding-pm-101",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {

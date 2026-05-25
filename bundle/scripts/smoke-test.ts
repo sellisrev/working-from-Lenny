@@ -112,6 +112,8 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "seven-powers.html"),
     path.join(installRoot, "dist", "ui", "chasm-stage.html"),
     path.join(installRoot, "dist", "ui", "spotting-bad-pm.html"),
+    path.join(installRoot, "dist", "ui", "burnout-index.html"),
+    path.join(installRoot, "dist", "ui", "onboarding-pm-101.html"),
     path.join(
       installRoot,
       "dist",
@@ -211,6 +213,8 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkSevenPowersChain(client, dataDir);
     await checkChasmChain(client, dataDir);
     await checkSpottingChain(client, dataDir);
+    await checkBurnoutChain(client, dataDir);
+    await checkOnboardingChain(client, dataDir);
     await checkGeneralAppsChain(client);
   } finally {
     await client.close();
@@ -298,6 +302,185 @@ async function checkSpottingChain(client: Client, dataDir: string): Promise<void
   const afterMtime = (await fs.stat(file)).mtimeMs;
   record(
     "spotting: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #28 Burnout Warning Index smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkBurnoutChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "burnout: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["burnout_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/burnout-index",
+  );
+
+  const desc = list.tools.find((t) => t.name === "burnout_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "burnout reading", "you haven't submitted anything", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("burnout: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/burnout-index" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "burnout: iframe staged ui/message names submission + tool",
+    text.includes("I just filled in the Burnout Warning Index in the embedded widget") &&
+      text.includes("burnout_get_pending_narration"),
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "burnout_get_pending_narration", arguments: {} })));
+  record("burnout: get_pending pre-score → no_pending", before.status === "no_pending");
+
+  // Override-firing inputs: meetings=18(+1), last_good_day=cant-remember(+2), dread=most-mornings(+4)
+  // rawSum=7 → index=44, tier=yellow, override_fired=true
+  const scoreResult = JSON.parse(contentText(await client.callTool({
+    name: "burnout_score",
+    arguments: {
+      inputs: {
+        meetings_per_week: 18,
+        deep_work_blocks_remaining: 5,
+        after_hours_meeting_pct: 0,
+        weeks_since_real_vacation: 4,
+        sleep_self_report: "solid",
+        last_good_day: "cant-remember",
+        dread_signal: "most-mornings",
+      },
+    },
+  })));
+  record(
+    "burnout: score → index=44, yellow, override_fired=true, no persistence_warning",
+    scoreResult.index === 44 &&
+      scoreResult.tier === "yellow" &&
+      scoreResult.override_fired === true &&
+      scoreResult.persistence_warning === undefined,
+    JSON.stringify(scoreResult).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "burnout-index-pending.json");
+  record("burnout: score wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "burnout_get_pending_narration", arguments: {} })));
+  record(
+    "burnout: get_pending after score returns brief with tier + top_drivers",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.tier === "yellow" &&
+      Array.isArray(after.brief?.inputs?.top_drivers) &&
+      after.brief.inputs.top_drivers.length === 2,
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "burnout_narrate",
+    arguments: {
+      inputs: {
+        meetings_per_week: 10,
+        deep_work_blocks_remaining: 5,
+        after_hours_meeting_pct: 5,
+        weeks_since_real_vacation: 2,
+        sleep_self_report: "solid",
+        last_good_day: "this-week",
+        dread_signal: "rarely",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "burnout: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #30 Onboarding to PM 101 for Non-PMs smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkOnboardingChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "onboarding: get_modes binds ui:// via _meta.ui.resourceUri",
+    entries["onboarding_get_modes"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/onboarding-pm-101",
+  );
+
+  const desc = list.tools.find((t) => t.name === "onboarding_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "onboarding lessons", "you haven't submitted anything", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("onboarding: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/onboarding-pm-101" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "onboarding: iframe staged ui/message names submission + tool",
+    text.includes("I just filled in the Onboarding to PM 101 form in the embedded widget") &&
+      text.includes("onboarding_get_pending_narration"),
+  );
+
+  const modes = JSON.parse(contentText(await client.callTool({ name: "onboarding_get_modes", arguments: {} })));
+  record(
+    "onboarding: get_modes returns 5 lessons + 4 fields",
+    Array.isArray(modes.lessons) && modes.lessons.length === 5 &&
+      Array.isArray(modes.fields) && modes.fields.length === 4,
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "onboarding_get_pending_narration", arguments: {} })));
+  record("onboarding: get_pending pre-generate → no_pending", before.status === "no_pending");
+
+  // generate with all optional fields including biggest_confusion (triggers confusion_coda section)
+  const generateResult = JSON.parse(contentText(await client.callTool({
+    name: "onboarding_generate",
+    arguments: {
+      inputs: {
+        role: "engineer",
+        company_stage: "series-a-b",
+        pm_ratio: "pm-per-squad",
+        biggest_confusion: "Why does the PM keep changing priorities?",
+      },
+    },
+  })));
+  record(
+    "onboarding: generate returns inputs echoed, no persistence_warning",
+    generateResult.inputs?.role === "engineer" &&
+      generateResult.inputs?.company_stage === "series-a-b" &&
+      generateResult.persistence_warning === undefined,
+    JSON.stringify(generateResult).slice(0, 200),
+  );
+
+  const file = path.join(dataDir, "_pending", "onboarding-pm101-pending.json");
+  record("onboarding: generate wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "onboarding_get_pending_narration", arguments: {} })));
+  record(
+    "onboarding: get_pending after generate returns brief with 6 sections (5 lessons + confusion_coda)",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      Array.isArray(after.brief?.structure?.sections) &&
+      after.brief.structure.sections.length === 6 &&
+      after.brief.structure.sections.includes("confusion_coda"),
+  );
+
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "onboarding_narrate",
+    arguments: {
+      inputs: {
+        role: "designer",
+        company_stage: "growth",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "onboarding: narrate is pure compute (pending file untouched)",
     beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }
@@ -450,6 +633,14 @@ async function checkListTools(client: Client): Promise<void> {
       "spotting_score",
       "spotting_narrate",
       "spotting_get_pending_narration",
+      "burnout_get_form",
+      "burnout_score",
+      "burnout_narrate",
+      "burnout_get_pending_narration",
+      "onboarding_get_modes",
+      "onboarding_generate",
+      "onboarding_narrate",
+      "onboarding_get_pending_narration",
       "pressure_test_ask",
       "hire_playbook_ask",
     ].sort();

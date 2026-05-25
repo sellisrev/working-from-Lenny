@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding to PM 101 for Non-PMs</title>
+  <!-- include: styles.css -->
+  <style>
+    .ob-field { margin:12px 0; }
+    .ob-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 6px; }
+    .ob-opts { display:flex; gap:7px; flex-wrap:wrap; }
+    .ob-opt { padding:6px 14px; border:1px solid #cfcfcf; border-radius:20px; font-size:13px; background:#fff; cursor:pointer; transition:all .12s; }
+    .ob-opt:hover { border-color:#555; }
+    .ob-opt.selected { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
+    .ob-textarea { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; resize:vertical; min-height:55px; box-sizing:border-box; }
+    .ob-lessons { margin:8px 0 0; }
+    .ob-lesson { font-size:13px; color:#555; padding:3px 0; border-left:2px solid #e0e0e0; padding-left:8px; margin:4px 0; }
+    .ob-narrate-hint { font-size:13px; color:#555; margin:10px 0 0; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Onboarding to PM 101</h1>
+  <p class="app-tagline">Five lessons tailored to your role and company stage. Not PM propaganda — a useful read for your second day.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="ob-form" novalidate>
+
+    <div class="ob-field">
+      <label class="ob-label">Your role</label>
+      <div class="ob-opts" id="ob-role-opts">
+        <button type="button" class="ob-opt" data-field="role" data-val="engineer">Engineer</button>
+        <button type="button" class="ob-opt" data-field="role" data-val="designer">Designer</button>
+        <button type="button" class="ob-opt" data-field="role" data-val="sales">Sales</button>
+        <button type="button" class="ob-opt" data-field="role" data-val="customer-success">Customer success</button>
+        <button type="button" class="ob-opt" data-field="role" data-val="other-cross-functional">Other cross-functional</button>
+      </div>
+    </div>
+
+    <div class="ob-field">
+      <label class="ob-label">Company stage</label>
+      <div class="ob-opts" id="ob-stage-opts">
+        <button type="button" class="ob-opt" data-field="stage" data-val="seed">Seed</button>
+        <button type="button" class="ob-opt" data-field="stage" data-val="series-a-b">Series A/B</button>
+        <button type="button" class="ob-opt" data-field="stage" data-val="growth">Growth</button>
+        <button type="button" class="ob-opt" data-field="stage" data-val="enterprise">Enterprise</button>
+      </div>
+    </div>
+
+    <div class="ob-field">
+      <label class="ob-label" style="color:#888;">PM density <span style="font-weight:400;">(optional)</span></label>
+      <div class="ob-opts" id="ob-pmratio-opts">
+        <button type="button" class="ob-opt" data-field="pmratio" data-val="solo-pm">Solo PM</button>
+        <button type="button" class="ob-opt" data-field="pmratio" data-val="pm-per-squad">PM per squad</button>
+        <button type="button" class="ob-opt" data-field="pmratio" data-val="heavy-pm-org">Heavy PM org</button>
+      </div>
+    </div>
+
+    <div class="ob-field">
+      <label class="ob-label" for="ob-confusion" style="color:#888;">The one thing about working with the PM you most want decoded <span style="font-weight:400;">(optional)</span></label>
+      <textarea class="ob-textarea" id="ob-confusion" maxlength="200" placeholder="e.g. Why do roadmaps keep changing? What does the PM actually do all day?"></textarea>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="ob-submit">Get my 5 lessons</button>
+    </div>
+
+    <p class="pitfalls-validation" id="ob-validation" role="alert">Please select your role and company stage.</p>
+  </form>
+
+  <div class="pitfalls-error" id="ob-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="ob-output">
+    <p style="font-size:14px;color:#555;margin:0 0 8px;">Your five lessons are rendering in chat below.</p>
+    <div class="ob-lessons" id="ob-lessons-list"></div>
+    <p class="ob-narrate-hint" id="ob-narrate-hint">
+      <span id="ob-narrate-hint-auto">Queueing your orientation in chat&hellip;</span>
+      <span id="ob-narrate-hint-staged" style="display:none;">Your orientation is rendering in chat below.</span>
+      <span id="ob-narrate-hint-fallback" style="display:none;">Auto-narration unavailable. Ask Claude in the chat: <strong>"give me my onboarding lessons"</strong>.</span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="ob-retake-btn">Start over</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var LESSONS = [
+    "What artifacts you'll see, and what they actually mean",
+    "When and how to push back",
+    "What a good PM looks like vs a bad one",
+    "How to be useful in cross-functional rituals",
+    "When to escalate"
+  ];
+
+  var state = { role: null, stage: null, pmratio: null };
+
+  function $(id) { return document.getElementById(id); }
+
+  function pickOpt(field, val, containerId) {
+    state[field] = val;
+    var container = $(containerId);
+    if (!container) return;
+    Array.prototype.forEach.call(container.querySelectorAll(".ob-opt"), function (b) {
+      b.classList.toggle("selected", b.dataset.val === val);
+    });
+  }
+
+  function showError(msg) {
+    var el = $("ob-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("ob-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function handleSubmit() {
+    clearError();
+    $("ob-validation").classList.remove("visible");
+
+    if (!state.role || !state.stage) {
+      $("ob-validation").classList.add("visible");
+      return;
+    }
+
+    var inputs = {
+      role: state.role,
+      company_stage: state.stage
+    };
+    if (state.pmratio) inputs.pm_ratio = state.pmratio;
+    var confusion = $("ob-confusion").value.trim();
+    if (confusion) inputs.biggest_confusion = confusion;
+
+    var btn = $("ob-submit");
+    btn.disabled = true;
+    btn.textContent = "Generating…";
+
+    window.mcp.callTool("onboarding_generate", { inputs: inputs })
+      .then(function (result) {
+        var data = parseToolResult(result);
+        renderOutput(data);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Get my 5 lessons";
+      });
+  }
+
+  function renderOutput(data) {
+    var list = $("ob-lessons-list");
+    list.innerHTML = "";
+    LESSONS.forEach(function (title, i) {
+      var div = document.createElement("div");
+      div.className = "ob-lesson";
+      div.textContent = (i + 1) + ". " + title;
+      list.appendChild(div);
+    });
+
+    var out = $("ob-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(data);
+  }
+
+  function requestNarration(data) {
+    var auto = $("ob-narrate-hint-auto");
+    var staged = $("ob-narrate-hint-staged");
+    var fallback = $("ob-narrate-hint-fallback");
+
+    if (data && data.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + data.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just filled in the Onboarding to PM 101 form in the embedded widget. " +
+        "Please call onboarding_get_pending_narration to fetch my saved brief and render my five orientation lessons."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    state = { role: null, stage: null, pmratio: null };
+    document.querySelectorAll(".ob-opt").forEach(function (b) { b.classList.remove("selected"); });
+    $("ob-confusion").value = "";
+    $("ob-output").classList.remove("visible");
+    $("ob-narrate-hint-auto").style.display = "";
+    $("ob-narrate-hint-staged").style.display = "none";
+    $("ob-narrate-hint-fallback").style.display = "none";
+    clearError();
+    $("ob-validation").classList.remove("visible");
+    $("ob-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.querySelectorAll(".ob-opt").forEach(function (btn) {
+    var containerId = "ob-" + btn.dataset.field + "-opts";
+    if (btn.dataset.field === "pmratio") containerId = "ob-pmratio-opts";
+    btn.addEventListener("click", function () { pickOpt(btn.dataset.field, btn.dataset.val, containerId); });
+  });
+  $("ob-submit").addEventListener("click", handleSubmit);
+  $("ob-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>

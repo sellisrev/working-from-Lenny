@@ -105,6 +105,18 @@ import * as spottingNarrate from "./tools/46-spotting-bad-pm-behaviors/narrate";
 import * as spottingGetPending from "./tools/46-spotting-bad-pm-behaviors/get-pending";
 import { cleanupOrphanedTmp as cleanupSpottingTmp } from "./tools/46-spotting-bad-pm-behaviors/pending";
 
+import * as burnoutGetForm from "./tools/28-burnout-warning-index/get-form";
+import * as burnoutScore from "./tools/28-burnout-warning-index/score";
+import * as burnoutNarrate from "./tools/28-burnout-warning-index/narrate";
+import * as burnoutGetPending from "./tools/28-burnout-warning-index/get-pending";
+import { cleanupOrphanedTmp as cleanupBurnoutTmp } from "./tools/28-burnout-warning-index/pending";
+
+import * as onboardingGetModes from "./tools/30-onboarding-pm-101/get-modes";
+import * as onboardingGenerate from "./tools/30-onboarding-pm-101/generate";
+import * as onboardingNarrate from "./tools/30-onboarding-pm-101/narrate";
+import * as onboardingGetPending from "./tools/30-onboarding-pm-101/get-pending";
+import { cleanupOrphanedTmp as cleanupOnboardingTmp } from "./tools/30-onboarding-pm-101/pending";
+
 import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
 
@@ -188,6 +200,14 @@ const TOOLS: RegisteredTool[] = [
   spottingScore as unknown as RegisteredTool,
   spottingNarrate as unknown as RegisteredTool,
   spottingGetPending as unknown as RegisteredTool,
+  burnoutGetForm as unknown as RegisteredTool,
+  burnoutScore as unknown as RegisteredTool,
+  burnoutNarrate as unknown as RegisteredTool,
+  burnoutGetPending as unknown as RegisteredTool,
+  onboardingGetModes as unknown as RegisteredTool,
+  onboardingGenerate as unknown as RegisteredTool,
+  onboardingNarrate as unknown as RegisteredTool,
+  onboardingGetPending as unknown as RegisteredTool,
   pressureTestAsk as unknown as RegisteredTool,
   hirePlaybookAsk as unknown as RegisteredTool,
 ];
@@ -321,6 +341,22 @@ const RESOURCES: ResourceEntry[] = [
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "spotting-bad-pm.html"),
   },
+  {
+    uri: "ui://working-from-lenny/burnout-index",
+    name: "Burnout Warning Index for Product People",
+    description:
+      "A short structured check: a calendar-load block (meetings, deep-work blocks left, after-hours share, weeks since a real vacation, sleep) plus three honest qualitative answers (last good day, morning dread, what falls away first). Deterministic composite index (0-100) and tier (green / yellow / red) with a dread-plus-no-good-day override that floors the tier at yellow; the two top drivers, named plainly, and a phased recovery prescription (stop the bleeding / rebuild recovery / change the system) come from the host chat model. Non-clinical, behavioral, no medical claims.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "burnout-index.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/onboarding-pm-101",
+    name: "Onboarding to PM 101 for Non-PMs",
+    description:
+      "A generator (no scoring, no per-user state) of five short orientation lessons for a non-PM who just joined a PM-led company. Two required inputs (role, company stage) plus optional PM ratio and a free-text 'biggest confusion'. The five lesson titles are fixed; the content is tailored to role + stage and rendered by the host chat model from a corpus-grounded brief. Earnest and useful, lightly wry, never reverent about the PM role: it names what a bad PM looks like and how to push back.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "onboarding-pm-101.html"),
+  },
 ];
 
 // stderr logging is what appears in interactive runs / smoke. Desktop pipes
@@ -437,6 +473,16 @@ async function main(): Promise<void> {
     await cleanupSpottingTmp();
   } catch (err) {
     logErr("cleanup-tmp spotting failed (non-fatal)", err);
+  }
+  try {
+    await cleanupBurnoutTmp();
+  } catch (err) {
+    logErr("cleanup-tmp burnout failed (non-fatal)", err);
+  }
+  try {
+    await cleanupOnboardingTmp();
+  } catch (err) {
+    logErr("cleanup-tmp onboarding failed (non-fatal)", err);
   }
 
   const server = new Server(
