@@ -1686,3 +1686,99 @@ export const ChasmGetPendingNarrationOutput = z.discriminatedUnion("status", [
     note: z.string(),
   }),
 ]);
+
+// ── #46 Spotting Bad PM Behaviors ──────────────────────────────────────────
+
+export const SpottingAnswerEnum = z.enum(["often", "sometimes", "havent-seen-it"]);
+export const SpottingActionRungEnum = z.enum([
+  "private_feedback",
+  "document_then_feedback",
+  "document_and_escalate",
+  "reframe_or_leave",
+]);
+export const SpottingSeverityTierEnum = z.enum(["green", "yellow", "red"]);
+
+export const SpottingBehavior = z.object({
+  id: z.number().int().min(1).max(15),
+  text: z.string(),
+});
+
+export const SpottingTopPattern = z.object({
+  behavior_id: z.number().int().min(1).max(15),
+  behavior_text: z.string(),
+  pattern_weight: z.number().int().min(0),
+  action_rung: SpottingActionRungEnum,
+});
+
+export const SpottingGetQuestionsInput = z.object({}).strict();
+export const SpottingGetQuestionsOutput = z.object({
+  behaviors: z.array(SpottingBehavior).length(15),
+  note: z.string(),
+});
+
+export const SpottingScoreInput = z.object({
+  answers: z.array(SpottingAnswerEnum).length(15),
+  user_context: z.string().default(""),
+});
+
+export const SpottingScoreOutput = z.object({
+  severity_tier: SpottingSeverityTierEnum,
+  total: z.number().int().min(0),
+  top_patterns: z.array(SpottingTopPattern).max(3),
+  behaviors: z.array(SpottingBehavior).length(15),
+  persistence_warning: z.string().optional(),
+});
+
+export const SpottingNarrateInput = z.object({
+  severity_tier: SpottingSeverityTierEnum,
+  total: z.number().int().min(0),
+  top_patterns: z.array(SpottingTopPattern).max(3),
+  user_context: z.string().default(""),
+  answers: z.array(SpottingAnswerEnum).length(15).optional(),
+});
+
+export const SpottingFullAuditItem = z.object({
+  behavior_id: z.number().int().min(1).max(15),
+  behavior_text: z.string(),
+  user_rating: SpottingAnswerEnum,
+});
+
+export const SpottingNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    severity_tier: SpottingSeverityTierEnum,
+    total: z.number().int().min(0),
+    user_context: z.string(),
+    patterns: z.array(
+      z.object({
+        behavior_id: z.number().int().min(1).max(15),
+        behavior_text: z.string(),
+        action_rung: SpottingActionRungEnum,
+        corpus_anchors: z.array(z.string()),
+      }),
+    ).max(3),
+    full_audit: z.array(SpottingFullAuditItem).length(15).optional(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const SpottingGetPendingNarrationInput = z.object({}).strict();
+export const SpottingGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: SpottingNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

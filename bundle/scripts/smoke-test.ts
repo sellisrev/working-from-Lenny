@@ -111,6 +111,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "activation-finder.html"),
     path.join(installRoot, "dist", "ui", "seven-powers.html"),
     path.join(installRoot, "dist", "ui", "chasm-stage.html"),
+    path.join(installRoot, "dist", "ui", "spotting-bad-pm.html"),
     path.join(
       installRoot,
       "dist",
@@ -209,10 +210,96 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkActivationChain(client, dataDir);
     await checkSevenPowersChain(client, dataDir);
     await checkChasmChain(client, dataDir);
+    await checkSpottingChain(client, dataDir);
     await checkGeneralAppsChain(client);
   } finally {
     await client.close();
   }
+}
+
+async function checkSpottingChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "spotting: get_questions binds ui:// via _meta.ui.resourceUri",
+    entries["spotting_get_questions"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/spotting-bad-pm",
+  );
+
+  // MUST CALL framing in get_pending description
+  const desc = list.tools.find((t) => t.name === "spotting_get_pending_narration")?.description ?? "";
+  const must = ["MUST CALL", "spotting-bad-pm", "on disk", "embedded widget"].filter((kw) => !desc.includes(kw));
+  record("spotting: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/spotting-bad-pm" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "spotting: iframe staged ui/message names submission + tool",
+    text.includes("I just filled in the Spotting Bad PM Behaviors field guide") &&
+      text.includes("spotting_get_pending_narration"),
+  );
+
+  // get_questions returns 15 behaviors
+  const qs = JSON.parse(contentText(await client.callTool({ name: "spotting_get_questions", arguments: {} })));
+  record(
+    "spotting: get_questions returns 15 behaviors",
+    Array.isArray(qs.behaviors) && qs.behaviors.length === 15,
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "spotting_get_pending_narration", arguments: {} })));
+  record("spotting: get_pending pre-score → no_pending", before.status === "no_pending");
+
+  // Score: behaviors 1-3 often (sev3), rest havent-seen-it → red, total=18, reframe_or_leave
+  const answers = new Array(15).fill("havent-seen-it");
+  answers[0] = "often";
+  answers[1] = "often";
+  answers[2] = "often";
+  const scored = JSON.parse(contentText(await client.callTool({
+    name: "spotting_score",
+    arguments: { answers },
+  })));
+  record(
+    "spotting: score → red tier, total=18, top patterns carry reframe_or_leave, no persistence_warning",
+    scored.severity_tier === "red" &&
+      scored.total === 18 &&
+      Array.isArray(scored.top_patterns) &&
+      scored.top_patterns.length === 3 &&
+      scored.top_patterns.every((p: { action_rung: string }) => p.action_rung === "reframe_or_leave") &&
+      scored.persistence_warning === undefined,
+    JSON.stringify(scored).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "spotting-bad-pm-pending.json");
+  record("spotting: score wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "spotting_get_pending_narration", arguments: {} })));
+  record(
+    "spotting: get_pending after score returns brief with severity_tier + patterns",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.severity_tier === "red" &&
+      Array.isArray(after.brief?.inputs?.patterns) &&
+      after.brief?.inputs?.patterns.length === 3,
+  );
+
+  // narrate is pure compute — pending file must be untouched
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "spotting_narrate",
+    arguments: {
+      severity_tier: "green",
+      total: 0,
+      top_patterns: [],
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "spotting: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
 }
 
 /**
@@ -359,6 +446,10 @@ async function checkListTools(client: Client): Promise<void> {
       "chasm_score",
       "chasm_narrate",
       "chasm_get_pending_narration",
+      "spotting_get_questions",
+      "spotting_score",
+      "spotting_narrate",
+      "spotting_get_pending_narration",
       "pressure_test_ask",
       "hire_playbook_ask",
     ].sort();

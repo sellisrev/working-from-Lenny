@@ -110,6 +110,15 @@ import {
   FIELDS as CHASM_FIELDS,
   assignStage as assignChasmStage,
 } from "../src/tools/34-crossing-the-chasm-stage/data";
+import * as spottingGetQuestions from "../src/tools/46-spotting-bad-pm-behaviors/questions";
+import * as spottingScore from "../src/tools/46-spotting-bad-pm-behaviors/score";
+import * as spottingNarrate from "../src/tools/46-spotting-bad-pm-behaviors/narrate";
+import * as spottingGetPending from "../src/tools/46-spotting-bad-pm-behaviors/get-pending";
+import {
+  BEHAVIORS as SPOTTING_BEHAVIORS,
+  computeActionRung as computeSpottingRung,
+  computeSeverityTier as computeSpottingTier,
+} from "../src/tools/46-spotting-bad-pm-behaviors/data";
 import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
 import { loadPrompt } from "../src/lib/prompt-loader";
@@ -151,6 +160,7 @@ async function main(): Promise<void> {
   await checkActivationData();
   await checkSevenPowersData();
   await checkChasmData();
+  await checkSpottingData();
   await checkGeneralAppsData();
   await checkUiBuild();
   await checkInstalledLayout();
@@ -276,6 +286,10 @@ async function checkSchemas(): Promise<void> {
     chasmScore,
     chasmNarrate,
     chasmGetPending,
+    spottingGetQuestions,
+    spottingScore,
+    spottingNarrate,
+    spottingGetPending,
     pressureTestAsk,
     hirePlaybookAsk,
   ];
@@ -413,6 +427,99 @@ async function checkDriftGoldens(): Promise<void> {
 }
 
 /**
+ * #46 Spotting Bad PM Behaviors — scoring golden fixtures.
+ * Guards the severity-tier thresholds, action-rung cascade, and the
+ * 3+-sev-3-active → reframe_or_leave escalation rule.
+ */
+async function checkSpottingData(): Promise<void> {
+  record(
+    "spotting: 15 behaviors defined (severity weights 3/3/3/3/3/3/2/2/2/2/2/2/2/1/1)",
+    SPOTTING_BEHAVIORS.length === 15,
+    `got ${SPOTTING_BEHAVIORS.length}`,
+  );
+
+  // Tier thresholds
+  record("spotting: total=0 → green", computeSpottingTier(0) === "green");
+  record("spotting: total=6 → green (boundary)", computeSpottingTier(6) === "green");
+  record("spotting: total=7 → yellow (boundary)", computeSpottingTier(7) === "yellow");
+  record("spotting: total=16 → yellow (upper boundary)", computeSpottingTier(16) === "yellow");
+  record("spotting: total=17 → red (boundary)", computeSpottingTier(17) === "red");
+
+  // Action rung cases (no reframe_or_leave override, countSev3Active < 3)
+  const pf1 = computeSpottingRung("sometimes", 2, 0);
+  record("spotting: sometimes+sev2 → private_feedback", pf1 === "private_feedback", pf1);
+  const pf2 = computeSpottingRung("sometimes", 1, 0);
+  record("spotting: sometimes+sev1 → private_feedback", pf2 === "private_feedback", pf2);
+  const dtf1 = computeSpottingRung("often", 2, 0);
+  record("spotting: often+sev2 → document_then_feedback", dtf1 === "document_then_feedback", dtf1);
+  const dtf2 = computeSpottingRung("sometimes", 3, 0);
+  record("spotting: sometimes+sev3 → document_then_feedback", dtf2 === "document_then_feedback", dtf2);
+  const dae = computeSpottingRung("often", 3, 2); // countSev3Active=2 < 3
+  record("spotting: often+sev3+count=2 → document_and_escalate", dae === "document_and_escalate", dae);
+  const rfl = computeSpottingRung("often", 3, 3); // countSev3Active=3
+  record("spotting: often+sev3+count=3 → reframe_or_leave", rfl === "reframe_or_leave", rfl);
+
+  // golden-spotting-01: all havent-seen-it → tier=green, total=0, no patterns
+  const makeAnswers = (val: string) => new Array(15).fill(val) as string[];
+
+  // golden-spotting-02: only behavior 14 (sev=1) often, rest havent-seen-it
+  // pattern_weight = 2*1 = 2, total=2 → green
+  const g02Answers = makeAnswers("havent-seen-it");
+  g02Answers[13] = "often"; // behavior 14, index 13
+  const g02 = await spottingScore.invoke({ answers: g02Answers as never, user_context: "" } as never) as {
+    severity_tier: string; total: number; top_patterns: { behavior_id: number; action_rung: string }[];
+  };
+  record(
+    "spotting: golden-02 behavior-14-only → green, total=2, top=[14]",
+    g02.severity_tier === "green" && g02.total === 2 && g02.top_patterns.length === 1 && g02.top_patterns[0]?.behavior_id === 14,
+    JSON.stringify(g02).slice(0, 300),
+  );
+
+  // golden-spotting-03: behaviors 1-3 often (sev=3 each) → 3 active sev3 → reframe_or_leave
+  // total = 2*3*3 = 18 → red
+  const g03Answers = makeAnswers("havent-seen-it");
+  g03Answers[0] = "often"; // behavior 1
+  g03Answers[1] = "often"; // behavior 2
+  g03Answers[2] = "often"; // behavior 3
+  const g03 = await spottingScore.invoke({ answers: g03Answers as never, user_context: "" } as never) as {
+    severity_tier: string; total: number; top_patterns: { behavior_id: number; action_rung: string }[];
+  };
+  record(
+    "spotting: golden-03 behaviors-1-3-often → red, total=18, reframe_or_leave",
+    g03.severity_tier === "red" &&
+      g03.total === 18 &&
+      g03.top_patterns.length === 3 &&
+      g03.top_patterns.every((p) => p.action_rung === "reframe_or_leave"),
+    JSON.stringify(g03).slice(0, 300),
+  );
+
+  // golden-spotting-04: behavior 1 often (sev3) + behavior 7 often (sev2) → yellow
+  // total = 2*3 + 2*2 = 10 → yellow; countSev3Active=1 → b1=document_and_escalate, b7=document_then_feedback
+  const g04Answers = makeAnswers("havent-seen-it");
+  g04Answers[0] = "often"; // behavior 1, sev=3
+  g04Answers[6] = "often"; // behavior 7, sev=2
+  const g04 = await spottingScore.invoke({ answers: g04Answers as never, user_context: "" } as never) as {
+    severity_tier: string; total: number; top_patterns: { behavior_id: number; action_rung: string }[];
+  };
+  const g04b1 = g04.top_patterns.find((p) => p.behavior_id === 1);
+  const g04b7 = g04.top_patterns.find((p) => p.behavior_id === 7);
+  record(
+    "spotting: golden-04 b1-often-sev3 + b7-often-sev2 → yellow, rungs correct",
+    g04.severity_tier === "yellow" &&
+      g04.total === 10 &&
+      g04b1?.action_rung === "document_and_escalate" &&
+      g04b7?.action_rung === "document_then_feedback",
+    JSON.stringify(g04).slice(0, 300),
+  );
+
+  // Schema validation: rejects wrong answer enum
+  const badEnum = spottingScore.meta.inputSchema.safeParse({
+    answers: new Array(15).fill("always"), // wrong — must be often/sometimes/havent-seen-it
+  });
+  record("spotting: inputSchema rejects wrong answer enum", !badEnum.success);
+}
+
+/**
  * #57 Pressure-Test Anything + #58 Hiring Playbook (PHASE2_BUILD #11 single-call
  * Path 4). validate runs against the full repo knowledge/ tree (topics +
  * obsolete + cautions + books all present), so this exercises the complete
@@ -522,6 +629,7 @@ async function checkUiBuild(): Promise<void> {
     "activation-finder",
     "seven-powers",
     "chasm-stage",
+    "spotting-bad-pm",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {

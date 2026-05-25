@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotting Bad PM Behaviors</title>
+  <!-- include: styles.css -->
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Spotting Bad PM Behaviors</h1>
+  <p class="app-tagline">A field guide for the non-PM who suspects the friction has a name.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="spm-form" novalidate>
+    <div class="pitfalls-progress">
+      <div class="pitfalls-progress-bar"><div class="pitfalls-progress-fill" id="spm-progress-fill"></div></div>
+      <div class="pitfalls-dots" id="spm-dots" aria-hidden="true"></div>
+    </div>
+
+    <div id="spm-pages" aria-live="polite"></div>
+
+    <div class="pitfalls-nav">
+      <button type="button" class="pitfalls-btn" id="spm-prev" disabled>&#8592; Back</button>
+      <span class="pitfalls-counter" id="spm-counter">1 / 15</span>
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="spm-next">Next &#8594;</button>
+    </div>
+
+    <p class="pitfalls-validation" id="spm-validation" role="alert">
+      Please rate all 15 behaviors to see your results.
+    </p>
+  </form>
+
+  <div class="pitfalls-error" id="spm-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="spm-output">
+    <p class="pitfalls-score" id="spm-tier-text"></p>
+    <p class="pitfalls-picks-header" id="spm-patterns-header"></p>
+    <ol class="pitfalls-picks" id="spm-patterns-list"></ol>
+    <p class="pitfalls-narrate-hint" id="spm-narrate-hint">
+      <span id="spm-narrate-hint-auto">Queueing your field-guide read in chat&hellip;</span>
+      <span id="spm-narrate-hint-staged" style="display:none;">
+        Your field-guide read is rendering in chat below.
+      </span>
+      <span id="spm-narrate-hint-fallback" style="display:none;">
+        Auto-narration unavailable. Ask Claude in the chat:
+        <strong>"read my field guide"</strong>. The assistant uses your ratings and a corpus brief to render the diagnosis and next moves.
+      </span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="spm-retake-btn">Retake</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var BEHAVIORS = [
+    { id: 1,  text: "Never talks to paying customers, but speaks for them constantly" },
+    { id: 2,  text: "Dismisses details as “small” without understanding why they aren’t" },
+    { id: 3,  text: "Presents the team’s work as their own; engineers and designers go uncredited" },
+    { id: 4,  text: "Can’t say why you’re building something beyond a stakeholder’s name" },
+    { id: 5,  text: "Avoids the decision; waits for consensus and calls the wait “alignment”" },
+    { id: 6,  text: "Roadmap whiplash; priorities reorder every week with no new information" },
+    { id: 7,  text: "Says yes to everyone; never defends a tradeoff to a stakeholder" },
+    { id: 8,  text: "Specs hand over the what and the when but never the why" },
+    { id: 9,  text: "Runs standup as a status broadcast, not coordination" },
+    { id: 10, text: "Ships and moves on; never asks whether the last thing worked" },
+    { id: 11, text: "Hides from the post-mortem, or runs it as blame-diffusion" },
+    { id: 12, text: "“Data-driven” is a way to avoid owning a judgment call" },
+    { id: 13, text: "Treats internal stakeholders as if they were the customer" },
+    { id: 14, text: "Over-rotates on the loudest complaint; one Slack message reorders the quarter" },
+    { id: 15, text: "Confuses being busy with being useful; the calendar is full, the why is empty" }
+  ];
+
+  var OPTIONS = [
+    { value: "often", label: "Often" },
+    { value: "sometimes", label: "Sometimes" },
+    { value: "havent-seen-it", label: "Haven’t seen it" }
+  ];
+
+  var answers = new Array(15).fill(null);
+  var current = 0;
+  var advanceTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function buildPages() {
+    var pagesEl = $("spm-pages");
+    var dotsEl = $("spm-dots");
+    BEHAVIORS.forEach(function (b, i) {
+      var page = document.createElement("div");
+      page.className = "pitfalls-page" + (i === 0 ? " active" : "");
+      page.id = "spm-page-" + i;
+
+      var card = document.createElement("div");
+      card.className = "pitfalls-card";
+
+      var num = document.createElement("div");
+      num.className = "pitfalls-q-num";
+      num.textContent = "Behavior " + (i + 1) + " of 15";
+      card.appendChild(num);
+
+      var text = document.createElement("div");
+      text.className = "pitfalls-q-text";
+      text.textContent = b.text;
+      card.appendChild(text);
+
+      var opts = document.createElement("div");
+      opts.className = "pitfalls-options";
+      opts.setAttribute("role", "radiogroup");
+      opts.setAttribute("aria-label", "Rate behavior " + (i + 1));
+
+      OPTIONS.forEach(function (opt) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pitfalls-opt";
+        btn.dataset.q = String(i);
+        btn.dataset.val = opt.value;
+        btn.setAttribute("role", "radio");
+        btn.setAttribute("aria-checked", "false");
+        btn.textContent = opt.label;
+        btn.addEventListener("click", function () { pick(i, opt.value); });
+        opts.appendChild(btn);
+      });
+
+      card.appendChild(opts);
+      page.appendChild(card);
+      pagesEl.appendChild(page);
+
+      var dot = document.createElement("div");
+      dot.className = "dot" + (i === 0 ? " current" : "");
+      dot.id = "spm-dot-" + i;
+      dotsEl.appendChild(dot);
+    });
+  }
+
+  function pick(qi, val) {
+    answers[qi] = val;
+    var page = $("spm-page-" + qi);
+    var buttons = page.querySelectorAll(".pitfalls-opt");
+    buttons.forEach(function (b) {
+      var selected = b.dataset.val === val;
+      b.classList.toggle("selected", selected);
+      b.setAttribute("aria-checked", selected ? "true" : "false");
+    });
+    $("spm-dot-" + qi).classList.add("answered");
+    updateProgress();
+
+    if (advanceTimer) clearTimeout(advanceTimer);
+    if (qi < 14) {
+      advanceTimer = setTimeout(function () { navigate(1); }, 220);
+    }
+  }
+
+  function navigate(dir) {
+    var next = current + dir;
+    if (next < 0 || next > 14) return;
+    $("spm-page-" + current).classList.remove("active");
+    $("spm-dot-" + current).classList.remove("current");
+    current = next;
+    $("spm-page-" + current).classList.add("active");
+    $("spm-dot-" + current).classList.add("current");
+    updateProgress();
+    var firstOpt = $("spm-page-" + current).querySelector(".pitfalls-opt");
+    if (firstOpt) firstOpt.focus({ preventScroll: true });
+  }
+
+  function updateProgress() {
+    var answered = answers.filter(function (a) { return a !== null; }).length;
+    $("spm-progress-fill").style.width = (answered / 15 * 100) + "%";
+    $("spm-counter").textContent = (current + 1) + " / 15";
+    $("spm-prev").disabled = current === 0;
+
+    var nextBtn = $("spm-next");
+    var allAnswered = answered === 15;
+    if (current === 14 && allAnswered) {
+      nextBtn.textContent = "See my field-guide read";
+      nextBtn.dataset.mode = "submit";
+      nextBtn.disabled = false;
+    } else {
+      nextBtn.textContent = "Next →";
+      nextBtn.dataset.mode = "next";
+      nextBtn.disabled = current === 14 && !allAnswered;
+    }
+  }
+
+  function showError(msg) {
+    var el = $("spm-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("spm-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) {
+      throw new Error("Malformed tool result");
+    }
+    var first = result.content[0];
+    if (!first || first.type !== "text") {
+      throw new Error("Tool returned non-text content");
+    }
+    return JSON.parse(first.text);
+  }
+
+  function handleNext() {
+    var nextBtn = $("spm-next");
+    if (nextBtn.dataset.mode === "submit") {
+      handleSubmit();
+    } else {
+      navigate(1);
+    }
+  }
+
+  function handleSubmit() {
+    clearError();
+    var unanswered = [];
+    for (var i = 0; i < 15; i++) {
+      if (answers[i] === null) unanswered.push(i);
+    }
+    if (unanswered.length > 0) {
+      $("spm-validation").classList.add("visible");
+      var firstMissing = unanswered[0];
+      if (current !== firstMissing) {
+        $("spm-page-" + current).classList.remove("active");
+        $("spm-dot-" + current).classList.remove("current");
+        current = firstMissing;
+        $("spm-page-" + current).classList.add("active");
+        $("spm-dot-" + current).classList.add("current");
+      }
+      updateProgress();
+      return;
+    }
+
+    $("spm-validation").classList.remove("visible");
+    var nextBtn = $("spm-next");
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Scoring…";
+
+    window.mcp.callTool("spotting_score", { answers: answers.slice() })
+      .then(function (result) {
+        var scored = parseToolResult(result);
+        renderScore(scored);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        nextBtn.disabled = false;
+        updateProgress();
+      });
+  }
+
+  var TIER_LABELS = {
+    "green": "Probably normal friction.",
+    "yellow": "A few real patterns. Worth naming.",
+    "red": "This is a pattern, not a bad week."
+  };
+
+  var ACTION_LABELS = {
+    "private_feedback": "Private feedback",
+    "document_then_feedback": "Document, then feedback",
+    "document_and_escalate": "Document + escalate",
+    "reframe_or_leave": "Reframe or leave"
+  };
+
+  function renderScore(scored) {
+    var tierLabel = TIER_LABELS[scored.severity_tier] || scored.severity_tier;
+    $("spm-tier-text").textContent = tierLabel + " (total: " + scored.total + ")";
+
+    var header = $("spm-patterns-header");
+    if (!scored.top_patterns || scored.top_patterns.length === 0) {
+      header.textContent = "Either you have a genuinely strong PM or the friction is somewhere you haven't looked. Both are worth knowing.";
+    } else {
+      header.textContent = "Top patterns — and what to do:";
+    }
+
+    var list = $("spm-patterns-list");
+    list.innerHTML = "";
+    (scored.top_patterns || []).forEach(function (p) {
+      var li = document.createElement("li");
+      li.className = "pitfalls-pick";
+
+      var t = document.createElement("span");
+      t.className = "pitfalls-pick-text";
+      t.textContent = p.behavior_text;
+      li.appendChild(t);
+
+      var extras = document.createElement("div");
+      extras.className = "pitfalls-pick-extras";
+      var rung = document.createElement("p");
+      rung.className = "pitfalls-pick-quote";
+      rung.textContent = "Move: " + (ACTION_LABELS[p.action_rung] || p.action_rung);
+      extras.appendChild(rung);
+      li.appendChild(extras);
+
+      list.appendChild(li);
+    });
+
+    var out = $("spm-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(scored);
+  }
+
+  function requestNarration(scored) {
+    var auto = $("spm-narrate-hint-auto");
+    var staged = $("spm-narrate-hint-staged");
+    var fallback = $("spm-narrate-hint-fallback");
+
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just filled in the Spotting Bad PM Behaviors field guide in the embedded widget. " +
+        "Please call spotting_get_pending_narration to fetch my saved brief and render my field-guide read."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    if (advanceTimer) clearTimeout(advanceTimer);
+    answers = new Array(15).fill(null);
+    document.querySelectorAll(".pitfalls-opt").forEach(function (b) {
+      b.classList.remove("selected");
+      b.setAttribute("aria-checked", "false");
+    });
+    document.querySelectorAll(".dot").forEach(function (d) {
+      d.classList.remove("answered");
+      d.classList.remove("current");
+    });
+    $("spm-dot-0").classList.add("current");
+    document.querySelectorAll(".pitfalls-page").forEach(function (pg) {
+      pg.classList.remove("active");
+    });
+    $("spm-page-0").classList.add("active");
+    current = 0;
+    $("spm-validation").classList.remove("visible");
+    $("spm-output").classList.remove("visible");
+    clearError();
+    updateProgress();
+    document.getElementById("spm-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  buildPages();
+  updateProgress();
+  $("spm-prev").addEventListener("click", function () { navigate(-1); });
+  $("spm-next").addEventListener("click", handleNext);
+  $("spm-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>

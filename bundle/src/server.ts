@@ -99,6 +99,12 @@ import * as chasmNarrate from "./tools/34-crossing-the-chasm-stage/narrate";
 import * as chasmGetPending from "./tools/34-crossing-the-chasm-stage/get-pending";
 import { cleanupOrphanedTmp as cleanupChasmTmp } from "./tools/34-crossing-the-chasm-stage/pending";
 
+import * as spottingGetQuestions from "./tools/46-spotting-bad-pm-behaviors/questions";
+import * as spottingScore from "./tools/46-spotting-bad-pm-behaviors/score";
+import * as spottingNarrate from "./tools/46-spotting-bad-pm-behaviors/narrate";
+import * as spottingGetPending from "./tools/46-spotting-bad-pm-behaviors/get-pending";
+import { cleanupOrphanedTmp as cleanupSpottingTmp } from "./tools/46-spotting-bad-pm-behaviors/pending";
+
 import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
 
@@ -178,6 +184,10 @@ const TOOLS: RegisteredTool[] = [
   chasmScore as unknown as RegisteredTool,
   chasmNarrate as unknown as RegisteredTool,
   chasmGetPending as unknown as RegisteredTool,
+  spottingGetQuestions as unknown as RegisteredTool,
+  spottingScore as unknown as RegisteredTool,
+  spottingNarrate as unknown as RegisteredTool,
+  spottingGetPending as unknown as RegisteredTool,
   pressureTestAsk as unknown as RegisteredTool,
   hirePlaybookAsk as unknown as RegisteredTool,
 ];
@@ -303,6 +313,14 @@ const RESOURCES: ResourceEntry[] = [
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "chasm-stage.html"),
   },
+  {
+    uri: "ui://working-from-lenny/spotting-bad-pm",
+    name: "Spotting Bad PM Behaviors (field guide)",
+    description:
+      "A field guide for the non-PM (engineer, designer, sales, CS) who suspects the friction with their PM has a name. Fifteen corpus-derived behaviors rated on observed frequency (often / sometimes / haven't seen it). Deterministic severity tier (green / yellow / red) + the top three patterns + a proportionate action rung; the corpus-grounded diagnosis, the script, and a fairness check (when the answers suggest the gap is partly the user's own expectation) come from the host chat model. Single-user, local-only, advisory; no team reporting.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "spotting-bad-pm.html"),
+  },
 ];
 
 // stderr logging is what appears in interactive runs / smoke. Desktop pipes
@@ -414,6 +432,11 @@ async function main(): Promise<void> {
     await cleanupChasmTmp();
   } catch (err) {
     logErr("cleanup-tmp chasm failed (non-fatal)", err);
+  }
+  try {
+    await cleanupSpottingTmp();
+  } catch (err) {
+    logErr("cleanup-tmp spotting failed (non-fatal)", err);
   }
 
   const server = new Server(
