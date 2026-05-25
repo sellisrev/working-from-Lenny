@@ -93,6 +93,12 @@ import * as sevenPowersNarrate from "./tools/33-seven-powers-classifier/narrate"
 import * as sevenPowersGetPending from "./tools/33-seven-powers-classifier/get-pending";
 import { cleanupOrphanedTmp as cleanupSevenPowersTmp } from "./tools/33-seven-powers-classifier/pending";
 
+import * as chasmGetForm from "./tools/34-crossing-the-chasm-stage/get-form";
+import * as chasmScore from "./tools/34-crossing-the-chasm-stage/score";
+import * as chasmNarrate from "./tools/34-crossing-the-chasm-stage/narrate";
+import * as chasmGetPending from "./tools/34-crossing-the-chasm-stage/get-pending";
+import { cleanupOrphanedTmp as cleanupChasmTmp } from "./tools/34-crossing-the-chasm-stage/pending";
+
 import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
 
@@ -168,6 +174,10 @@ const TOOLS: RegisteredTool[] = [
   sevenPowersScore as unknown as RegisteredTool,
   sevenPowersNarrate as unknown as RegisteredTool,
   sevenPowersGetPending as unknown as RegisteredTool,
+  chasmGetForm as unknown as RegisteredTool,
+  chasmScore as unknown as RegisteredTool,
+  chasmNarrate as unknown as RegisteredTool,
+  chasmGetPending as unknown as RegisteredTool,
   pressureTestAsk as unknown as RegisteredTool,
   hirePlaybookAsk as unknown as RegisteredTool,
 ];
@@ -285,6 +295,14 @@ const RESOURCES: ResourceEntry[] = [
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "seven-powers.html"),
   },
+  {
+    uri: "ui://working-from-lenny/chasm-stage",
+    name: "Crossing-the-Chasm Stage Finder",
+    description:
+      "Multi-field wizard (customer mix as three numbers, acquisition trend, pain specificity, whole-product completeness, beachhead naming, optional reference-customer mix). Deterministic stage assignment via a categorical rule cascade over Moore's adoption curve (early market / at the chasm / bowling alley / tornado / main street); the placing signals, the play for the next transition, and the most common way that play gets run wrong come from the host chat model.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "chasm-stage.html"),
+  },
 ];
 
 // stderr logging is what appears in interactive runs / smoke. Desktop pipes
@@ -391,6 +409,11 @@ async function main(): Promise<void> {
     await cleanupSevenPowersTmp();
   } catch (err) {
     logErr("cleanup-tmp seven-powers failed (non-fatal)", err);
+  }
+  try {
+    await cleanupChasmTmp();
+  } catch (err) {
+    logErr("cleanup-tmp chasm failed (non-fatal)", err);
   }
 
   const server = new Server(

@@ -102,6 +102,14 @@ import {
   POWERS as SEVEN_POWERS,
   classifyPower as classifySevenPower,
 } from "../src/tools/33-seven-powers-classifier/data";
+import * as chasmGetForm from "../src/tools/34-crossing-the-chasm-stage/get-form";
+import * as chasmScore from "../src/tools/34-crossing-the-chasm-stage/score";
+import * as chasmNarrate from "../src/tools/34-crossing-the-chasm-stage/narrate";
+import * as chasmGetPending from "../src/tools/34-crossing-the-chasm-stage/get-pending";
+import {
+  FIELDS as CHASM_FIELDS,
+  assignStage as assignChasmStage,
+} from "../src/tools/34-crossing-the-chasm-stage/data";
 import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
 import { loadPrompt } from "../src/lib/prompt-loader";
@@ -142,6 +150,7 @@ async function main(): Promise<void> {
   await checkMvsData();
   await checkActivationData();
   await checkSevenPowersData();
+  await checkChasmData();
   await checkGeneralAppsData();
   await checkUiBuild();
   await checkInstalledLayout();
@@ -263,6 +272,10 @@ async function checkSchemas(): Promise<void> {
     sevenPowersScore,
     sevenPowersNarrate,
     sevenPowersGetPending,
+    chasmGetForm,
+    chasmScore,
+    chasmNarrate,
+    chasmGetPending,
     pressureTestAsk,
     hirePlaybookAsk,
   ];
@@ -508,6 +521,7 @@ async function checkUiBuild(): Promise<void> {
     "mvs-alignment",
     "activation-finder",
     "seven-powers",
+    "chasm-stage",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
@@ -1795,6 +1809,126 @@ async function checkSevenPowersData(): Promise<void> {
     );
   } catch (err) {
     record("seven-powers: score happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #34 Crossing-the-Chasm Stage Finder cascade goldens. Exercises each branch
+ * of the categorical rule cascade against the six synthetic profiles in
+ * apps/34-crossing-the-chasm-stage/authoring.md, plus schema validation. The
+ * cascade order is load-bearing (chasm position has dispositive signals), so
+ * these guard against a reorder regression.
+ */
+async function checkChasmData(): Promise<void> {
+  record(
+    "chasm: 6 fields defined (customer-mix + 5 enums, reference optional)",
+    CHASM_FIELDS.length === 6,
+    `got ${CHASM_FIELDS.length}`,
+  );
+
+  // golden-chasm-01 — early market (don't-know dominant + still-figuring).
+  const g1 = assignChasmStage({
+    customer_mix: { innovators_visionaries: 25, pragmatists: 15, dont_know: 60 },
+    acquisition_trend: "lumpy-referral-only",
+    pain_specificity: "still-figuring-it-out",
+    whole_product: "no",
+    beachhead_named: "no-we-sell-to-anyone",
+  });
+  record("chasm: golden-01 → early-market", g1.stage === "early-market", JSON.stringify(g1));
+
+  // golden-chasm-02 — at the chasm (the clean headline case).
+  const g2 = assignChasmStage({
+    customer_mix: { innovators_visionaries: 65, pragmatists: 20, dont_know: 15 },
+    acquisition_trend: "stalling",
+    pain_specificity: "broad-value-prop",
+    whole_product: "partial",
+    beachhead_named: "several-segments",
+    reference_customers: "only-visionary-references",
+  });
+  record("chasm: golden-02 → at-the-chasm (dispositive rule 2)", g2.stage === "at-the-chasm", JSON.stringify(g2));
+
+  // golden-chasm-03 — bowling alley.
+  const g3 = assignChasmStage({
+    customer_mix: { innovators_visionaries: 35, pragmatists: 55, dont_know: 10 },
+    acquisition_trend: "steady",
+    pain_specificity: "one-sentence-named-pain",
+    whole_product: "yes-complete",
+    beachhead_named: "yes-one-segment",
+    reference_customers: "pragmatist-references-exist",
+  });
+  record("chasm: golden-03 → bowling-alley (rule 3 beats rule 5)", g3.stage === "bowling-alley", JSON.stringify(g3));
+
+  // golden-chasm-04 — tornado.
+  const g4 = assignChasmStage({
+    customer_mix: { innovators_visionaries: 20, pragmatists: 70, dont_know: 10 },
+    acquisition_trend: "accelerating",
+    pain_specificity: "one-sentence-named-pain",
+    whole_product: "yes-complete",
+    beachhead_named: "several-segments",
+    reference_customers: "pragmatist-references-exist",
+  });
+  record("chasm: golden-04 → tornado", g4.stage === "tornado", JSON.stringify(g4));
+
+  // golden-chasm-05 — main street.
+  const g5 = assignChasmStage({
+    customer_mix: { innovators_visionaries: 15, pragmatists: 75, dont_know: 10 },
+    acquisition_trend: "steady",
+    pain_specificity: "one-sentence-named-pain",
+    whole_product: "yes-complete",
+    beachhead_named: "several-segments",
+    reference_customers: "pragmatist-references-exist",
+  });
+  record("chasm: golden-05 → main-street", g5.stage === "main-street", JSON.stringify(g5));
+
+  // golden-chasm-06 — ambiguous default (no dispositive signal).
+  const g6 = assignChasmStage({
+    customer_mix: { innovators_visionaries: 45, pragmatists: 45, dont_know: 10 },
+    acquisition_trend: "steady",
+    pain_specificity: "broad-value-prop",
+    whole_product: "partial",
+    beachhead_named: "several-segments",
+    reference_customers: "none",
+  });
+  record("chasm: golden-06 → early-market (default branch)", g6.stage === "early-market", JSON.stringify(g6));
+
+  // Schema rejects a bad acquisition enum.
+  const badEnum = chasmScore.meta.inputSchema.safeParse({
+    inputs: {
+      customer_mix: { innovators_visionaries: 50, pragmatists: 40, dont_know: 10 },
+      acquisition_trend: "booming",
+      pain_specificity: "broad-value-prop",
+      whole_product: "partial",
+      beachhead_named: "several-segments",
+    },
+  });
+  record("chasm: score inputSchema rejects unknown acquisition_trend", !badEnum.success);
+
+  // Happy path: score runs end-to-end + persists.
+  try {
+    const ok = (await chasmScore.invoke({
+      inputs: {
+        customer_mix: { innovators_visionaries: 65, pragmatists: 20, dont_know: 15 },
+        acquisition_trend: "stalling",
+        pain_specificity: "broad-value-prop",
+        whole_product: "partial",
+        beachhead_named: "several-segments",
+        reference_customers: "only-visionary-references",
+      },
+      user_context: "",
+    } as never)) as {
+      stage: string;
+      placing_signals: string[];
+      persistence_warning?: string;
+    };
+    record(
+      "chasm: score happy path assigns at-the-chasm + names signals + persists brief",
+      ok.stage === "at-the-chasm" &&
+        ok.placing_signals.length >= 2 &&
+        ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 300),
+    );
+  } catch (err) {
+    record("chasm: score happy path", false, (err as Error).message);
   }
 }
 

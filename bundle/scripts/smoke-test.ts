@@ -110,6 +110,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "mvs-alignment.html"),
     path.join(installRoot, "dist", "ui", "activation-finder.html"),
     path.join(installRoot, "dist", "ui", "seven-powers.html"),
+    path.join(installRoot, "dist", "ui", "chasm-stage.html"),
     path.join(
       installRoot,
       "dist",
@@ -207,6 +208,7 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkMvsChain(client, dataDir);
     await checkActivationChain(client, dataDir);
     await checkSevenPowersChain(client, dataDir);
+    await checkChasmChain(client, dataDir);
     await checkGeneralAppsChain(client);
   } finally {
     await client.close();
@@ -353,6 +355,10 @@ async function checkListTools(client: Client): Promise<void> {
       "seven_powers_score",
       "seven_powers_narrate",
       "seven_powers_get_pending_narration",
+      "chasm_get_form",
+      "chasm_score",
+      "chasm_narrate",
+      "chasm_get_pending_narration",
       "pressure_test_ask",
       "hire_playbook_ask",
     ].sort();
@@ -3500,6 +3506,101 @@ async function checkSevenPowersChain(client: Client, dataDir: string): Promise<v
   const afterMtime = (await fs.stat(file)).mtimeMs;
   record(
     "seven-powers: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #34 Crossing-the-Chasm Stage Finder smoke checks (wizard clones #9/#33)
+// ───────────────────────────────────────────────────────────
+
+async function checkChasmChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "chasm: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["chasm_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/chasm-stage",
+  );
+  const desc = list.tools.find((t) => t.name === "chasm_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "where am i on the chasm", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("chasm: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/chasm-stage" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "chasm: iframe staged ui/message names submission + tool",
+    text.includes("I just filled in the Crossing-the-Chasm stage finder in the embedded widget") &&
+      text.includes("chasm_get_pending_narration"),
+  );
+
+  // get_form smoke: 6 fields + 5 stages
+  const form = JSON.parse(contentText(await client.callTool({ name: "chasm_get_form", arguments: {} })));
+  record(
+    "chasm: get_form returns 6 fields + 5 Moore stages",
+    Array.isArray(form.fields) && form.fields.length === 6 && Array.isArray(form.stages) && form.stages.length === 5,
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "chasm_get_pending_narration", arguments: {} })));
+  record("chasm: get_pending pre-score → no_pending", before.status === "no_pending");
+
+  // The clean at-the-chasm headline case (golden-chasm-02).
+  const runResult = JSON.parse(contentText(await client.callTool({
+    name: "chasm_score",
+    arguments: {
+      inputs: {
+        customer_mix: { innovators_visionaries: 65, pragmatists: 20, dont_know: 15 },
+        acquisition_trend: "stalling",
+        pain_specificity: "broad-value-prop",
+        whole_product: "partial",
+        beachhead_named: "several-segments",
+        reference_customers: "only-visionary-references",
+      },
+    },
+  })));
+  record(
+    "chasm: score assigns at-the-chasm + names ≥2 placing signals, no persistence_warning",
+    runResult.stage === "at-the-chasm" &&
+      Array.isArray(runResult.placing_signals) &&
+      runResult.placing_signals.length >= 2 &&
+      runResult.persistence_warning === undefined,
+    JSON.stringify(runResult).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "crossing-the-chasm-stage-pending.json");
+  record("chasm: score wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "chasm_get_pending_narration", arguments: {} })));
+  record(
+    "chasm: get_pending after score returns brief carrying stage + at_chasm_line",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.stage === "at-the-chasm" &&
+      typeof after.brief?.inputs?.at_chasm_line === "string" &&
+      typeof after.brief?.inputs?.next_play === "string",
+  );
+
+  // narrate is pure compute
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "chasm_narrate",
+    arguments: {
+      inputs: {
+        customer_mix: { innovators_visionaries: 20, pragmatists: 70, dont_know: 10 },
+        acquisition_trend: "accelerating",
+        pain_specificity: "one-sentence-named-pain",
+        whole_product: "yes-complete",
+        beachhead_named: "several-segments",
+        reference_customers: "pragmatist-references-exist",
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "chasm: narrate is pure compute (pending file untouched)",
     beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }

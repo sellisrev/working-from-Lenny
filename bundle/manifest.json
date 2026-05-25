@@ -249,6 +249,22 @@
       "description": "MUST CALL whenever the user asks for their 7 Powers reading, 'read my power map', 'which moats do I have', 'am I deluded about network effects', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
     },
     {
+      "name": "chasm_get_form",
+      "description": "Returns the Crossing-the-Chasm Stage Finder wizard metadata (customer mix as three numbers + acquisition / pain / whole-product / beachhead / reference enums) + the Moore adoption-curve stage reference, and triggers the host to mount the ui://working-from-lenny/chasm-stage iframe."
+    },
+    {
+      "name": "chasm_score",
+      "description": "Runs the categorical rule cascade to assign one Moore adoption stage (early market / at the chasm / bowling alley / tornado / main street), names the placing signals, and persists the corpus-grounded brief. AFTER calling score, render the stage + next-stage play + failure mode by calling chasm_get_pending_narration."
+    },
+    {
+      "name": "chasm_narrate",
+      "description": "Packages a corpus-grounded Crossing-the-Chasm brief from the structured inputs. Pure compute — no persistence. Call chasm_get_pending_narration to retrieve the brief score already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "chasm_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their Crossing-the-Chasm reading, 'where am I on the chasm', 'what stage are we in', 'read my chasm diagnosis', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
       "name": "pressure_test_ask",
       "description": "MUST CALL whenever the user wants a plan, PRD, strategy doc, GTM plan, pricing decision, or architectural decision critiqued, stress-tested, or argued against ('pressure-test this', 'find the holes in this plan', 'what would the corpus push back on', 'second opinion on this PRD', 'argue against this'), AND a more specific Working-from-Lenny app is not already in play. Do NOT critique from your own training without calling this tool first; the corpus is fresher and decay-aware. Takes a free-text `plan` (and optional `k` for retrieval breadth). Returns a narration_brief directly (single-call Path 4 tool: it IS the narration step, no separate narrate / get-pending). Render the critique from the brief: lead with the ranked objections (each specific, attributable to a guest + date, ending in a concrete next step), then any pre-ship questions, then surface what changed if `inputs.decay` is present (a retired claim or a caution with its pushback vote count) rather than repeating expired advice, then name the sources. Never leave an objection without a what-to-do-next. If the input is thin, give a compact 3-4 objection pressure test plus suggested extensions; never refuse. If `inputs.suggested_app` is present (e.g. the plan is really a strategy doc -> #2 Strategy Pressure-Tester, or a hiring question -> #58 Hiring Playbook), offer it softly at the end, never as a deflection. Follow the brief's voice_rules."
     },

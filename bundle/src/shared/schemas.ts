@@ -1558,3 +1558,131 @@ export const SevenPowersGetPendingNarrationOutput = z.discriminatedUnion(
     }),
   ],
 );
+
+// ───────────────────────────────────────────────────────────
+// #34 Crossing-the-Chasm Stage Finder schemas (Phase 3, wizard clones #33/#9)
+// Novel mechanic: a categorical rule cascade (not a score sum). Chasm position
+// has dispositive signals, so the cascade order is load-bearing and "at the
+// chasm" surfaces as its own diagnosis.
+// ───────────────────────────────────────────────────────────
+
+export const ChasmAcquisitionEnum = z.enum([
+  "accelerating",
+  "steady",
+  "stalling",
+  "lumpy-referral-only",
+]);
+export const ChasmPainEnum = z.enum([
+  "one-sentence-named-pain",
+  "broad-value-prop",
+  "still-figuring-it-out",
+]);
+export const ChasmWholeProductEnum = z.enum(["yes-complete", "partial", "no"]);
+export const ChasmBeachheadEnum = z.enum([
+  "yes-one-segment",
+  "several-segments",
+  "no-we-sell-to-anyone",
+]);
+export const ChasmReferenceEnum = z.enum([
+  "pragmatist-references-exist",
+  "only-visionary-references",
+  "none",
+]);
+export const ChasmStageEnum = z.enum([
+  "early-market",
+  "at-the-chasm",
+  "bowling-alley",
+  "tornado",
+  "main-street",
+]);
+export type ChasmStageT = z.infer<typeof ChasmStageEnum>;
+
+export const ChasmCustomerMix = z.object({
+  innovators_visionaries: z.number().int().min(0).max(100),
+  pragmatists: z.number().int().min(0).max(100),
+  dont_know: z.number().int().min(0).max(100),
+});
+
+export const ChasmInputs = z.object({
+  customer_mix: ChasmCustomerMix,
+  acquisition_trend: ChasmAcquisitionEnum,
+  pain_specificity: ChasmPainEnum,
+  whole_product: ChasmWholeProductEnum,
+  beachhead_named: ChasmBeachheadEnum,
+  reference_customers: ChasmReferenceEnum.optional(),
+});
+export type ChasmInputsT = z.infer<typeof ChasmInputs>;
+
+export const ChasmGetFormInput = z.object({}).strict();
+export const ChasmGetFormOutput = z.object({
+  fields: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.enum(["enum", "customer-mix"]),
+      required: z.boolean(),
+      options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+      help: z.string().optional(),
+    }),
+  ),
+  stages: z.array(z.object({ stage: ChasmStageEnum, label: z.string() })).length(5),
+  note: z.string(),
+});
+
+export const ChasmScoreInput = z.object({
+  inputs: ChasmInputs,
+  user_context: z.string().default(""),
+});
+
+export const ChasmScoreOutput = z.object({
+  inputs: ChasmInputs,
+  stage: ChasmStageEnum,
+  stage_label: z.string(),
+  placing_signals: z.array(z.string()),
+  next_stage_label: z.string().nullable(),
+  persistence_warning: z.string().optional(),
+});
+
+export const ChasmNarrateInput = z.object({
+  inputs: ChasmInputs,
+  user_context: z.string().default(""),
+});
+
+/** Path 4 narration brief for the chasm stage diagnosis. */
+export const ChasmNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    user_inputs: ChasmInputs,
+    stage: ChasmStageEnum,
+    stage_label: z.string(),
+    placing_signals: z.array(z.string()),
+    why_here: z.string(),
+    next_stage_label: z.string().nullable(),
+    next_play: z.string(),
+    failure_mode: z.string(),
+    at_chasm_line: z.string().optional(),
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const ChasmGetPendingNarrationInput = z.object({}).strict();
+export const ChasmGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: ChasmNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

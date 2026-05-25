@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crossing-the-Chasm Stage Finder</title>
+  <!-- include: styles.css -->
+  <style>
+    .ch-field { margin:14px 0; }
+    .ch-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 5px; line-height:1.4; }
+    .ch-help { font-size:12px; color:#777; margin:0 0 6px; }
+    .ch-select { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; background:#fff; }
+    .ch-select.unset { border-color:#e0a800; background:#fffdf5; }
+    .ch-mix { display:flex; gap:8px; }
+    .ch-mix-cell { flex:1; }
+    .ch-mix-cell label { display:block; font-size:11px; color:#777; margin-bottom:3px; }
+    .ch-mix-cell input { width:100%; padding:7px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; box-sizing:border-box; }
+    .ch-mix-sum { font-size:12px; color:#777; margin-top:4px; }
+    .ch-mix-sum.warn { color:#b00020; }
+    .ch-stage-name { font-size:20px; font-weight:700; margin:4px 0; }
+    .ch-stage-name.chasm { color:#b00020; }
+    .ch-signals { margin:6px 0 0; padding-left:18px; font-size:14px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Crossing-the-Chasm Stage Finder</h1>
+  <p class="app-tagline">Not "are we succeeding," but "what does success look like next, and are we set up for it." Tell us your situation; we'll locate you on Moore's curve and name the transition you're walking into.</p>
+  <p class="ch-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="ch-form" id="ch-form" novalidate>
+    <div id="ch-fields"></div>
+    <div class="pitfalls-nav" style="justify-content:flex-end;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="ch-submit">Find my stage</button>
+    </div>
+    <p class="pitfalls-validation" id="ch-validation" role="alert">
+      Fill in the customer mix and every required field to find your stage.
+    </p>
+  </form>
+
+  <div class="pitfalls-error" id="ch-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="ch-output">
+    <p class="pitfalls-picks-header">You're here</p>
+    <p class="ch-stage-name" id="ch-stage-name"></p>
+    <p style="font-size:13px;color:#555;margin:6px 0 2px;">What placed you here:</p>
+    <ul class="ch-signals" id="ch-signals"></ul>
+    <p class="pitfalls-narrate-hint" id="ch-narrate-hint">
+      <span id="ch-hint-auto">Queueing your stage diagnosis in chat…</span>
+      <span id="ch-hint-staged" style="display:none;">Your diagnosis is rendering in chat below.</span>
+      <span id="ch-hint-fallback" style="display:none;">
+        For the full diagnosis (the play for your next stage + how it usually goes wrong), ask Claude in chat:
+        <strong>"read my chasm diagnosis"</strong>.
+      </span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="ch-retake-btn">Start over</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var ENUM_FIELDS = [
+    { key: "acquisition_trend", label: "Acquisition trend", required: true, options: [
+      ["accelerating", "Accelerating"], ["steady", "Steady"], ["stalling", "Stalling"], ["lumpy-referral-only", "Lumpy / referral-only"]
+    ] },
+    { key: "pain_specificity", label: "How specific is the pain you solve?", required: true, options: [
+      ["one-sentence-named-pain", "One-sentence named pain"], ["broad-value-prop", "Broad value prop"], ["still-figuring-it-out", "Still figuring it out"]
+    ] },
+    { key: "whole_product", label: "Can a mainstream buyer adopt you without assembling missing pieces themselves?", required: true, options: [
+      ["yes-complete", "Yes, complete"], ["partial", "Partial"], ["no", "No"]
+    ] },
+    { key: "beachhead_named", label: "Have you named a beachhead segment?", required: true, options: [
+      ["yes-one-segment", "Yes, one segment"], ["several-segments", "Several segments"], ["no-we-sell-to-anyone", "No, we sell to anyone"]
+    ] },
+    { key: "reference_customers", label: "Reference customers (optional)", required: false, options: [
+      ["", "Skip"], ["pragmatist-references-exist", "Pragmatist references exist"], ["only-visionary-references", "Only visionary references"], ["none", "None"]
+    ] }
+  ];
+
+  var STAGE_LABELS = {
+    "early-market": "Early market",
+    "at-the-chasm": "At the chasm",
+    "bowling-alley": "Bowling alley",
+    "tornado": "Tornado",
+    "main-street": "Main street"
+  };
+
+  var mix = { innovators_visionaries: "", pragmatists: "", dont_know: "" };
+  var enums = {};
+
+  function $(id) { return document.getElementById(id); }
+
+  function buildForm() {
+    var root = $("ch-fields");
+
+    // customer mix
+    var mixField = document.createElement("div");
+    mixField.className = "ch-field";
+    mixField.innerHTML =
+      '<p class="ch-label">Customer mix (three numbers, roughly summing to 100)</p>' +
+      '<p class="ch-help">% innovators/visionaries, % pragmatists, % you can\'t yet classify. The don\'t-know share is itself a signal.</p>';
+    var row = document.createElement("div");
+    row.className = "ch-mix";
+    [["innovators_visionaries", "Visionaries"], ["pragmatists", "Pragmatists"], ["dont_know", "Don't know"]].forEach(function (c) {
+      var cell = document.createElement("div");
+      cell.className = "ch-mix-cell";
+      var lab = document.createElement("label");
+      lab.textContent = c[1];
+      var inp = document.createElement("input");
+      inp.type = "number"; inp.min = "0"; inp.max = "100"; inp.placeholder = "0";
+      inp.addEventListener("input", function () { mix[c[0]] = inp.value; updateSum(); });
+      cell.appendChild(lab); cell.appendChild(inp);
+      row.appendChild(cell);
+    });
+    mixField.appendChild(row);
+    var sum = document.createElement("p");
+    sum.className = "ch-mix-sum"; sum.id = "ch-mix-sum"; sum.textContent = "Sum: 0";
+    mixField.appendChild(sum);
+    root.appendChild(mixField);
+
+    ENUM_FIELDS.forEach(function (f) {
+      var field = document.createElement("div");
+      field.className = "ch-field";
+      var lab = document.createElement("p");
+      lab.className = "ch-label"; lab.textContent = f.label + (f.required ? "" : " (optional)");
+      field.appendChild(lab);
+      var sel = document.createElement("select");
+      sel.className = "ch-select" + (f.required ? " unset" : "");
+      f.options.forEach(function (o) {
+        if (f.required && o[0] === "") return;
+        var opt = document.createElement("option");
+        opt.value = o[0]; opt.textContent = o[1];
+        sel.appendChild(opt);
+      });
+      if (f.required) {
+        var ph = document.createElement("option");
+        ph.value = ""; ph.textContent = "Select…"; ph.selected = true;
+        sel.insertBefore(ph, sel.firstChild);
+      }
+      enums[f.key] = "";
+      sel.addEventListener("change", function () {
+        enums[f.key] = sel.value;
+        sel.classList.toggle("unset", f.required && !sel.value);
+      });
+      field.appendChild(sel);
+      root.appendChild(field);
+    });
+  }
+
+  function updateSum() {
+    var s = (parseInt(mix.innovators_visionaries || "0", 10)) +
+            (parseInt(mix.pragmatists || "0", 10)) +
+            (parseInt(mix.dont_know || "0", 10));
+    var el = $("ch-mix-sum");
+    el.textContent = "Sum: " + s;
+    el.classList.toggle("warn", s < 80 || s > 120);
+  }
+
+  function showError(msg) { var el = $("ch-error"); el.textContent = msg; el.classList.add("visible"); }
+  function clearError() { var el = $("ch-error"); el.textContent = ""; el.classList.remove("visible"); }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function gather() {
+    var v = parseInt(mix.innovators_visionaries || "", 10);
+    var p = parseInt(mix.pragmatists || "", 10);
+    var d = parseInt(mix.dont_know || "", 10);
+    if (isNaN(v) || isNaN(p) || isNaN(d)) return null;
+    for (var i = 0; i < ENUM_FIELDS.length; i++) {
+      var f = ENUM_FIELDS[i];
+      if (f.required && !enums[f.key]) return null;
+    }
+    var inputs = {
+      customer_mix: { innovators_visionaries: v, pragmatists: p, dont_know: d },
+      acquisition_trend: enums.acquisition_trend,
+      pain_specificity: enums.pain_specificity,
+      whole_product: enums.whole_product,
+      beachhead_named: enums.beachhead_named
+    };
+    if (enums.reference_customers) inputs.reference_customers = enums.reference_customers;
+    return inputs;
+  }
+
+  function renderStage(scored) {
+    var nameEl = $("ch-stage-name");
+    nameEl.textContent = "You're here: " + (STAGE_LABELS[scored.stage] || scored.stage_label);
+    nameEl.classList.toggle("chasm", scored.stage === "at-the-chasm");
+
+    var list = $("ch-signals");
+    list.innerHTML = "";
+    (scored.placing_signals || []).forEach(function (s) {
+      var li = document.createElement("li");
+      li.textContent = s;
+      list.appendChild(li);
+    });
+
+    var out = $("ch-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(scored);
+  }
+
+  function requestNarration(scored) {
+    var auto = $("ch-hint-auto"), staged = $("ch-hint-staged"), fallback = $("ch-hint-fallback");
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none"; fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none"; fallback.style.display = "inline"; return;
+    }
+    window.mcp.sendMessage(
+      "I just filled in the Crossing-the-Chasm stage finder in the embedded widget. " +
+        "Please call chasm_get_pending_narration to fetch my saved brief and render my chasm diagnosis."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none"; fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleSubmit() {
+    clearError();
+    var inputs = gather();
+    if (!inputs) { $("ch-validation").classList.add("visible"); return; }
+    $("ch-validation").classList.remove("visible");
+    var btn = $("ch-submit");
+    btn.disabled = true; btn.textContent = "Locating…";
+    window.mcp.callTool("chasm_score", { inputs: inputs })
+      .then(function (result) { renderStage(parseToolResult(result)); })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Find my stage"; });
+  }
+
+  function handleRetake() {
+    mix = { innovators_visionaries: "", pragmatists: "", dont_know: "" };
+    enums = {};
+    $("ch-fields").innerHTML = "";
+    buildForm(); updateSum();
+    $("ch-output").classList.remove("visible");
+    $("ch-validation").classList.remove("visible");
+    clearError();
+    $("ch-hint-auto").style.display = "inline";
+    $("ch-hint-staged").style.display = "none";
+    $("ch-hint-fallback").style.display = "none";
+    $("ch-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  buildForm();
+  updateSum();
+  $("ch-submit").addEventListener("click", handleSubmit);
+  $("ch-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>
