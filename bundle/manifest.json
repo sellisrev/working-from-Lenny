@@ -233,6 +233,22 @@
       "description": "MUST CALL whenever the user asks for their activation candidates, 'find my activation event', 'audit my funnel', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
     },
     {
+      "name": "seven_powers_get_questions",
+      "description": "Returns the 7 Powers claim + evidence question bank grouped by power (Hamilton Helmer's seven powers) and triggers the host to mount the ui://working-from-lenny/seven-powers iframe. Classification is positional against this canonical bank."
+    },
+    {
+      "name": "seven_powers_score",
+      "description": "Classifies each of the seven powers (has-evidence / plausible / absent) from the user's claim + evidence answers, raises the delusion / overstated / blind-spot flags where claim and evidence diverge, and persists the corpus-grounded power-map brief. AFTER calling score, render the power map by calling seven_powers_get_pending_narration."
+    },
+    {
+      "name": "seven_powers_narrate",
+      "description": "Packages a corpus-grounded 7 Powers brief from the structured answers. Pure compute — no persistence. Call seven_powers_get_pending_narration to retrieve the brief score already saved instead, unless you need a brief without round-tripping through disk."
+    },
+    {
+      "name": "seven_powers_get_pending_narration",
+      "description": "MUST CALL whenever the user asks for their 7 Powers reading, 'read my power map', 'which moats do I have', 'am I deluded about network effects', or a follow-up to a submission just made — including messages from the embedded widget. Do NOT respond 'you haven't submitted' without calling this tool first; the submission state lives on disk."
+    },
+    {
       "name": "pressure_test_ask",
       "description": "MUST CALL whenever the user wants a plan, PRD, strategy doc, GTM plan, pricing decision, or architectural decision critiqued, stress-tested, or argued against ('pressure-test this', 'find the holes in this plan', 'what would the corpus push back on', 'second opinion on this PRD', 'argue against this'), AND a more specific Working-from-Lenny app is not already in play. Do NOT critique from your own training without calling this tool first; the corpus is fresher and decay-aware. Takes a free-text `plan` (and optional `k` for retrieval breadth). Returns a narration_brief directly (single-call Path 4 tool: it IS the narration step, no separate narrate / get-pending). Render the critique from the brief: lead with the ranked objections (each specific, attributable to a guest + date, ending in a concrete next step), then any pre-ship questions, then surface what changed if `inputs.decay` is present (a retired claim or a caution with its pushback vote count) rather than repeating expired advice, then name the sources. Never leave an objection without a what-to-do-next. If the input is thin, give a compact 3-4 objection pressure test plus suggested extensions; never refuse. If `inputs.suggested_app` is present (e.g. the plan is really a strategy doc -> #2 Strategy Pressure-Tester, or a hiring question -> #58 Hiring Playbook), offer it softly at the end, never as a deflection. Follow the brief's voice_rules."
     },

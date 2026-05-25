@@ -94,6 +94,14 @@ import {
   isAiProductFlagged,
   resolveActivationFamily,
 } from "../src/tools/37-activation-metric-finder/data";
+import * as sevenPowersGetQuestions from "../src/tools/33-seven-powers-classifier/questions";
+import * as sevenPowersScore from "../src/tools/33-seven-powers-classifier/score";
+import * as sevenPowersNarrate from "../src/tools/33-seven-powers-classifier/narrate";
+import * as sevenPowersGetPending from "../src/tools/33-seven-powers-classifier/get-pending";
+import {
+  POWERS as SEVEN_POWERS,
+  classifyPower as classifySevenPower,
+} from "../src/tools/33-seven-powers-classifier/data";
 import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
 import { loadPrompt } from "../src/lib/prompt-loader";
@@ -133,6 +141,7 @@ async function main(): Promise<void> {
   await checkOkrData();
   await checkMvsData();
   await checkActivationData();
+  await checkSevenPowersData();
   await checkGeneralAppsData();
   await checkUiBuild();
   await checkInstalledLayout();
@@ -250,6 +259,10 @@ async function checkSchemas(): Promise<void> {
     activationRun,
     activationNarrate,
     activationGetPending,
+    sevenPowersGetQuestions,
+    sevenPowersScore,
+    sevenPowersNarrate,
+    sevenPowersGetPending,
     pressureTestAsk,
     hirePlaybookAsk,
   ];
@@ -494,6 +507,7 @@ async function checkUiBuild(): Promise<void> {
     "okr-critique",
     "mvs-alignment",
     "activation-finder",
+    "seven-powers",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {
@@ -1675,6 +1689,112 @@ async function checkActivationData(): Promise<void> {
     );
   } catch (err) {
     record("activation: run happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #33 7 Powers Self-Classifier shape + claim-vs-evidence classification
+ * goldens. Confirms the seven powers carry the variable evidence counts
+ * (3/3/3/3/2/2/2 → 25 questions), that the classification thresholds and the
+ * delusion / overstated / blind-spot divergence flags fire as prompt.md
+ * specifies, and that score → brief runs end-to-end.
+ */
+async function checkSevenPowersData(): Promise<void> {
+  record(
+    "seven-powers: 7 powers, evidence counts 3/3/3/3/2/2/2 (25 questions)",
+    SEVEN_POWERS.length === 7 &&
+      SEVEN_POWERS.reduce((n, p) => n + 1 + p.evidence_questions.length, 0) === 25,
+    `powers ${SEVEN_POWERS.length}, questions ${SEVEN_POWERS.reduce((n, p) => n + 1 + p.evidence_questions.length, 0)}`,
+  );
+
+  const network = SEVEN_POWERS.find((p) => p.slug === "network_economies")!;
+  const branding = SEVEN_POWERS.find((p) => p.slug === "branding")!;
+
+  // claim=have + all-false evidence → absent → DELUSIONAL (the classic case).
+  const delusional = classifySevenPower(network, "have", ["false", "false", "false"]);
+  record(
+    "seven-powers: claim=have + no evidence → absent + DELUSIONAL",
+    delusional.classification === "absent" && delusional.flag === "delusional",
+    JSON.stringify(delusional),
+  );
+
+  // claim=have + all-true evidence → has-evidence, no flag.
+  const real = classifySevenPower(network, "have", ["true", "true", "true"]);
+  record(
+    "seven-powers: claim=have + full evidence → has-evidence, no flag",
+    real.classification === "has-evidence" && real.flag === null,
+    JSON.stringify(real),
+  );
+
+  // claim=no + full evidence → has-evidence → BLIND SPOT.
+  const blind = classifySevenPower(network, "no", ["true", "true", "true"]);
+  record(
+    "seven-powers: claim=no + full evidence → BLIND SPOT",
+    blind.classification === "has-evidence" && blind.flag === "blind-spot",
+    JSON.stringify(blind),
+  );
+
+  // claim=have + middling evidence (3/6 = 0.5) → plausible → OVERSTATED.
+  const overstated = classifySevenPower(network, "have", ["partly", "partly", "partly"]);
+  record(
+    "seven-powers: claim=have + partial evidence → plausible + OVERSTATED",
+    overstated.classification === "plausible" && overstated.flag === "overstated",
+    JSON.stringify(overstated),
+  );
+
+  // 2-evidence power: one true (2/4 = 0.5) → plausible.
+  const branded = classifySevenPower(branding, "maybe", ["true", "false"]);
+  record(
+    "seven-powers: 2-evidence power scores against max 4 (one true → plausible)",
+    branded.evidence_max === 4 && branded.classification === "plausible",
+    JSON.stringify(branded),
+  );
+
+  // Schema rejects a power with the wrong evidence-array length.
+  const badLen = sevenPowersScore.meta.inputSchema.safeParse({
+    answers: {
+      scale_economies: { claim: "no", evidence: ["false", "false"] }, // needs 3
+      network_economies: { claim: "no", evidence: ["false", "false", "false"] },
+      counter_positioning: { claim: "no", evidence: ["false", "false", "false"] },
+      switching_costs: { claim: "no", evidence: ["false", "false", "false"] },
+      branding: { claim: "no", evidence: ["false", "false"] },
+      cornered_resource: { claim: "no", evidence: ["false", "false"] },
+      process_power: { claim: "no", evidence: ["false", "false"] },
+    },
+  });
+  record(
+    "seven-powers: score inputSchema rejects wrong evidence-array length",
+    !badLen.success,
+  );
+
+  // Happy path: score runs end-to-end + persists a brief.
+  try {
+    const ok = (await sevenPowersScore.invoke({
+      answers: {
+        scale_economies: { claim: "no", evidence: ["false", "false", "false"] },
+        network_economies: { claim: "have", evidence: ["false", "false", "false"] },
+        counter_positioning: { claim: "no", evidence: ["false", "false", "false"] },
+        switching_costs: { claim: "maybe", evidence: ["true", "true", "partly"] },
+        branding: { claim: "no", evidence: ["false", "false"] },
+        cornered_resource: { claim: "no", evidence: ["false", "false"] },
+        process_power: { claim: "no", evidence: ["false", "false"] },
+      },
+      user_context: "",
+    } as never)) as {
+      classifications: Array<{ power: string; classification: string; flag: string | null }>;
+      persistence_warning?: string;
+    };
+    const net = ok.classifications.find((c) => c.power === "network_economies");
+    const sw = ok.classifications.find((c) => c.power === "switching_costs");
+    record(
+      "seven-powers: score happy path classifies + flags + persists brief",
+      net?.flag === "delusional" &&
+        sw?.classification === "has-evidence" &&
+        ok.persistence_warning === undefined,
+      JSON.stringify({ net, sw, warn: ok.persistence_warning }).slice(0, 300),
+    );
+  } catch (err) {
+    record("seven-powers: score happy path", false, (err as Error).message);
   }
 }
 

@@ -87,6 +87,12 @@ import * as activationNarrate from "./tools/37-activation-metric-finder/narrate"
 import * as activationGetPending from "./tools/37-activation-metric-finder/get-pending";
 import { cleanupOrphanedTmp as cleanupActivationTmp } from "./tools/37-activation-metric-finder/pending";
 
+import * as sevenPowersGetQuestions from "./tools/33-seven-powers-classifier/questions";
+import * as sevenPowersScore from "./tools/33-seven-powers-classifier/score";
+import * as sevenPowersNarrate from "./tools/33-seven-powers-classifier/narrate";
+import * as sevenPowersGetPending from "./tools/33-seven-powers-classifier/get-pending";
+import { cleanupOrphanedTmp as cleanupSevenPowersTmp } from "./tools/33-seven-powers-classifier/pending";
+
 import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
 
@@ -158,6 +164,10 @@ const TOOLS: RegisteredTool[] = [
   activationRun as unknown as RegisteredTool,
   activationNarrate as unknown as RegisteredTool,
   activationGetPending as unknown as RegisteredTool,
+  sevenPowersGetQuestions as unknown as RegisteredTool,
+  sevenPowersScore as unknown as RegisteredTool,
+  sevenPowersNarrate as unknown as RegisteredTool,
+  sevenPowersGetPending as unknown as RegisteredTool,
   pressureTestAsk as unknown as RegisteredTool,
   hirePlaybookAsk as unknown as RegisteredTool,
 ];
@@ -267,6 +277,14 @@ const RESOURCES: ResourceEntry[] = [
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "activation-finder.html"),
   },
+  {
+    uri: "ui://working-from-lenny/seven-powers",
+    name: "7 Powers Self-Classifier",
+    description:
+      "Claim-vs-evidence diagnostic over Hamilton Helmer's seven powers. For each power the user states a claim (have / maybe / no) and answers 2-3 observable evidence questions (true / partly / false). Deterministic per-power classification (has-evidence / plausible / absent) plus the delusion / overstated / blind-spot flags where claim and evidence diverge; the benefit-and-barrier reading, the test next quarter, and the honest headline come from the host chat model.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "seven-powers.html"),
+  },
 ];
 
 // stderr logging is what appears in interactive runs / smoke. Desktop pipes
@@ -368,6 +386,11 @@ async function main(): Promise<void> {
     await cleanupActivationTmp();
   } catch (err) {
     logErr("cleanup-tmp activation failed (non-fatal)", err);
+  }
+  try {
+    await cleanupSevenPowersTmp();
+  } catch (err) {
+    logErr("cleanup-tmp seven-powers failed (non-fatal)", err);
   }
 
   const server = new Server(

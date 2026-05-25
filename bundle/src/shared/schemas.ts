@@ -1401,3 +1401,160 @@ export const HirePlaybookAskOutput = z.object({
   }),
   corpus: z.record(z.string()),
 });
+
+// ───────────────────────────────────────────────────────────
+// #33 7 Powers Self-Classifier schemas (Phase 3, wizard clones #9)
+// Novel mechanic: a claim-vs-evidence matrix per power. The deterministic
+// engine classifies each power (has-evidence / plausible / absent) from its
+// evidence ratings and raises the delusion / overstated / blind-spot flags
+// where the claim and the evidence diverge.
+// ───────────────────────────────────────────────────────────
+
+export const SevenPowersClaimEnum = z.enum(["have", "maybe", "no"]);
+export type SevenPowersClaim = z.infer<typeof SevenPowersClaimEnum>;
+
+export const SevenPowersEvidenceEnum = z.enum(["true", "partly", "false"]);
+export type SevenPowersEvidence = z.infer<typeof SevenPowersEvidenceEnum>;
+
+export const SevenPowersPowerEnum = z.enum([
+  "scale_economies",
+  "network_economies",
+  "counter_positioning",
+  "switching_costs",
+  "branding",
+  "cornered_resource",
+  "process_power",
+]);
+export type SevenPowersPowerSlug = z.infer<typeof SevenPowersPowerEnum>;
+
+export const SevenPowersClassificationEnum = z.enum([
+  "has-evidence",
+  "plausible",
+  "absent",
+]);
+export type SevenPowersClassificationT = z.infer<
+  typeof SevenPowersClassificationEnum
+>;
+
+export const SevenPowersFlagEnum = z.enum([
+  "delusional",
+  "overstated",
+  "blind-spot",
+]);
+export type SevenPowersFlagT = z.infer<typeof SevenPowersFlagEnum>;
+
+const sevenPowersAnswer = (n: number) =>
+  z.object({
+    claim: SevenPowersClaimEnum,
+    evidence: z.array(SevenPowersEvidenceEnum).length(n),
+  });
+
+/** Per-power claim + evidence. Network / scale / counter-positioning / switching carry 3 evidence questions; branding / cornered resource / process carry 2. */
+export const SevenPowersAnswers = z.object({
+  scale_economies: sevenPowersAnswer(3),
+  network_economies: sevenPowersAnswer(3),
+  counter_positioning: sevenPowersAnswer(3),
+  switching_costs: sevenPowersAnswer(3),
+  branding: sevenPowersAnswer(2),
+  cornered_resource: sevenPowersAnswer(2),
+  process_power: sevenPowersAnswer(2),
+});
+export type SevenPowersAnswersT = z.infer<typeof SevenPowersAnswers>;
+
+export const SevenPowersQuestionGroup = z.object({
+  power: SevenPowersPowerEnum,
+  power_name: z.string(),
+  claim_question: z.string(),
+  evidence_questions: z.array(z.string()).min(2).max(3),
+});
+
+export const SevenPowersGetQuestionsInput = z.object({}).strict();
+export const SevenPowersGetQuestionsOutput = z.object({
+  powers: z.array(SevenPowersQuestionGroup).length(7),
+  claim_options: z.array(SevenPowersClaimEnum).length(3),
+  evidence_options: z.array(SevenPowersEvidenceEnum).length(3),
+  note: z.string(),
+});
+
+export const SevenPowersClassification = z.object({
+  power: SevenPowersPowerEnum,
+  power_name: z.string(),
+  claim: SevenPowersClaimEnum,
+  evidence_score: z.number().int().min(0),
+  evidence_max: z.number().int().min(0),
+  evidence_pct: z.number().min(0).max(1),
+  classification: SevenPowersClassificationEnum,
+  flag: SevenPowersFlagEnum.nullable(),
+});
+
+export const SevenPowersScoreInput = z.object({
+  answers: SevenPowersAnswers,
+  user_context: z.string().default(""),
+});
+
+export const SevenPowersScoreOutput = z.object({
+  classifications: z.array(SevenPowersClassification).length(7),
+  powers: z.array(SevenPowersQuestionGroup).length(7),
+  persistence_warning: z.string().optional(),
+});
+
+export const SevenPowersBriefPower = z.object({
+  power: SevenPowersPowerEnum,
+  power_name: z.string(),
+  claim: SevenPowersClaimEnum,
+  classification: SevenPowersClassificationEnum,
+  flag: SevenPowersFlagEnum.nullable(),
+  evidence_pct: z.number().min(0).max(1),
+  benefit_barrier: z.string(),
+  test_next_quarter: z.string(),
+  corpus_anchors: z.array(z.string()),
+});
+
+export const SevenPowersPowerMap = z.object({
+  has_evidence: z.array(SevenPowersPowerEnum),
+  plausible: z.array(SevenPowersPowerEnum),
+  absent: z.array(SevenPowersPowerEnum),
+  delusional: z.array(SevenPowersPowerEnum),
+  overstated: z.array(SevenPowersPowerEnum),
+  blind_spot: z.array(SevenPowersPowerEnum),
+});
+
+export const SevenPowersNarrateInput = z.object({
+  answers: SevenPowersAnswers,
+  user_context: z.string().default(""),
+});
+
+/** Path 4 narration brief for the 7 Powers map. */
+export const SevenPowersNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    powers: z.array(SevenPowersBriefPower).length(7),
+    power_map: SevenPowersPowerMap,
+    user_context: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const SevenPowersGetPendingNarrationInput = z.object({}).strict();
+export const SevenPowersGetPendingNarrationOutput = z.discriminatedUnion(
+  "status",
+  [
+    z.object({
+      status: z.literal("ready"),
+      saved_at: z.string(),
+      brief: SevenPowersNarrateOutput,
+    }),
+    z.object({
+      status: z.literal("no_pending"),
+      note: z.string(),
+    }),
+  ],
+);

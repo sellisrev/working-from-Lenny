@@ -109,6 +109,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "okr-critique.html"),
     path.join(installRoot, "dist", "ui", "mvs-alignment.html"),
     path.join(installRoot, "dist", "ui", "activation-finder.html"),
+    path.join(installRoot, "dist", "ui", "seven-powers.html"),
     path.join(
       installRoot,
       "dist",
@@ -205,6 +206,7 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkOkrChain(client, dataDir);
     await checkMvsChain(client, dataDir);
     await checkActivationChain(client, dataDir);
+    await checkSevenPowersChain(client, dataDir);
     await checkGeneralAppsChain(client);
   } finally {
     await client.close();
@@ -347,6 +349,10 @@ async function checkListTools(client: Client): Promise<void> {
       "activation_finder_run",
       "activation_finder_narrate",
       "activation_finder_get_pending_narration",
+      "seven_powers_get_questions",
+      "seven_powers_score",
+      "seven_powers_narrate",
+      "seven_powers_get_pending_narration",
       "pressure_test_ask",
       "hire_playbook_ask",
     ].sort();
@@ -3382,6 +3388,118 @@ async function checkActivationChain(client: Client, dataDir: string): Promise<vo
   const afterMtime = (await fs.stat(file)).mtimeMs;
   record(
     "activation: narrate is pure compute (pending file untouched)",
+    beforeContent === afterContent && beforeMtime === afterMtime,
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// #33 7 Powers Self-Classifier smoke checks (quiz spine clones #44)
+// ───────────────────────────────────────────────────────────
+
+async function checkSevenPowersChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } } }]),
+  );
+  record(
+    "seven-powers: get_questions binds ui:// via _meta.ui.resourceUri",
+    entries["seven_powers_get_questions"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/seven-powers",
+  );
+  const internalClean = [
+    "seven_powers_score",
+    "seven_powers_narrate",
+    "seven_powers_get_pending_narration",
+  ].filter((n) => entries[n]?._meta?.ui?.resourceUri !== undefined);
+  record(
+    "seven-powers: internal tools do NOT declare ui binding",
+    internalClean.length === 0,
+    internalClean.join(", "),
+  );
+
+  const desc = list.tools.find((t) => t.name === "seven_powers_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "power map", "haven't submitted", "on disk", "embedded widget"].filter((s) => !desc.includes(s));
+  record("seven-powers: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/seven-powers" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "seven-powers: iframe staged ui/message names completion + tool",
+    text.includes("I just completed the 7 Powers diagnostic in the embedded widget") &&
+      text.includes("seven_powers_get_pending_narration"),
+  );
+
+  // get_questions smoke: 7 powers, evidence counts present
+  const questions = JSON.parse(contentText(await client.callTool({ name: "seven_powers_get_questions", arguments: {} })));
+  record(
+    "seven-powers: get_questions returns 7 powers with claim + evidence questions",
+    Array.isArray(questions.powers) &&
+      questions.powers.length === 7 &&
+      questions.powers.every((p: { claim_question: string; evidence_questions: string[] }) =>
+        typeof p.claim_question === "string" && Array.isArray(p.evidence_questions) && p.evidence_questions.length >= 2),
+  );
+
+  const before = JSON.parse(contentText(await client.callTool({ name: "seven_powers_get_pending_narration", arguments: {} })));
+  record("seven-powers: get_pending pre-score → no_pending", before.status === "no_pending");
+
+  // The classic delusion case: claim network effects, no evidence.
+  const answers = {
+    scale_economies: { claim: "no", evidence: ["false", "false", "false"] },
+    network_economies: { claim: "have", evidence: ["false", "false", "false"] },
+    counter_positioning: { claim: "no", evidence: ["false", "false", "false"] },
+    switching_costs: { claim: "maybe", evidence: ["true", "true", "partly"] },
+    branding: { claim: "no", evidence: ["false", "false"] },
+    cornered_resource: { claim: "no", evidence: ["false", "false"] },
+    process_power: { claim: "no", evidence: ["false", "false"] },
+  };
+  const scoreResult = JSON.parse(contentText(await client.callTool({
+    name: "seven_powers_score",
+    arguments: { answers },
+  })));
+  const net = (scoreResult.classifications ?? []).find((c: { power: string }) => c.power === "network_economies");
+  const sw = (scoreResult.classifications ?? []).find((c: { power: string }) => c.power === "switching_costs");
+  record(
+    "seven-powers: score flags network=DELUSIONAL, switching=has-evidence, no persistence_warning",
+    net?.flag === "delusional" &&
+      sw?.classification === "has-evidence" &&
+      scoreResult.persistence_warning === undefined,
+    JSON.stringify({ net, sw }).slice(0, 300),
+  );
+
+  const file = path.join(dataDir, "_pending", "seven-powers-classifier-pending.json");
+  record("seven-powers: score wrote pending file", fsSync.existsSync(file));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "seven_powers_get_pending_narration", arguments: {} })));
+  record(
+    "seven-powers: get_pending after score returns brief with power_map + 7 powers",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      Array.isArray(after.brief?.inputs?.powers) &&
+      after.brief.inputs.powers.length === 7 &&
+      Array.isArray(after.brief?.inputs?.power_map?.delusional) &&
+      after.brief.inputs.power_map.delusional.includes("network_economies"),
+  );
+
+  // narrate is pure compute
+  const beforeContent = await fs.readFile(file, "utf8");
+  const beforeMtime = (await fs.stat(file)).mtimeMs;
+  await client.callTool({
+    name: "seven_powers_narrate",
+    arguments: {
+      answers: {
+        scale_economies: { claim: "have", evidence: ["true", "true", "true"] },
+        network_economies: { claim: "no", evidence: ["false", "false", "false"] },
+        counter_positioning: { claim: "maybe", evidence: ["partly", "false", "false"] },
+        switching_costs: { claim: "no", evidence: ["false", "false", "false"] },
+        branding: { claim: "no", evidence: ["false", "false"] },
+        cornered_resource: { claim: "have", evidence: ["true", "true"] },
+        process_power: { claim: "no", evidence: ["false", "false"] },
+      },
+    },
+  });
+  const afterContent = await fs.readFile(file, "utf8");
+  const afterMtime = (await fs.stat(file)).mtimeMs;
+  record(
+    "seven-powers: narrate is pure compute (pending file untouched)",
     beforeContent === afterContent && beforeMtime === afterMtime,
   );
 }

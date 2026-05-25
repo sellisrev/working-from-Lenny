@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7 Powers Self-Classifier</title>
+  <!-- include: styles.css -->
+  <style>
+    .sp-power { border:1px solid #e2e2e2; border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+    .sp-power-name { font-weight:600; font-size:15px; margin:0 0 8px; }
+    .sp-q { margin:10px 0; }
+    .sp-q-text { font-size:13px; color:#333; margin:0 0 5px; line-height:1.4; }
+    .sp-q-claim { font-weight:500; color:#1a1a1a; }
+    .sp-select { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; background:#fff; }
+    .sp-select.unset { border-color:#e0a800; background:#fffdf5; }
+    .sp-bucket { margin:10px 0; }
+    .sp-bucket-label { font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
+    .sp-bucket-flag .sp-bucket-label { color:#b00020; }
+    .sp-bucket-powers { margin:3px 0 0; padding-left:18px; font-size:14px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">7 Powers Self-Classifier</h1>
+  <p class="app-tagline">Everyone claims network effects. Almost no one has them. For each of Hamilton Helmer's seven powers, state your claim, then answer what's actually observable.</p>
+  <p class="sp-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="sp-form" id="sp-form" novalidate>
+    <div id="sp-powers"></div>
+    <div class="pitfalls-nav" style="justify-content:flex-end;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="sp-submit">Map my powers</button>
+    </div>
+    <p class="pitfalls-validation" id="sp-validation" role="alert">
+      Answer every claim and evidence question to see your power map.
+    </p>
+  </form>
+
+  <div class="pitfalls-error" id="sp-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="sp-output">
+    <p class="pitfalls-picks-header">Your power map</p>
+    <div id="sp-map"></div>
+    <p class="pitfalls-narrate-hint" id="sp-narrate-hint">
+      <span id="sp-hint-auto">Queueing your power-map reading in chat…</span>
+      <span id="sp-hint-staged" style="display:none;">Your reading is rendering in chat below.</span>
+      <span id="sp-hint-fallback" style="display:none;">
+        For the full reading (benefit-and-barrier per power + the test next quarter + the honest headline), ask Claude in chat:
+        <strong>"read my power map"</strong>.
+      </span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="sp-retake-btn">Start over</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  // The seven powers + their claim/evidence questions. Order and slugs are
+  // positional against the seven_powers_score schema; do not reorder.
+  var POWERS = [
+    { slug: "scale_economies", name: "Scale economies",
+      claim: "Our unit costs fall as we grow, in a way rivals can't match.",
+      evidence: [
+        "We already have lower unit costs than smaller rivals, OR a meaningfully larger competitor would have lower unit costs than us today.",
+        "We can name the specific cost that falls per unit as volume rises (compute, logistics, content, support), not just 'overhead spreads out.'",
+        "A new entrant operating at our current scale would lose money serving customers at our prices."
+      ] },
+    { slug: "network_economies", name: "Network economies",
+      claim: "We have network effects.",
+      evidence: [
+        "A new user gets measurably more value this month than they would have a year ago, because of other users.",
+        "A well-funded competitor launching today would struggle to get our users value because they'd start with an empty network.",
+        "We can name the specific interaction between users that creates the value (not just 'more users = good')."
+      ] },
+    { slug: "counter_positioning", name: "Counter-positioning",
+      claim: "We do something an incumbent can't copy without hurting their own business.",
+      evidence: [
+        "We can name a specific incumbent whose existing revenue or model would shrink if they copied our approach.",
+        "That incumbent has seen what we do and has chosen NOT to match it, rather than merely being slow to.",
+        "The reason they won't copy us is structural (cannibalization, channel conflict, margin collapse), not just that they haven't gotten around to it."
+      ] },
+    { slug: "switching_costs", name: "Switching costs",
+      claim: "Customers would find it costly to leave us.",
+      evidence: [
+        "Leaving means losing data, history, or config they can't easily recreate.",
+        "Their team has built workflows or integrations around us.",
+        "We can cite a churned customer who came back because switching hurt."
+      ] },
+    { slug: "branding", name: "Branding",
+      claim: "Customers pay us more than a functionally-equal alternative because of who we are.",
+      evidence: [
+        "There is a competitor whose product is roughly as good, who charges less, and we still win the customer.",
+        "Customers describe choosing us in terms of trust, identity, or reputation, not just features or price."
+      ] },
+    { slug: "cornered_resource", name: "Cornered resource",
+      claim: "We have exclusive access to something competitors want and can't get.",
+      evidence: [
+        "We can name the asset (talent, IP, a contract, a dataset, a supply relationship) and why a rival can't simply buy or build their own.",
+        "If a competitor offered to pay for the same access, the holder is contractually or practically unable to provide it."
+      ] },
+    { slug: "process_power", name: "Process power",
+      claim: "We have a way of operating that rivals have tried and failed to copy.",
+      evidence: [
+        "A competitor who hired away our people would still take years to replicate how we work, because it's embedded across the org, not held in a few heads.",
+        "The advantage compounds (each quarter the gap widens) rather than being a one-time head start."
+      ] }
+  ];
+
+  var CLAIM_OPTS = [["", "Select…"], ["have", "We have this"], ["maybe", "Maybe"], ["no", "No"]];
+  var EV_OPTS = [["", "Select…"], ["true", "True"], ["partly", "Partly"], ["false", "False"]];
+
+  // answers[slug] = { claim: "", evidence: [] }
+  var answers = {};
+  POWERS.forEach(function (p) {
+    answers[p.slug] = { claim: "", evidence: new Array(p.evidence.length).fill("") };
+  });
+
+  function $(id) { return document.getElementById(id); }
+
+  function makeSelect(opts, value, onChange) {
+    var sel = document.createElement("select");
+    sel.className = "sp-select" + (value ? "" : " unset");
+    opts.forEach(function (o) {
+      var opt = document.createElement("option");
+      opt.value = o[0];
+      opt.textContent = o[1];
+      if (o[0] === value) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener("change", function () {
+      onChange(sel.value);
+      sel.classList.toggle("unset", !sel.value);
+    });
+    return sel;
+  }
+
+  function buildForm() {
+    var root = $("sp-powers");
+    POWERS.forEach(function (p) {
+      var card = document.createElement("div");
+      card.className = "sp-power";
+
+      var name = document.createElement("p");
+      name.className = "sp-power-name";
+      name.textContent = p.name;
+      card.appendChild(name);
+
+      var claimQ = document.createElement("div");
+      claimQ.className = "sp-q";
+      var claimText = document.createElement("p");
+      claimText.className = "sp-q-text sp-q-claim";
+      claimText.textContent = "Claim: " + p.claim;
+      claimQ.appendChild(claimText);
+      claimQ.appendChild(makeSelect(CLAIM_OPTS, "", function (v) { answers[p.slug].claim = v; }));
+      card.appendChild(claimQ);
+
+      p.evidence.forEach(function (q, ei) {
+        var evQ = document.createElement("div");
+        evQ.className = "sp-q";
+        var evText = document.createElement("p");
+        evText.className = "sp-q-text";
+        evText.textContent = "Evidence: " + q;
+        evQ.appendChild(evText);
+        evQ.appendChild(makeSelect(EV_OPTS, "", function (v) { answers[p.slug].evidence[ei] = v; }));
+        card.appendChild(evQ);
+      });
+
+      root.appendChild(card);
+    });
+  }
+
+  function firstUnanswered() {
+    for (var i = 0; i < POWERS.length; i++) {
+      var a = answers[POWERS[i].slug];
+      if (!a.claim) return POWERS[i].slug;
+      for (var j = 0; j < a.evidence.length; j++) {
+        if (!a.evidence[j]) return POWERS[i].slug;
+      }
+    }
+    return null;
+  }
+
+  function showError(msg) {
+    var el = $("sp-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+  function clearError() {
+    var el = $("sp-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  var BUCKETS = [
+    { key: "has-evidence", label: "Has evidence", flag: false },
+    { key: "plausible", label: "Plausible", flag: false },
+    { key: "absent", label: "Absent", flag: false }
+  ];
+  var FLAGS = [
+    { key: "delusional", label: "Delusional (claimed, no evidence)" },
+    { key: "overstated", label: "Overstated" },
+    { key: "blind-spot", label: "Blind spot (have it, not claiming it)" }
+  ];
+
+  function nameFor(slug) {
+    var p = POWERS.find(function (x) { return x.slug === slug; });
+    return p ? p.name : slug;
+  }
+
+  function renderMap(scored) {
+    var map = $("sp-map");
+    map.innerHTML = "";
+    var cls = scored.classifications;
+
+    BUCKETS.forEach(function (b) {
+      var inBucket = cls.filter(function (c) { return c.classification === b.key; });
+      if (inBucket.length === 0) return;
+      map.appendChild(bucketEl(b.label, inBucket.map(function (c) { return c.power_name; }), false));
+    });
+    FLAGS.forEach(function (f) {
+      var flagged = cls.filter(function (c) { return c.flag === f.key; });
+      if (flagged.length === 0) return;
+      map.appendChild(bucketEl(f.label, flagged.map(function (c) { return c.power_name; }), true));
+    });
+
+    var out = $("sp-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestNarration(scored);
+  }
+
+  function bucketEl(label, names, isFlag) {
+    var wrap = document.createElement("div");
+    wrap.className = "sp-bucket" + (isFlag ? " sp-bucket-flag" : "");
+    var lab = document.createElement("div");
+    lab.className = "sp-bucket-label";
+    lab.textContent = label;
+    wrap.appendChild(lab);
+    var ul = document.createElement("ul");
+    ul.className = "sp-bucket-powers";
+    names.forEach(function (n) {
+      var li = document.createElement("li");
+      li.textContent = n;
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  function requestNarration(scored) {
+    var auto = $("sp-hint-auto");
+    var staged = $("sp-hint-staged");
+    var fallback = $("sp-hint-fallback");
+
+    if (scored && scored.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + scored.persistence_warning);
+      return;
+    }
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+    window.mcp.sendMessage(
+      "I just completed the 7 Powers diagnostic in the embedded widget. " +
+        "Please call seven_powers_get_pending_narration to fetch my saved " +
+        "brief and render my power map."
+    )
+      .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleSubmit() {
+    clearError();
+    var missing = firstUnanswered();
+    if (missing) {
+      $("sp-validation").classList.add("visible");
+      return;
+    }
+    $("sp-validation").classList.remove("visible");
+    var btn = $("sp-submit");
+    btn.disabled = true;
+    btn.textContent = "Classifying…";
+
+    window.mcp.callTool("seven_powers_score", { answers: answers })
+      .then(function (result) { renderMap(parseToolResult(result)); })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () { btn.disabled = false; btn.textContent = "Map my powers"; });
+  }
+
+  function handleRetake() {
+    POWERS.forEach(function (p) {
+      answers[p.slug] = { claim: "", evidence: new Array(p.evidence.length).fill("") };
+    });
+    $("sp-powers").innerHTML = "";
+    buildForm();
+    $("sp-output").classList.remove("visible");
+    $("sp-validation").classList.remove("visible");
+    clearError();
+    $("sp-hint-auto").style.display = "inline";
+    $("sp-hint-staged").style.display = "none";
+    $("sp-hint-fallback").style.display = "none";
+    $("sp-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  buildForm();
+  $("sp-submit").addEventListener("click", handleSubmit);
+  $("sp-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>
