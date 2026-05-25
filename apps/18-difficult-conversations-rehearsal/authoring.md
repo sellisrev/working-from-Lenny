@@ -49,7 +49,7 @@ Silence is the dimension most people fail (per `difficult-conversations.md`, `co
 The version the coach delivers. The hard sentence is stated plainly; `[pause]` marks where the user must stop and let the other person respond.
 
 **poor-performance**
-> "I want to be direct with you: your last two deliverables didn't meet the bar we need, and that has to change. `[pause — let them respond]` I'm telling you now because I think you can close the gap, and I'd rather you hear it clearly than wonder. Here's specifically what meeting the bar looks like, and the support I'll give you."
+> "I want to be direct with you: your last two deliverables didn't meet the bar we need, and that has to change. `[pause: let them respond]` I'm telling you now because I think you can close the gap, and I'd rather you hear it clearly than wonder. Here's specifically what meeting the bar looks like, and the support I'll give you."
 > *Why it works:* clarity and empathy together; the pause hands them the floor instead of softening the message away.
 
 **peer-escalation**
@@ -57,7 +57,7 @@ The version the coach delivers. The hard sentence is stated plainly; `[pause]` m
 > *Why it works:* leads with impact, not authority (getting-buy-in framing), and invites a shared fix rather than a fight.
 
 **layoff-delivery**
-> "I have hard news, and I'm going to say it plainly: your role is being eliminated, and today is your last day. `[pause — say nothing; let it land]` This is not a reflection of your work, and I'll walk you through exactly what happens next and the support you'll have."
+> "I have hard news, and I'm going to say it plainly: your role is being eliminated, and today is your last day. `[pause: say nothing, let it land]` This is not a reflection of your work, and I'll walk you through exactly what happens next and the support you'll have."
 > *Why it works:* dignity and the silence beat are the whole thing here. You deliver it and stop.
 
 **scope-cut-to-customer**
