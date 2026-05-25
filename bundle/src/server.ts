@@ -117,6 +117,14 @@ import * as onboardingNarrate from "./tools/30-onboarding-pm-101/narrate";
 import * as onboardingGetPending from "./tools/30-onboarding-pm-101/get-pending";
 import { cleanupOrphanedTmp as cleanupOnboardingTmp } from "./tools/30-onboarding-pm-101/pending";
 
+import * as decisionLogGetForm from "./tools/25-decision-log-calibration/get-form";
+import * as decisionLogAdd from "./tools/25-decision-log-calibration/add";
+import * as decisionLogResolve from "./tools/25-decision-log-calibration/resolve";
+import * as decisionLogList from "./tools/25-decision-log-calibration/list";
+import * as decisionLogCalibrate from "./tools/25-decision-log-calibration/calibrate";
+import * as decisionLogGetPending from "./tools/25-decision-log-calibration/get-pending";
+import { cleanupOrphanedTmp as cleanupDecisionLogTmp } from "./tools/25-decision-log-calibration/pending";
+
 import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
 
@@ -208,6 +216,12 @@ const TOOLS: RegisteredTool[] = [
   onboardingGenerate as unknown as RegisteredTool,
   onboardingNarrate as unknown as RegisteredTool,
   onboardingGetPending as unknown as RegisteredTool,
+  decisionLogGetForm as unknown as RegisteredTool,
+  decisionLogAdd as unknown as RegisteredTool,
+  decisionLogResolve as unknown as RegisteredTool,
+  decisionLogList as unknown as RegisteredTool,
+  decisionLogCalibrate as unknown as RegisteredTool,
+  decisionLogGetPending as unknown as RegisteredTool,
   pressureTestAsk as unknown as RegisteredTool,
   hirePlaybookAsk as unknown as RegisteredTool,
 ];
@@ -357,6 +371,14 @@ const RESOURCES: ResourceEntry[] = [
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "onboarding-pm-101.html"),
   },
+  {
+    uri: "ui://working-from-lenny/decision-log",
+    name: "Decision Log + Brier Calibration Tracker",
+    description:
+      "Log every meaningful decision with the confidence you had at the time, resolve it when the outcome is known, and the tool computes your Brier score over time and surfaces where you're systematically over- or under-confident by decision type. The direct application of Annie Duke's Thinking in Bets to professional judgment. This is the one app whose value IS the durable per-user history every other app defers: it uses a mutable per-user collection (append + in-place resolution), not the single-latest-pending store. Decision types are open: seven presets ship as quick-picks plus an 'other' fallback, and user-defined custom types are first-class.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "decision-log.html"),
+  },
 ];
 
 // stderr logging is what appears in interactive runs / smoke. Desktop pipes
@@ -483,6 +505,11 @@ async function main(): Promise<void> {
     await cleanupOnboardingTmp();
   } catch (err) {
     logErr("cleanup-tmp onboarding failed (non-fatal)", err);
+  }
+  try {
+    await cleanupDecisionLogTmp();
+  } catch (err) {
+    logErr("cleanup-tmp decision-log failed (non-fatal)", err);
   }
 
   const server = new Server(

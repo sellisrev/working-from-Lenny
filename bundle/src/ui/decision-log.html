@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decision Log + Brier Calibration</title>
+  <!-- include: styles.css -->
+  <!-- include: mcp-rpc.js -->
+  <style>
+    .dl-tabs { display:flex; gap:0; border-bottom:2px solid #e8e8e8; margin:0 0 18px; }
+    .dl-tab { padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; color:#888; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .12s; }
+    .dl-tab.active { color:#1a1a1a; border-bottom-color:#1a1a1a; }
+    .dl-panel { display:none; }
+    .dl-panel.active { display:block; }
+
+    .dl-field { margin:12px 0; }
+    .dl-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 5px; line-height:1.4; }
+    .dl-label small { font-weight:400; color:#777; }
+    .dl-input { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:14px; background:#fff; box-sizing:border-box; }
+    .dl-input:focus { border-color:#555; outline:none; }
+    .dl-textarea { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; resize:vertical; min-height:60px; box-sizing:border-box; }
+    .dl-textarea:focus { border-color:#555; outline:none; }
+
+    .dl-type-picker { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+    .dl-preset { padding:5px 12px; border:1px solid #cfcfcf; border-radius:20px; font-size:12px; background:#fff; cursor:pointer; transition:all .12s; }
+    .dl-preset:hover { border-color:#555; }
+    .dl-preset.selected { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
+    .dl-custom-type { display:none; margin-top:6px; }
+    .dl-custom-type.show { display:block; }
+
+    .dl-confidence { display:flex; align-items:center; gap:10px; }
+    .dl-conf-slider { flex:1; }
+    .dl-conf-label { font-size:15px; font-weight:700; min-width:40px; text-align:right; }
+
+    .dl-entry-list { display:flex; flex-direction:column; gap:10px; }
+    .dl-entry { border:1px solid #e8e8e8; border-radius:8px; padding:12px; background:#fafafa; }
+    .dl-entry-header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+    .dl-entry-text { font-size:13px; font-weight:500; color:#1a1a1a; flex:1; }
+    .dl-entry-meta { font-size:11px; color:#888; margin-top:4px; }
+    .dl-badge { display:inline-block; background:#f0f0f0; border-radius:4px; padding:1px 6px; font-size:11px; margin-right:4px; }
+    .dl-badge.stale { background:#fff3cd; color:#9a6700; }
+    .dl-resolve-btn { padding:5px 12px; border:1px solid #1a1a1a; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; background:#fff; white-space:nowrap; transition:all .12s; }
+    .dl-resolve-btn:hover { background:#1a1a1a; color:#fff; }
+    .dl-empty-state { text-align:center; padding:30px 0; color:#999; font-size:13px; }
+
+    .dl-resolve-panel { border-top:1px solid #e8e8e8; margin-top:10px; padding-top:10px; display:none; }
+    .dl-resolve-panel.show { display:block; }
+    .dl-outcome-opts { display:flex; gap:8px; margin-top:6px; }
+    .dl-outcome-opt { flex:1; padding:7px; border:1px solid #cfcfcf; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; text-align:center; transition:all .12s; }
+    .dl-outcome-opt:hover { border-color:#555; }
+    .dl-outcome-opt.right { border-color:#1a7f37; color:#1a7f37; }
+    .dl-outcome-opt.right.selected { background:#1a7f37; color:#fff; }
+    .dl-outcome-opt.wrong { border-color:#b00020; color:#b00020; }
+    .dl-outcome-opt.wrong.selected { background:#b00020; color:#fff; }
+
+    .dl-status { margin:10px 0 0; padding:10px 12px; border-radius:7px; font-size:13px; display:none; }
+    .dl-status.show { display:block; }
+    .dl-status.ok { background:#d1f5d3; color:#1a7f37; }
+    .dl-status.warn { background:#fff3cd; color:#9a6700; }
+    .dl-status.err { background:#fde8e8; color:#b00020; }
+
+    .dl-calibrate-row { display:flex; gap:10px; align-items:center; margin-bottom:16px; }
+    .dl-calibrate-btn { padding:8px 18px; border:1px solid #1a1a1a; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; background:#1a1a1a; color:#fff; transition:all .12s; }
+    .dl-calibrate-btn:hover { background:#333; }
+    .dl-calibrate-hint { font-size:12px; color:#777; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Decision Log + Brier Calibration</h1>
+  <p class="app-tagline">Log decisions with your confidence. Resolve when you know. Get Brier-scored on whether you were calibrated. Annie Duke, with a spreadsheet.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <div class="dl-tabs">
+    <button class="dl-tab active" data-panel="log">Log a decision</button>
+    <button class="dl-tab" data-panel="open">Open decisions</button>
+  </div>
+
+  <!-- Log panel -->
+  <div class="dl-panel active" id="dl-panel-log">
+    <form id="dl-add-form" novalidate>
+
+      <div class="dl-field">
+        <label class="dl-label">What are you deciding? <small>(up to 300 chars)</small></label>
+        <textarea class="dl-textarea" id="dl-text" maxlength="300" placeholder="e.g. Hire a senior PM now rather than waiting for Series B funding" rows="2"></textarea>
+      </div>
+
+      <div class="dl-field">
+        <label class="dl-label">Decision type</label>
+        <div class="dl-type-picker" id="dl-presets"></div>
+        <div class="dl-custom-type" id="dl-custom-wrap">
+          <input class="dl-input" type="text" id="dl-custom-type" maxlength="80" placeholder="Custom type (e.g. team-structure)">
+        </div>
+      </div>
+
+      <div class="dl-field">
+        <label class="dl-label">How sure are you? <small>(1–99, not 0 or 100 — those aren't forecasts)</small></label>
+        <div class="dl-confidence">
+          <input class="dl-conf-slider" type="range" id="dl-conf" min="1" max="99" value="70">
+          <span class="dl-conf-label" id="dl-conf-display">70%</span>
+        </div>
+      </div>
+
+      <div class="dl-field">
+        <label class="dl-label">What specifically do you expect if you're right? <small>(up to 300 chars)</small></label>
+        <textarea class="dl-textarea" id="dl-outcome" maxlength="300" placeholder="e.g. The hire is working well at 6 months and we've shipped 3 features they drove" rows="2"></textarea>
+      </div>
+
+      <button type="submit" class="spm-submit" id="dl-add-btn" disabled>Log this decision</button>
+      <div class="dl-status" id="dl-add-status"></div>
+    </form>
+  </div>
+
+  <!-- Open decisions panel -->
+  <div class="dl-panel" id="dl-panel-open">
+    <div class="dl-calibrate-row">
+      <button class="dl-calibrate-btn" id="dl-calibrate-btn" type="button">Compute my Brier calibration</button>
+      <span class="dl-calibrate-hint">Resolves at least one decision first, then run this to get your read.</span>
+    </div>
+    <div id="dl-open-list">
+      <p class="dl-empty-state">Loading open decisions…</p>
+    </div>
+    <div class="dl-status" id="dl-open-status"></div>
+  </div>
+
+</div>
+
+<script>
+  const PRESETS = ["hire","fire","pricing","pivot","build-vs-buy","hiring-plan","roadmap-bet","other"];
+
+  // Tab switching
+  document.querySelectorAll('.dl-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dl-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.dl-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('dl-panel-' + btn.dataset.panel).classList.add('active');
+      if (btn.dataset.panel === 'open') loadOpenDecisions();
+    });
+  });
+
+  // Build preset pills
+  let selectedType = null;
+  const presetsEl = document.getElementById('dl-presets');
+  const customWrap = document.getElementById('dl-custom-wrap');
+  const customInput = document.getElementById('dl-custom-type');
+
+  function buildPresets(extra) {
+    presetsEl.innerHTML = '';
+    const all = [...PRESETS, ...(extra || [])];
+    all.forEach(preset => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dl-preset';
+      btn.textContent = preset;
+      btn.addEventListener('click', () => {
+        presetsEl.querySelectorAll('.dl-preset').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if (preset === 'other') {
+          selectedType = 'other';
+          customWrap.classList.add('show');
+          customInput.focus();
+        } else {
+          selectedType = preset;
+          customWrap.classList.remove('show');
+          customInput.value = '';
+        }
+        validateForm();
+      });
+      presetsEl.appendChild(btn);
+    });
+
+    // Custom button (always present at end if not already "other")
+    const customBtn = document.createElement('button');
+    customBtn.type = 'button';
+    customBtn.className = 'dl-preset';
+    customBtn.textContent = '+ custom';
+    customBtn.addEventListener('click', () => {
+      presetsEl.querySelectorAll('.dl-preset').forEach(b => b.classList.remove('selected'));
+      customBtn.classList.add('selected');
+      selectedType = null;
+      customWrap.classList.add('show');
+      customInput.focus();
+    });
+    presetsEl.appendChild(customBtn);
+  }
+
+  customInput.addEventListener('input', () => {
+    const v = customInput.value.trim();
+    if (v) selectedType = v;
+    validateForm();
+  });
+
+  // Confidence slider
+  const confSlider = document.getElementById('dl-conf');
+  const confDisplay = document.getElementById('dl-conf-display');
+  confSlider.addEventListener('input', () => {
+    confDisplay.textContent = confSlider.value + '%';
+  });
+
+  // Form validation
+  function validateForm() {
+    const text = document.getElementById('dl-text').value.trim();
+    const outcome = document.getElementById('dl-outcome').value.trim();
+    const typeOk = selectedType && selectedType.length > 0;
+    document.getElementById('dl-add-btn').disabled = !(text && outcome && typeOk);
+  }
+
+  document.getElementById('dl-text').addEventListener('input', validateForm);
+  document.getElementById('dl-outcome').addEventListener('input', validateForm);
+
+  // Submit add form
+  document.getElementById('dl-add-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = document.getElementById('dl-text').value.trim();
+    const typeVal = selectedType === 'other' && customInput.value.trim()
+      ? customInput.value.trim()
+      : (selectedType || '');
+    const conf = parseInt(confSlider.value, 10);
+    const outcome = document.getElementById('dl-outcome').value.trim();
+    if (!text || !typeVal || !outcome) return;
+
+    const btn = document.getElementById('dl-add-btn');
+    btn.disabled = true;
+    btn.textContent = 'Logging…';
+
+    const statusEl = document.getElementById('dl-add-status');
+    statusEl.className = 'dl-status';
+    statusEl.style.display = 'none';
+
+    try {
+      const result = await window.__mcp_invoke('decision_log_add', {
+        entry: {
+          decision_text: text,
+          decision_type: typeVal,
+          confidence_pct: conf,
+          predicted_outcome: outcome,
+        },
+        user_context: '',
+      });
+
+      let msg = `Logged: "${result.saved_entry.decision_text}" (${result.saved_entry.decision_type}, ${result.saved_entry.confidence_pct}% confident).`;
+      if (result.drift_warning) msg += '\n⚠️ ' + result.drift_warning;
+      if (result.persistence_warning) {
+        statusEl.className = 'dl-status err show';
+        statusEl.textContent = 'Save failed: ' + result.persistence_warning;
+      } else {
+        statusEl.className = 'dl-status ok show';
+        statusEl.textContent = msg;
+        // Reset form
+        document.getElementById('dl-text').value = '';
+        document.getElementById('dl-outcome').value = '';
+        presetsEl.querySelectorAll('.dl-preset').forEach(b => b.classList.remove('selected'));
+        customWrap.classList.remove('show');
+        customInput.value = '';
+        selectedType = null;
+        confSlider.value = 70;
+        confDisplay.textContent = '70%';
+      }
+    } catch (err) {
+      statusEl.className = 'dl-status err show';
+      statusEl.textContent = 'Error: ' + (err.message || String(err));
+    }
+
+    btn.textContent = 'Log this decision';
+    validateForm();
+  });
+
+  // Load open decisions
+  async function loadOpenDecisions() {
+    const listEl = document.getElementById('dl-open-list');
+    listEl.innerHTML = '<p class="dl-empty-state">Loading…</p>';
+    try {
+      const result = await window.__mcp_invoke('decision_log_list', {});
+      if (result.open.length === 0) {
+        listEl.innerHTML = '<p class="dl-empty-state">No open decisions. Log one on the first tab.</p>';
+        return;
+      }
+      listEl.innerHTML = '';
+      const dl = document.createElement('div');
+      dl.className = 'dl-entry-list';
+      result.open.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'dl-entry';
+        const daysAgo = Math.floor((Date.now() - new Date(entry.created_at).getTime()) / 86400000);
+        div.innerHTML = `
+          <div class="dl-entry-header">
+            <div>
+              <div class="dl-entry-text">${escHtml(entry.decision_text)}</div>
+              <div class="dl-entry-meta">
+                <span class="dl-badge">${escHtml(entry.decision_type)}</span>
+                <span class="dl-badge">${entry.confidence_pct}% confident</span>
+                ${entry.is_stale ? '<span class="dl-badge stale">stale (' + daysAgo + 'd)</span>' : '<span class="dl-badge">' + daysAgo + 'd open</span>'}
+              </div>
+            </div>
+            <button class="dl-resolve-btn" data-id="${escHtml(entry.id)}">Resolve</button>
+          </div>
+          <div class="dl-resolve-panel" id="rp-${escHtml(entry.id)}">
+            <div class="dl-outcome-opts">
+              <div class="dl-outcome-opt right" data-id="${escHtml(entry.id)}" data-right="true">Right</div>
+              <div class="dl-outcome-opt wrong" data-id="${escHtml(entry.id)}" data-right="false">Wrong</div>
+            </div>
+            <div class="dl-field" style="margin-top:8px;">
+              <input class="dl-input" type="text" id="rn-${escHtml(entry.id)}" maxlength="300" placeholder="Optional note (process vs. luck, what you'd do differently)">
+            </div>
+            <button class="spm-submit" type="button" data-confirm="${escHtml(entry.id)}" style="margin-top:6px;" disabled>Confirm resolution</button>
+          </div>
+        `;
+        dl.appendChild(div);
+      });
+      listEl.appendChild(dl);
+
+      // Resolve panel toggle
+      listEl.querySelectorAll('.dl-resolve-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const panel = document.getElementById('rp-' + id);
+          panel.classList.toggle('show');
+        });
+      });
+
+      // Outcome selection
+      listEl.querySelectorAll('.dl-outcome-opt').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const id = opt.dataset.id;
+          const panel = document.getElementById('rp-' + id);
+          panel.querySelectorAll('.dl-outcome-opt').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          panel.querySelector('[data-confirm]').disabled = false;
+        });
+      });
+
+      // Confirm resolution
+      listEl.querySelectorAll('[data-confirm]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.confirm;
+          const panel = document.getElementById('rp-' + id);
+          const selectedOpt = panel.querySelector('.dl-outcome-opt.selected');
+          if (!selectedOpt) return;
+          const wasRight = selectedOpt.dataset.right === 'true';
+          const note = document.getElementById('rn-' + id).value.trim();
+
+          btn.disabled = true;
+          btn.textContent = 'Saving…';
+
+          const statusEl = document.getElementById('dl-open-status');
+          try {
+            const result = await window.__mcp_invoke('decision_log_resolve', {
+              id,
+              was_right: wasRight,
+              resolution_note: note,
+            });
+            if (result.persistence_warning) {
+              statusEl.className = 'dl-status err show';
+              statusEl.textContent = 'Save failed: ' + result.persistence_warning;
+              btn.textContent = 'Confirm resolution';
+              btn.disabled = false;
+            } else {
+              statusEl.className = 'dl-status ok show';
+              statusEl.textContent = 'Resolved as ' + (wasRight ? 'right' : 'wrong') + '. Run Brier calibration to refresh your read.';
+              loadOpenDecisions();
+            }
+          } catch (err) {
+            statusEl.className = 'dl-status err show';
+            statusEl.textContent = 'Error: ' + (err.message || String(err));
+            btn.textContent = 'Confirm resolution';
+            btn.disabled = false;
+          }
+        });
+      });
+    } catch (err) {
+      listEl.innerHTML = '<p class="dl-empty-state">Error loading decisions: ' + escHtml(err.message || String(err)) + '</p>';
+    }
+  }
+
+  // Calibrate
+  document.getElementById('dl-calibrate-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('dl-calibrate-btn');
+    btn.disabled = true;
+    btn.textContent = 'Computing…';
+    const statusEl = document.getElementById('dl-open-status');
+    statusEl.className = 'dl-status';
+    try {
+      await window.__mcp_invoke('decision_log_calibrate', { user_context: '' });
+      statusEl.className = 'dl-status ok show';
+      statusEl.textContent = 'Calibration computed. Ask the chat to read your decision log to see your Brier score.';
+    } catch (err) {
+      statusEl.className = 'dl-status err show';
+      statusEl.textContent = 'Error: ' + (err.message || String(err));
+    }
+    btn.textContent = 'Compute my Brier calibration';
+    btn.disabled = false;
+  });
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Init
+  (async function init() {
+    // Load remembered custom types for the preset picker
+    let extra = [];
+    try {
+      const formData = await window.__mcp_invoke('decision_log_get_form', {});
+      extra = formData.remembered_types || [];
+    } catch {}
+    buildPresets(extra);
+    validateForm();
+  })();
+</script>
+</body>
+</html>

@@ -114,6 +114,7 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "spotting-bad-pm.html"),
     path.join(installRoot, "dist", "ui", "burnout-index.html"),
     path.join(installRoot, "dist", "ui", "onboarding-pm-101.html"),
+    path.join(installRoot, "dist", "ui", "decision-log.html"),
     path.join(
       installRoot,
       "dist",
@@ -215,6 +216,7 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkSpottingChain(client, dataDir);
     await checkBurnoutChain(client, dataDir);
     await checkOnboardingChain(client, dataDir);
+    await checkDecisionLogChain(client, dataDir);
     await checkGeneralAppsChain(client);
   } finally {
     await client.close();
@@ -485,6 +487,130 @@ async function checkOnboardingChain(client: Client, dataDir: string): Promise<vo
   );
 }
 
+// #25 Decision Log + Brier Calibration smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkDecisionLogChain(client: Client, dataDir: string): Promise<void> {
+  const list = await client.listTools();
+  const entries = Object.fromEntries(
+    list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } }]),
+  );
+  record(
+    "decision-log: get_form binds ui:// via _meta.ui.resourceUri",
+    entries["decision_log_get_form"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/decision-log",
+  );
+  record(
+    "decision-log: add + resolve have readOnlyHint=false",
+    entries["decision_log_add"]?.annotations?.readOnlyHint === false &&
+      entries["decision_log_resolve"]?.annotations?.readOnlyHint === false,
+  );
+  record(
+    "decision-log: calibrate + list + get_pending + get_form are readOnlyHint=true",
+    entries["decision_log_calibrate"]?.annotations?.readOnlyHint === true &&
+      entries["decision_log_list"]?.annotations?.readOnlyHint === true &&
+      entries["decision_log_get_pending_narration"]?.annotations?.readOnlyHint === true &&
+      entries["decision_log_get_form"]?.annotations?.readOnlyHint === true,
+  );
+
+  const desc = list.tools.find((t) => t.name === "decision_log_get_pending_narration")?.description?.toLowerCase() ?? "";
+  const must = ["must call", "what's my brier score", "am i calibrated", "read my decision log", "embedded widget"].filter((s) => !desc.includes(s));
+  record("decision-log: get_pending description carries MUST CALL + key triggers", must.length === 0, must.join(", "));
+
+  const read = await client.readResource({ uri: "ui://working-from-lenny/decision-log" });
+  const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+  record(
+    "decision-log: iframe staged ui/message names calibration + tool",
+    text.includes("Brier") || text.includes("decision") || text.includes("calibration"),
+  );
+
+  // Pre-calibrate get_pending → no_pending
+  const before = JSON.parse(contentText(await client.callTool({ name: "decision_log_get_pending_narration", arguments: {} })));
+  record("decision-log: get_pending pre-calibrate → no_pending", before.status === "no_pending");
+
+  // get_form returns presets + fields
+  const formResult = JSON.parse(contentText(await client.callTool({ name: "decision_log_get_form", arguments: {} })));
+  record(
+    "decision-log: get_form returns presets (8) and fields (4)",
+    Array.isArray(formResult.presets) && formResult.presets.length === 8 &&
+      Array.isArray(formResult.fields) && formResult.fields.length === 4,
+    JSON.stringify(formResult.presets),
+  );
+
+  // Add a decision
+  const addResult = JSON.parse(contentText(await client.callTool({
+    name: "decision_log_add",
+    arguments: {
+      entry: {
+        decision_text: "Hire a senior PM now rather than waiting",
+        decision_type: "hire",
+        confidence_pct: 80,
+        predicted_outcome: "The hire works out and we ship 3 major features in 6 months",
+      },
+      user_context: "",
+    },
+  })));
+  record(
+    "decision-log: add returns open entry with id + no persistence_warning",
+    addResult.saved_entry?.status === "open" &&
+      addResult.saved_entry?.confidence_pct === 80 &&
+      !!addResult.saved_entry?.id &&
+      addResult.persistence_warning === undefined,
+    JSON.stringify(addResult).slice(0, 200),
+  );
+
+  const entryId = addResult.saved_entry?.id as string;
+
+  // list shows 1 open
+  const listAfterAdd = JSON.parse(contentText(await client.callTool({ name: "decision_log_list", arguments: {} })));
+  record(
+    "decision-log: list after add shows 1 open entry",
+    listAfterAdd.open_count >= 1 && listAfterAdd.open.some((e: { id: string }) => e.id === entryId),
+    `open=${listAfterAdd.open_count} resolved=${listAfterAdd.resolved_count}`,
+  );
+
+  // resolve
+  const resolveResult = JSON.parse(contentText(await client.callTool({
+    name: "decision_log_resolve",
+    arguments: { id: entryId, was_right: true, resolution_note: "Great hire, shipped on time" },
+  })));
+  record(
+    "decision-log: resolve returns resolved entry, was_right=true",
+    resolveResult.updated_entry?.status === "resolved" &&
+      resolveResult.updated_entry?.was_right === true &&
+      resolveResult.persistence_warning === undefined,
+    JSON.stringify(resolveResult).slice(0, 200),
+  );
+
+  // calibrate
+  const calResult = JSON.parse(contentText(await client.callTool({
+    name: "decision_log_calibrate",
+    arguments: { user_context: "" },
+  })));
+  record(
+    "decision-log: calibrate returns narration_brief with brier_band + sections",
+    calResult.type === "narration_brief" &&
+      calResult.inputs?.n_resolved >= 1 &&
+      ["sharp","decent","coin-flip","confidently-wrong"].includes(calResult.inputs?.brier_band) &&
+      Array.isArray(calResult.structure?.sections) &&
+      calResult.structure.sections.includes("overall"),
+    JSON.stringify(calResult.inputs).slice(0, 200),
+  );
+
+  const pendingFile = path.join(dataDir, "_pending", "decision-log-calibration-pending.json");
+  record("decision-log: calibrate wrote pending file", fsSync.existsSync(pendingFile));
+
+  const after = JSON.parse(contentText(await client.callTool({ name: "decision_log_get_pending_narration", arguments: {} })));
+  record(
+    "decision-log: get_pending after calibrate returns ready brief",
+    after.status === "ready" &&
+      after.brief?.type === "narration_brief" &&
+      after.brief?.inputs?.n_resolved >= 1 &&
+      Array.isArray(after.brief?.structure?.sections) &&
+      after.brief.structure.sections.includes("overall"),
+    JSON.stringify(after.status),
+  );
+}
+
 /**
  * #57 Pressure-Test Anything + #58 Hiring Playbook (PHASE2_BUILD #11). Single-
  * call Path-4 tools: *_ask is plan/scenario-in, narration_brief-out, no spine,
@@ -641,6 +767,12 @@ async function checkListTools(client: Client): Promise<void> {
       "onboarding_generate",
       "onboarding_narrate",
       "onboarding_get_pending_narration",
+      "decision_log_get_form",
+      "decision_log_add",
+      "decision_log_resolve",
+      "decision_log_list",
+      "decision_log_calibrate",
+      "decision_log_get_pending_narration",
       "pressure_test_ask",
       "hire_playbook_ask",
     ].sort();

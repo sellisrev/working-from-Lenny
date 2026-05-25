@@ -129,6 +129,18 @@ import * as onboardingGenerate from "../src/tools/30-onboarding-pm-101/generate"
 import * as onboardingNarrate from "../src/tools/30-onboarding-pm-101/narrate";
 import * as onboardingGetPending from "../src/tools/30-onboarding-pm-101/get-pending";
 import { LESSONS as ONBOARDING_LESSONS } from "../src/tools/30-onboarding-pm-101/data";
+import * as decisionLogGetForm from "../src/tools/25-decision-log-calibration/get-form";
+import * as decisionLogAdd from "../src/tools/25-decision-log-calibration/add";
+import * as decisionLogResolve from "../src/tools/25-decision-log-calibration/resolve";
+import * as decisionLogList from "../src/tools/25-decision-log-calibration/list";
+import * as decisionLogCalibrate from "../src/tools/25-decision-log-calibration/calibrate";
+import * as decisionLogGetPending from "../src/tools/25-decision-log-calibration/get-pending";
+import {
+  normalizeType as decisionNormalizeType,
+  computeBrier as decisionComputeBrier,
+  brierBand as decisionBrierBand,
+  PRESETS as DECISION_PRESETS,
+} from "../src/tools/25-decision-log-calibration/data";
 import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
 import { loadPrompt } from "../src/lib/prompt-loader";
@@ -173,6 +185,7 @@ async function main(): Promise<void> {
   await checkSpottingData();
   await checkBurnoutData();
   await checkOnboardingData();
+  await checkDecisionLogData();
   await checkGeneralAppsData();
   await checkUiBuild();
   await checkInstalledLayout();
@@ -310,6 +323,12 @@ async function checkSchemas(): Promise<void> {
     onboardingGenerate,
     onboardingNarrate,
     onboardingGetPending,
+    decisionLogGetForm,
+    decisionLogAdd,
+    decisionLogResolve,
+    decisionLogList,
+    decisionLogCalibrate,
+    decisionLogGetPending,
     pressureTestAsk,
     hirePlaybookAsk,
   ];
@@ -655,6 +674,218 @@ async function checkOnboardingData(): Promise<void> {
 }
 
 /**
+ * #25 Decision Log + Brier Calibration — data layer + Brier math + tool chain.
+ */
+async function checkDecisionLogData(): Promise<void> {
+  // 8 presets defined (7 + "other")
+  record(
+    "decision-log: 8 presets defined (7 + other)",
+    DECISION_PRESETS.length === 8,
+    `got ${DECISION_PRESETS.length}`,
+  );
+
+  // normalizeType: trim + lowercase + collapse whitespace
+  record(
+    "decision-log: normalizeType lowercases + trims",
+    decisionNormalizeType("  Pricing  ") === "pricing",
+  );
+  record(
+    "decision-log: normalizeType collapses internal whitespace",
+    decisionNormalizeType("build  vs  buy") === "build vs buy",
+  );
+  record(
+    "decision-log: normalizeType merges custom matching preset",
+    decisionNormalizeType("HIRE") === "hire",
+  );
+  record(
+    "decision-log: normalizeType preserves custom that doesn't match preset",
+    decisionNormalizeType("team-structure") === "team-structure",
+  );
+
+  // brierBand thresholds
+  record("decision-log: brier 0.00 → sharp", decisionBrierBand(0.00) === "sharp");
+  record("decision-log: brier 0.12 → sharp", decisionBrierBand(0.12) === "sharp");
+  record("decision-log: brier 0.13 → decent", decisionBrierBand(0.13) === "decent");
+  record("decision-log: brier 0.20 → decent", decisionBrierBand(0.20) === "decent");
+  record("decision-log: brier 0.21 → coin-flip", decisionBrierBand(0.21) === "coin-flip");
+  record("decision-log: brier 0.30 → coin-flip", decisionBrierBand(0.30) === "coin-flip");
+  record("decision-log: brier 0.31 → confidently-wrong", decisionBrierBand(0.31) === "confidently-wrong");
+
+  // Brier math: perfect score (was_right=true, confidence=99%)
+  // per-decision = (0.99 - 1)^2 = 0.0001
+  const perfectEntries = [
+    {
+      id: "a", created_at: "2026-01-01T00:00:00Z",
+      decision_text: "x", decision_type: "hire", confidence_pct: 99,
+      predicted_outcome: "y", status: "resolved" as const, was_right: true,
+      resolved_at: "2026-02-01T00:00:00Z",
+    },
+  ];
+  const perfectBrier = decisionComputeBrier(perfectEntries);
+  record(
+    "decision-log: brier math — 99% right → ≈0.0001",
+    perfectBrier.overall_brier === 0.0001 && perfectBrier.n_resolved === 1,
+    JSON.stringify(perfectBrier),
+  );
+
+  // Brier math: confidently wrong (was_right=false, confidence=90%)
+  // per-decision = (0.90 - 0)^2 = 0.81
+  const wrongEntries = [
+    {
+      id: "b", created_at: "2026-01-01T00:00:00Z",
+      decision_text: "x", decision_type: "pricing", confidence_pct: 90,
+      predicted_outcome: "y", status: "resolved" as const, was_right: false,
+      resolved_at: "2026-02-01T00:00:00Z",
+    },
+  ];
+  const wrongBrier = decisionComputeBrier(wrongEntries);
+  record(
+    "decision-log: brier math — 90% wrong → 0.81",
+    wrongBrier.overall_brier === 0.81 && wrongBrier.n_resolved === 1,
+    JSON.stringify(wrongBrier),
+  );
+
+  // Per-type calibration: 4 resolved hire decisions (3 right, 1 wrong), mean_conf=80, hit_rate=75, gap=5 → well-calibrated
+  const wellCalEntries = [
+    { id:"c1", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"hire",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:true, resolved_at:"2026-02-01T00:00:00Z" },
+    { id:"c2", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"hire",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:true, resolved_at:"2026-02-01T00:00:00Z" },
+    { id:"c3", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"hire",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:true, resolved_at:"2026-02-01T00:00:00Z" },
+    { id:"c4", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"hire",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:false, resolved_at:"2026-02-01T00:00:00Z" },
+  ];
+  const wellCal = decisionComputeBrier(wellCalEntries);
+  const hireType = wellCal.per_type.find((p) => p.decision_type === "hire");
+  record(
+    "decision-log: 4 hire decisions (3 right) → verdict=well-calibrated, gap=5",
+    hireType?.verdict === "well-calibrated" && hireType.gap === 5 && hireType.n_resolved === 4,
+    JSON.stringify(hireType),
+  );
+
+  // Per-type: overconfident — 3 pricing decisions all wrong, mean_conf=80, hit_rate=0, gap=80 → overconfident
+  const overconfEntries = [
+    { id:"d1", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"pricing",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:false, resolved_at:"2026-02-01T00:00:00Z" },
+    { id:"d2", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"pricing",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:false, resolved_at:"2026-02-01T00:00:00Z" },
+    { id:"d3", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"pricing",
+      confidence_pct:80, predicted_outcome:"y", status:"resolved" as const, was_right:false, resolved_at:"2026-02-01T00:00:00Z" },
+  ];
+  const overconf = decisionComputeBrier(overconfEntries);
+  const pricingType = overconf.per_type.find((p) => p.decision_type === "pricing");
+  record(
+    "decision-log: 3 pricing all wrong (conf=80) → overconfident",
+    pricingType?.verdict === "overconfident",
+    JSON.stringify(pricingType),
+  );
+
+  // Per-type: insufficient-data (only 2 resolved of a type)
+  const thinEntries = [
+    { id:"e1", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"pivot",
+      confidence_pct:60, predicted_outcome:"y", status:"resolved" as const, was_right:true, resolved_at:"2026-02-01T00:00:00Z" },
+    { id:"e2", created_at:"2026-01-01T00:00:00Z", decision_text:"x", decision_type:"pivot",
+      confidence_pct:70, predicted_outcome:"y", status:"resolved" as const, was_right:false, resolved_at:"2026-02-01T00:00:00Z" },
+  ];
+  const thin = decisionComputeBrier(thinEntries);
+  const pivotType = thin.per_type.find((p) => p.decision_type === "pivot");
+  record(
+    "decision-log: 2 pivot decisions → insufficient-data",
+    pivotType?.verdict === "insufficient-data",
+    JSON.stringify(pivotType),
+  );
+
+  // Schema: confidence_pct=0 rejected
+  const zeroConf = decisionLogAdd.meta.inputSchema.safeParse({
+    entry: { decision_text: "x", decision_type: "hire", confidence_pct: 0, predicted_outcome: "y" },
+  });
+  record("decision-log: inputSchema rejects confidence_pct=0", !zeroConf.success);
+
+  // Schema: confidence_pct=100 rejected
+  const hundredConf = decisionLogAdd.meta.inputSchema.safeParse({
+    entry: { decision_text: "x", decision_type: "hire", confidence_pct: 100, predicted_outcome: "y" },
+  });
+  record("decision-log: inputSchema rejects confidence_pct=100", !hundredConf.success);
+
+  // Schema: missing decision_text rejected
+  const missingText = decisionLogAdd.meta.inputSchema.safeParse({
+    entry: { decision_type: "hire", confidence_pct: 70, predicted_outcome: "y" },
+  });
+  record("decision-log: inputSchema rejects missing decision_text", !missingText.success);
+
+  // Full tool chain: add → resolve → list → calibrate → get_pending
+  try {
+    const addResult = await decisionLogAdd.invoke({
+      entry: {
+        decision_text: "Should we build a self-serve onboarding flow?",
+        decision_type: "roadmap-bet",
+        confidence_pct: 75,
+        predicted_outcome: "Activation improves 20% within 3 months",
+      },
+      user_context: "",
+    } as never) as { saved_entry: { id: string; status: string; confidence_pct: number } };
+
+    record(
+      "decision-log: add returns open entry with id",
+      addResult.saved_entry.status === "open" && addResult.saved_entry.confidence_pct === 75 && !!addResult.saved_entry.id,
+      JSON.stringify(addResult.saved_entry),
+    );
+
+    const entryId = addResult.saved_entry.id;
+
+    const resolveResult = await decisionLogResolve.invoke({
+      id: entryId,
+      was_right: true,
+      resolution_note: "Activation went up 25%, exceeded target",
+    } as never) as { updated_entry: { status: string; was_right: boolean } };
+
+    record(
+      "decision-log: resolve returns resolved entry, was_right=true",
+      resolveResult.updated_entry.status === "resolved" && resolveResult.updated_entry.was_right === true,
+      JSON.stringify(resolveResult.updated_entry),
+    );
+
+    const listResult = await decisionLogList.invoke({} as never) as {
+      resolved_count: number;
+      open_count: number;
+      resolved: { id: string }[];
+    };
+    record(
+      "decision-log: list shows 1 resolved, 0 open after add+resolve",
+      listResult.resolved_count >= 1 && listResult.resolved.some((e) => e.id === entryId),
+      `resolved=${listResult.resolved_count} open=${listResult.open_count}`,
+    );
+
+    type CalibrateResult = {
+      type: string;
+      inputs: { overall_brier: number; n_resolved: number; brier_band: string };
+      structure: { sections: string[] };
+    };
+    const calResult = await decisionLogCalibrate.invoke({ user_context: "" } as never) as CalibrateResult;
+    record(
+      "decision-log: calibrate returns narration_brief with overall_brier + sections",
+      calResult.type === "narration_brief" &&
+        calResult.inputs.n_resolved >= 1 &&
+        calResult.structure.sections.includes("overall"),
+      JSON.stringify(calResult.inputs),
+    );
+
+    const pendingResult = await decisionLogGetPending.invoke({} as never) as {
+      status: string;
+      brief?: { inputs: { brier_band: string } };
+    };
+    record(
+      "decision-log: get_pending returns ready after calibrate",
+      pendingResult.status === "ready" && !!pendingResult.brief?.inputs.brier_band,
+      JSON.stringify(pendingResult.status),
+    );
+  } catch (err) {
+    record("decision-log: add→resolve→calibrate→get_pending chain", false, (err as Error).message);
+  }
+}
+
+/**
  * #57 Pressure-Test Anything + #58 Hiring Playbook (PHASE2_BUILD #11 single-call
  * Path 4). validate runs against the full repo knowledge/ tree (topics +
  * obsolete + cautions + books all present), so this exercises the complete
@@ -767,6 +998,7 @@ async function checkUiBuild(): Promise<void> {
     "spotting-bad-pm",
     "burnout-index",
     "onboarding-pm-101",
+    "decision-log",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {

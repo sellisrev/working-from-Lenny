@@ -1962,3 +1962,152 @@ export const OnboardingGetPendingNarrationOutput = z.discriminatedUnion("status"
     note: z.string(),
   }),
 ]);
+
+// ── #25 Decision Log + Brier Calibration ──────────────────────────────────────
+
+export const DecisionLogGetFormInput = z.object({}).strict();
+export const DecisionLogGetFormOutput = z.object({
+  presets: z.array(z.string()),
+  remembered_types: z.array(z.string()),
+  fields: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.enum(["text", "int", "enum-or-custom"]),
+    }),
+  ),
+  note: z.string(),
+});
+
+export const DecisionLogAddInput = z.object({
+  entry: z.object({
+    decision_text: z.string().min(1).max(300),
+    decision_type: z.string().min(1).max(80),
+    confidence_pct: z.number().int().min(1).max(99),
+    predicted_outcome: z.string().min(1).max(300),
+  }),
+  user_context: z.string().default(""),
+});
+export const DecisionLogAddOutput = z.object({
+  saved_entry: z.object({
+    id: z.string(),
+    created_at: z.string(),
+    decision_text: z.string(),
+    decision_type: z.string(),
+    confidence_pct: z.number().int(),
+    predicted_outcome: z.string(),
+    status: z.literal("open"),
+  }),
+  drift_warning: z.string().optional(),
+  persistence_warning: z.string().optional(),
+});
+
+export const DecisionLogResolveInput = z.object({
+  id: z.string().min(1),
+  was_right: z.boolean(),
+  resolution_note: z.string().max(300).default(""),
+});
+export const DecisionLogResolveOutput = z.object({
+  updated_entry: z.object({
+    id: z.string(),
+    created_at: z.string(),
+    decision_text: z.string(),
+    decision_type: z.string(),
+    confidence_pct: z.number().int(),
+    predicted_outcome: z.string(),
+    status: z.literal("resolved"),
+    resolved_at: z.string(),
+    was_right: z.boolean(),
+    resolution_note: z.string(),
+  }),
+  persistence_warning: z.string().optional(),
+});
+
+export const DecisionLogListInput = z.object({}).strict();
+export const DecisionLogListOutput = z.object({
+  open: z.array(
+    z.object({
+      id: z.string(),
+      created_at: z.string(),
+      decision_text: z.string(),
+      decision_type: z.string(),
+      confidence_pct: z.number().int(),
+      predicted_outcome: z.string(),
+      is_stale: z.boolean(),
+    }),
+  ),
+  resolved: z.array(
+    z.object({
+      id: z.string(),
+      created_at: z.string(),
+      decision_text: z.string(),
+      decision_type: z.string(),
+      confidence_pct: z.number().int(),
+      was_right: z.boolean(),
+      resolved_at: z.string(),
+      resolution_note: z.string(),
+    }),
+  ),
+  open_count: z.number().int(),
+  resolved_count: z.number().int(),
+});
+
+const DecisionLogNarrateOutputBase = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    overall_brier: z.number(),
+    brier_band: z.enum(["sharp", "decent", "coin-flip", "confidently-wrong"]),
+    n_resolved: z.number().int(),
+    per_type: z.array(
+      z.object({
+        decision_type: z.string(),
+        n_resolved: z.number().int(),
+        mean_confidence: z.number(),
+        hit_rate: z.number(),
+        gap: z.number(),
+        verdict: z.enum([
+          "overconfident",
+          "underconfident",
+          "well-calibrated",
+          "insufficient-data",
+        ]),
+      }),
+    ),
+    open_count: z.number().int(),
+    oldest_open: z
+      .object({
+        decision_text: z.string(),
+        created_at: z.string(),
+      })
+      .optional(),
+    user_context: z.string(),
+    persistence_warning: z.string().optional(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const DecisionLogCalibrateInput = z.object({
+  user_context: z.string().default(""),
+});
+export const DecisionLogCalibrateOutput = DecisionLogNarrateOutputBase;
+
+export const DecisionLogGetPendingNarrationInput = z.object({}).strict();
+export const DecisionLogGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: DecisionLogNarrateOutputBase,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
