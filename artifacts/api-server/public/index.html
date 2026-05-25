@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Working from Lenny</title>
-  <meta name="description" content="Drawn from Lenny Rachitsky's corpus, including Claire Vo's How I AI. Kept current at least monthly.">
+  <meta name="description" content="Small, sharp PM tools drawn from Lenny Rachitsky's corpus, including Claire Vo's How I AI. Kept current at least monthly.">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Working from Lenny">
-  <meta property="og:description" content="Drawn from Lenny Rachitsky's corpus, including Claire Vo's How I AI. Kept current at least monthly.">
+  <meta property="og:description" content="Small, sharp PM tools drawn from Lenny Rachitsky's corpus, including Claire Vo's How I AI. Kept current at least monthly.">
   <meta property="og:image" content="/og-image.png">
   <meta property="og:type" content="website">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Working from Lenny">
-  <meta name="twitter:description" content="Drawn from Lenny Rachitsky's corpus, including Claire Vo's How I AI. Kept current at least monthly.">
+  <meta name="twitter:description" content="Small, sharp PM tools drawn from Lenny Rachitsky's corpus, including Claire Vo's How I AI. Kept current at least monthly.">
   <meta name="twitter:image" content="/og-image.png">
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -32,56 +32,307 @@
 
   <main>
     <div class="container">
-      <ul class="tiles" id="tools">
-        <li>
-          <a href="/pitfalls.html" class="tile tile-style-1">
-            <span class="tile-doorway" aria-hidden="true">
-              <span class="tile-panel"></span>
-            </span>
-            <span class="tile-caption"><span class="tile-num">1.</span> Hopefully fewer than ten</span>
-          </a>
-        </li>
-        <li>
-          <a href="/horoscope.html" class="tile tile-style-2">
-            <span class="tile-doorway" aria-hidden="true">
-              <span class="tile-panel"></span>
-            </span>
-            <span class="tile-caption"><span class="tile-num">2.</span> Mercury is in retrospective</span>
-          </a>
-        </li>
-        <li>
-          <a href="/pmify.html" class="tile tile-style-3">
-            <span class="tile-doorway" aria-hidden="true">
-              <span class="tile-panel"></span>
-            </span>
-            <span class="tile-caption"><span class="tile-num">3.</span> Async unless urgent</span>
-          </a>
-        </li>
-        <li>
-          <a href="/how-you-build.html" class="tile tile-style-4">
-            <span class="tile-doorway" aria-hidden="true">
-              <span class="tile-panel"></span>
-            </span>
-            <span class="tile-caption"><span class="tile-num">4.</span> Mythical Tuesday standup</span>
-          </a>
-        </li>
-        <li>
-          <a href="/pm-ladder.html" class="tile tile-style-5">
-            <span class="tile-doorway" aria-hidden="true">
-              <span class="tile-panel"></span>
-            </span>
-            <span class="tile-caption"><span class="tile-num">5.</span> Where you actually are</span>
-          </a>
-        </li>
-        <li>
-          <a href="/founder-pm-hire.html" class="tile tile-style-6">
-            <span class="tile-doorway" aria-hidden="true">
-              <span class="tile-panel"></span>
-            </span>
-            <span class="tile-caption"><span class="tile-num">6.</span> Whether, when, and which</span>
-          </a>
-        </li>
-      </ul>
+
+      <p class="lede">Small, sharp PM tools drawn from Lenny Rachitsky's newsletter, and Claire Vo's <em>How I AI</em>. These apps rely on Lenny's interview insights, filtered through his recent interviews and <em>How I AI</em>, in order to map out what is still relevant to this brave new AI world.</p>
+
+      <!-- TODO: point this at the .mcpb bundle in the repo (or its GitHub Release / the /install page)
+           once the bundle is added to the repo. No .mcpb is committed yet, so this links to the repo root
+           as a placeholder. -->
+      <div class="install-cta">
+        <span>Prefer to work inside Claude?</span>
+        <a class="btn" href="https://github.com/sellisrev/working-from-Lenny" target="_blank" rel="noopener">Install the MCP app</a>
+        <span class="install-cta-note">All apps in one bundle. Each also runs as a skill (the <em>skill</em> link on every tile).</span>
+      </div>
+
+      <!-- ★ Featured: always-fresh corpus-wide apps (STATUS 4c) -->
+      <section class="section section-featured">
+        <h2 class="section-head">★ Ask &amp; learn — always fresh</h2>
+        <p class="section-sub">Corpus-wide, decay-aware. No single purpose; the front doors.</p>
+        <ul class="tiles tiles-catalog">
+
+          <li class="appcard">
+            <a class="tile tile-style-2" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Answer my product or PM question using the current consensus from Lenny Rachitsky's newsletter and the How I AI corpus. Flag anything that has recently changed, and note which idea or guest it traces to. My question: ">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Lenny AMA</span>
+            </a>
+            <p class="appcard-desc">Ask anything; a current, decay-aware answer from the corpus, with sources.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/blob/main/SKILL.md" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-5" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Give me one current product or PM lesson worth knowing today from Lenny's corpus, then one thing that corpus now treats as outdated. Keep both short and concrete.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Daily Dose of Knowledge</span>
+            </a>
+            <p class="appcard-desc">One current lesson a day, paired with one thing the corpus has since taken back.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/blob/main/SKILL.md" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+        </ul>
+      </section>
+
+      <!-- 1. Self-reflective as PM -->
+      <section class="section">
+        <h2 class="section-head">Self-reflective as PM</h2>
+        <p class="section-sub">Turn the lens on yourself: your behaviors, level, health, judgment, hard conversations.</p>
+        <ul class="tiles tiles-catalog">
+
+          <li class="appcard">
+            <a class="tile tile-style-1" href="/pitfalls.html">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">PM Pitfalls Self-Audit</span>
+            </a>
+            <p class="appcard-desc">Rate yourself on twenty corpus-derived PM pitfalls; get the three worth fixing.</p>
+            <p class="appcard-foot"><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pm-pitfalls" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-5" href="/pm-ladder.html">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">PM Ladder Self-Assessment</span>
+            </a>
+            <p class="appcard-desc">Self-assess your PM level across five dimensions, with an honest read.</p>
+            <p class="appcard-foot"><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pm-ladder" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-3" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Run a quick burnout self-check with me as a product person. Ask me five or six calibrated questions, then give me an honest read and a phased recovery plan rather than a pep talk.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Burnout Warning Index</span>
+            </a>
+            <p class="appcard-desc">A quick wellbeing index with a phased recovery plan, not a pep talk.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/burnout-warning-index" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-6" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me log a recent product decision with my confidence level, then later score whether I was well calibrated. Start by asking me the decision, the options I weighed, and how confident I was.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Decision Log + Calibration</span>
+            </a>
+            <p class="appcard-desc">Log decisions with your confidence; get Brier-scored on whether you were calibrated.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/decision-log-calibration" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-4" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Let me rehearse saying a hard no out loud before the real conversation. Ask me who I need to say no to and what they want, then play that person while I practice.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">&ldquo;Saying No&rdquo; Rehearsal</span>
+            </a>
+            <p class="appcard-desc">Rehearse a hard no out loud before you have to say it for real.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/saying-no-rehearsal" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-2" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me rehearse a difficult conversation (tough feedback, bad news, or a PIP) before it happens. Ask me the situation and the person, then role-play them while I practice.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Difficult-Conversations Rehearsal</span>
+            </a>
+            <p class="appcard-desc">Rehearse the hard conversation: feedback, bad news, a PIP, before it happens.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/difficult-conversations-rehearsal" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+        </ul>
+      </section>
+
+      <!-- 2. Business questions -->
+      <section class="section">
+        <h2 class="section-head">Business questions</h2>
+        <p class="section-sub">About the product, the business, the strategy. Not the person.</p>
+        <ul class="tiles tiles-catalog">
+
+          <li class="appcard">
+            <a class="tile tile-style-6" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Pressure-test my strategy and tell me whether it is real or just ambitious words. Ask me to paste the strategy, then probe the weakest assumptions the way a sharp board member would.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Strategy Pressure-Tester</span>
+            </a>
+            <p class="appcard-desc">Pressure-test whether your strategy is real or just ambitious words.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/lenny-pressure-test" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-3" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me find the one north star metric that captures the value my product delivers. Ask me what the product does and who it is for, then propose candidates and stress-test each.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">North Star Metric Finder</span>
+            </a>
+            <p class="appcard-desc">Find the one metric that actually captures the value you deliver.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/nsm-finder" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-5" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me pin down my product's activation moment, the first-value step that predicts retention. Ask about the onboarding flow and what early users do, then propose a measurable activation event.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Activation Metric Finder</span>
+            </a>
+            <p class="appcard-desc">Pin down your activation moment, the first-value step that predicts retention.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/activation-metric-finder" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-3" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Score how well my AI feature is actually tested rather than just shipped. Ask me what the feature does and how I currently check it, then map the gaps in my eval coverage.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">AI Eval Coverage Scorecard</span>
+            </a>
+            <p class="appcard-desc">Score how well your AI feature is actually tested, not just shipped.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/ai-eval-coverage" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-1" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Critique my OKRs for activity disguised as outcome, and rewrite the weak ones. Ask me to paste the objective and key results first.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">OKR Critique</span>
+            </a>
+            <p class="appcard-desc">Critique your OKRs for activity disguised as outcome, with rewrites.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/okr-critique" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-2" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Check whether my mission, vision, and strategy actually line up or quietly contradict each other. Ask me to paste all three, then map where they drift.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Mission / Vision / Strategy Alignment</span>
+            </a>
+            <p class="appcard-desc">Check whether your mission, vision, and strategy actually line up.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/mission-vision-alignment" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-6" href="/founder-pm-hire.html">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Founder PM hire</span>
+            </a>
+            <p class="appcard-desc">Decide whether, and at what level, to make your first PM hire.</p>
+            <p class="appcard-foot"><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/lenny-hire" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-4" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me test which of Hamilton Helmer's 7 Powers my business actually has, claim versus evidence. Ask me about the business, then challenge each power I claim.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">7 Powers Self-Classifier</span>
+            </a>
+            <p class="appcard-desc">Test which of the 7 Powers you actually have, claim versus evidence.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/seven-powers-classifier" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-1" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me find my real adoption stage from Crossing the Chasm and the playbook that fits it. Ask me about my customers and traction, then place me honestly.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Crossing-the-Chasm Stage Finder</span>
+            </a>
+            <p class="appcard-desc">Find your real adoption stage and the playbook that fits it.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/crossing-the-chasm-stage" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-2" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Pressure-test my plan, PRD, strategy, or decision against the strongest objections from Lenny's corpus. Ask me to paste it, then give ranked objections, each attributed to a guest and ending in a concrete next step.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Pressure-Test Anything</span>
+            </a>
+            <p class="appcard-desc">Pressure-test any plan, PRD, or decision against the corpus's strongest objections.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/lenny-pressure-test" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-5" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Build me a corpus-grounded hiring playbook. Ask me the role, the level, and my main concern, then give what good looks like, signals to probe, common failure modes, and attributed question scripts.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Hiring Playbook</span>
+            </a>
+            <p class="appcard-desc">A corpus-grounded hiring playbook for any role and level, with attributed question scripts.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/lenny-hire" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+        </ul>
+      </section>
+
+      <!-- 3. For everyone including non-PMs -->
+      <section class="section">
+        <h2 class="section-head">For everyone including non-PMs</h2>
+        <p class="section-sub">Understand, work with, or adopt PM thinking without being a PM.</p>
+        <ul class="tiles tiles-catalog">
+
+          <li class="appcard">
+            <a class="tile tile-style-3" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Give me a fast orientation to what product managers actually do, written for someone who works with them but is not one. Ask what my role is so you can make it relevant.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Onboarding to PM 101</span>
+            </a>
+            <p class="appcard-desc">A fast orientation to what PMs do, for people who work with them.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/onboarding-pm-101" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-4" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Help me tell whether my PM's behavior is a bad week or a bad pattern, and what to do about it. Ask me what I am seeing, then walk me through the signals.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">Spotting Bad PM Behaviors</span>
+            </a>
+            <p class="appcard-desc">Tell whether your PM's behavior is a bad week or a bad pattern, and what to do.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/spotting-bad-pm-behaviors" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-1" href="https://claude.ai/new" target="_blank" rel="noopener"
+               data-q="Adapt core product-management frameworks for my world. Ask whether I am a school principal, nonprofit director, hospital service-line lead, or research-lab PI, then give me a jobs-to-be-done interview kit, a prioritization rubric, and a stop-doing list.">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">PM-for-Non-PMs Operating Manual</span>
+            </a>
+            <p class="appcard-desc">PM frameworks adapted for principals, nonprofit EDs, hospital and lab leaders.</p>
+            <p class="appcard-foot"><span class="appcard-mode">opens in Claude</span><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pm-non-pm-manual" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+        </ul>
+      </section>
+
+      <!-- 4. Just for fun -->
+      <section class="section">
+        <h2 class="section-head">Just for fun</h2>
+        <p class="section-sub">The self-aware PM-meta humor apps.</p>
+        <ul class="tiles tiles-catalog">
+
+          <li class="appcard">
+            <a class="tile tile-style-3" href="/pmify.html">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">PM-ify My Inbox</span>
+            </a>
+            <p class="appcard-desc">Turn a human message into corporate PM-speak, against your better judgment.</p>
+            <p class="appcard-foot"><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pmify-inbox" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-4" href="/how-you-build.html">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">How [You] Build Product</span>
+            </a>
+            <p class="appcard-desc">A parody field guide to how your team actually builds product.</p>
+            <p class="appcard-foot"><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/how-you-build" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+          <li class="appcard">
+            <a class="tile tile-style-2" href="/horoscope.html">
+              <span class="tile-doorway" aria-hidden="true"><span class="tile-panel"></span></span>
+              <span class="tile-caption">PM Horoscope</span>
+            </a>
+            <p class="appcard-desc">Your PM archetype as a horoscope, with a lucky corpus topic.</p>
+            <p class="appcard-foot"><a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pm-horoscope" target="_blank" rel="noopener">skill ↗</a></p>
+          </li>
+
+        </ul>
+      </section>
+
     </div>
   </main>
 
@@ -97,6 +348,15 @@
       <a href="https://github.com/sellisrev/working-from-Lenny" target="_blank" rel="noopener">GitHub</a>
     </div>
   </footer>
+
+  <script>
+    // Progressive enhancement: tiles that fall back to claude.ai carry the
+    // structured prompt in data-q. Build the ?q= here so the HTML stays
+    // readable and a no-JS visitor still reaches claude.ai (just unprefilled).
+    document.querySelectorAll('a[data-q]').forEach(function (a) {
+      a.href = 'https://claude.ai/new?q=' + encodeURIComponent(a.dataset.q);
+    });
+  </script>
 
 </body>
 </html>

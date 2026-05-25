@@ -42,7 +42,7 @@ const HomeOutput = z.object({
 export const meta: ToolMeta = {
   name: "wfl_home",
   description:
-    "The starting interface for Working from Lenny. CALL THIS when the user opens Working from Lenny, says hi, or asks what's available / what you can do / what tools there are. Returns the full menu of apps grouped by theme (featured always-fresh apps first), each with a one-liner, the tool that launches it, and a link to use it as a Claude Code skill instead. Render it as a short menu: featured apps first, then each themed section as a labeled list; for each app show the name, the one-liner, and how to start it (mount its ui:// resource or call its entry tool). Do not invent apps that are not in the returned catalog.",
+    "The starting interface for Working from Lenny. CALL THIS when the user opens Working from Lenny, says hi, or asks what's available / what you can do / what tools there are. Returns the full menu of apps grouped by theme (featured always-fresh apps first), each with a one-liner, the tool that launches it, and a link to use it as a skill instead. Render it as a short menu: featured apps first, then each themed section as a labeled list; for each app show the name, the one-liner, and how to start it (mount its ui:// resource or call its entry tool). Do not invent apps that are not in the returned catalog.",
   inputSchema: HomeInput,
   outputSchema: HomeOutput,
   annotations: { readOnlyHint: true },
@@ -77,12 +77,28 @@ const SECTION_LABELS: Record<string, string> = {
   "ask-and-learn": "Ask & learn (always fresh)",
   "self-reflective": "Self-reflective as PM",
   business: "Business questions",
-  "for-non-pms": "For non-PMs / working with product",
+  "for-non-pms": "For everyone including non-PMs",
   "just-for-fun": "Just for fun",
 };
 
-const SKILL_BASE_URL =
-  "https://github.com/sellisrev/working-from-Lenny/tree/main/skills";
+const REPO_TREE = "https://github.com/sellisrev/working-from-Lenny/tree/main";
+const SKILL_BASE_URL = `${REPO_TREE}/skills`;
+
+// Three legacy skills live at the repo root (a coherent skill family that
+// references each other + shared scripts/), NOT under skills/<slug>. The
+// per-app catalog slugs that point at them must resolve to their real paths,
+// or the launcher tiles + site link to dead URLs.
+const ROOT_SKILL_URLS: Record<string, string> = {
+  "lenny-actualize":
+    "https://github.com/sellisrev/working-from-Lenny/blob/main/SKILL.md",
+  "lenny-hire": `${REPO_TREE}/lenny-hire`,
+  "lenny-pressure-test": `${REPO_TREE}/lenny-pressure-test`,
+};
+
+function skillUrl(slug: string): string {
+  if (!slug) return SKILL_BASE_URL;
+  return ROOT_SKILL_URLS[slug] ?? `${SKILL_BASE_URL}/${slug}`;
+}
 
 async function loadCatalog(): Promise<CatalogApp[]> {
   const catalogPath = path.join(__dirname, "catalog.json");
@@ -100,7 +116,7 @@ function toMenuEntry(app: CatalogApp): z.infer<typeof MenuEntry> {
     one_liner: app.one_liner,
     entry_tool: app.entry_tool,
     ui_resource: app.ui_resource,
-    skill_url: app.skill_slug ? `${SKILL_BASE_URL}/${app.skill_slug}` : SKILL_BASE_URL,
+    skill_url: skillUrl(app.skill_slug),
     launch_hint,
   };
 }
@@ -128,7 +144,7 @@ export const invoke: ToolHandler<Input, Output> = async () => {
     intro:
       "Small PM tools drawn from Lenny's Newsletter and How I AI. Pick one, or ask anything in the always-fresh apps up top.",
     render_directive:
-      "Render this as the Working from Lenny menu. Lead with the featured apps, then each themed section as a short labeled list. For every app give its name, its one-liner, and how to start it (mount the ui:// resource where the host supports it, otherwise call the entry_tool). Mention that any app can be used as a Claude Code skill via its skill_url. Keep it scannable; do not add apps that are not listed.",
+      "Render this as the Working from Lenny menu. Lead with the featured apps, then each themed section as a short labeled list. For every app give its name, its one-liner, and how to start it (mount the ui:// resource where the host supports it, otherwise call the entry_tool). Mention that any app can be used as a skill via its skill_url. Keep it scannable; do not add apps that are not listed.",
     featured,
     sections,
     total_apps: apps.length,

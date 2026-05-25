@@ -1,0 +1,81 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/pressure-test",
+    "name": "Pressure-Test Anything",
+    "description": "The broad front door for critique: a single box that pressure-tests any plan, PRD, strategy doc, GTM plan, pricing decision, or architectural decision against the strongest corpus-grounded objections. The general-scope sibling of the #2 Strategy Pressure-Tester (which is the narrow, structured strategy wizard); this one takes free text on any decision and is the MCP-app surface of the lenny-pressure-test skill. Returns ranked objections, each attributed to a specific guest with a concrete next step, plus pre-ship questions worth answering. Decay-aware: it sweeps the obsolete + cautions layers so an objection flags when older advice has expired or drew audience pushback. No state, no scoring. The UI is an optional paste box; the tool is plan-in / critique-out and works chat-natively.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "pressure_test_ask",
+      "description": "MUST CALL whenever the user wants a plan, PRD, strategy doc, GTM plan, pricing decision, or architectural decision critiqued, stress-tested, or argued against ('pressure-test this', 'find the holes in this plan', 'what would the corpus push back on', 'second opinion on this PRD', 'argue against this'), AND a more specific Working-from-Lenny app is not already in play. Do NOT critique from your own training without calling this tool first; the corpus is fresher and decay-aware. Takes a free-text `plan` (and optional `k` for retrieval breadth). Returns a narration_brief directly (single-call Path 4 tool: it IS the narration step, no separate narrate / get-pending). Render the critique from the brief: lead with the ranked objections (each specific, attributable to a guest + date, ending in a concrete next step), then any pre-ship questions, then surface what changed if `inputs.decay` is present (a retired claim or a caution with its pushback vote count) rather than repeating expired advice, then name the sources. Never leave an objection without a what-to-do-next. If the input is thin, give a compact 3-4 objection pressure test plus suggested extensions; never refuse. If `inputs.suggested_app` is present (e.g. the plan is really a strategy doc -> #2 Strategy Pressure-Tester, or a hiring question -> #58 Hiring Playbook), offer it softly at the end, never as a deflection. Follow the brief's voice_rules.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "plan": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "k": { "type": "integer", "minimum": 1, "maximum": 20, "default": 10 }
+        },
+        "required": ["plan"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Carries the user's plan, the retrieved hits (each with slug + kind topic|obsolete|caution + last_updated), an optional `decay` block built from any obsolete/caution hit, and an optional `suggested_app` { id, name, entry_tool } resolved from the routing map (strategy -> #2, hiring -> #58)."
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of retrieved source slug to corpus chunk text (truncated), spanning topics / obsolete / cautions / books."
+          }
+        }
+      },
+      "_meta": {
+        "ui": { "resourceUri": "ui://working-from-lenny/pressure-test" },
+        "annotations": { "readOnlyHint": true }
+      }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 440 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #57 Pressure-Test Anything. The MCP-app surface of the lenny-pressure-test skill (kept at the repo root, general scope). Same single-call Path 4 shape as #54 Lenny AMA (PHASE2_BUILD.md #11 always-fresh corpus-wide retrieval): pressure_test_ask returns a narration_brief directly, no score -> narrate -> get-pending spine, no persistence, readOnlyHint: true, no sampling. Reuses the shared retrieveAcrossCorpus(text, k) helper (topics + obsolete + cautions + books), same as AMA. The deliberate difference from AMA is the output shape (ranked objections + pre-ship questions + mandatory next steps, mirroring lenny-pressure-test/SKILL.md hard rules) and the routing map (strategy doc -> #2 Strategy Pressure-Tester, hiring -> #58 Hiring Playbook). Relationship: #2 is the narrow, deterministic strategy wizard; #57 is the broad free-text critique front door over the same corpus. Added 2026-05-25 to make the lenny-pressure-test capability discoverable as an app (owner directive) without narrowing the skill. Bundle .ts (tool handler + manifest registration + validate/smoke) is a routine build pass; this spec is Stage A/B. Tool description verbatim-matches the intended runtime meta.description string.",
+    "dev.workingfromlenny.app": {
+      "id": 57,
+      "name": "Pressure-Test Anything",
+      "phase": 3,
+      "type": "open critique / router (corpus-wide retrieval, no state)",
+      "skill_engine": "lenny-pressure-test",
+      "narrow_sibling": "#2 Strategy Pressure-Tester (apps/2-strategy-pressure-test)"
+    },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 10,
+      "one_liner": "Pressure-test any plan, PRD, or decision against the corpus's strongest objections.",
+      "entry_tool": "pressure_test_ask",
+      "ui_resource": "ui://working-from-lenny/pressure-test",
+      "skill_slug": "lenny-pressure-test"
+    },
+    "dev.workingfromlenny.status": {
+      "stage_a": true,
+      "stage_b": true,
+      "stage_c": false,
+      "stage_d": false,
+      "note": "Spec drafted 2026-05-25. Bundle tool implementation + gating queued for the routine (ROUTINE.md). Discoverable now via the launcher catalog + the Replit site tile; the wired tool ships when the routine completes Stage C/D."
+    }
+  }
+}

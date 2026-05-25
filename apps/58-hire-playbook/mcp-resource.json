@@ -1,0 +1,81 @@
+{
+  "resource": {
+    "uri": "ui://working-from-lenny/hire-playbook",
+    "name": "Hiring Playbook",
+    "description": "The broad front door for hiring: a single box that composes a scenario-specific hiring playbook for any role (PM, eng-manager, founder, sales-leader, designer, data-leader) at any level, drawn from the corpus. The general-scope sibling of the #12-38 Founder PM hire app (which is the narrow, structured 'whether and at what level to make your first PM hire' wizard); this one takes a free-text hiring scenario and is the MCP-app surface of the lenny-hire skill. Returns what-good-looks-like, signals to probe, common failure modes, attributed question scripts, and references. Decay-aware over the cautions layer (flags guests with active caution files). No state, no scoring. The UI is an optional scenario box; the tool is scenario-in / playbook-out and works chat-natively.",
+    "mimeType": "text/html;profile=mcp-app"
+  },
+  "tools": [
+    {
+      "name": "hire_playbook_ask",
+      "description": "MUST CALL whenever the user wants help hiring or interviewing for a role ('how do I hire a <role>', 'interviewing for <role>', 'how to evaluate a <role> candidate', 'should I hire <X>', 'what to probe in a <role> interview'), AND a more specific Working-from-Lenny app is not already in play. Do NOT answer from your own training without calling this tool first; the corpus is fresher and carries an attributed caution layer. Takes a free-text `scenario` (role + level + concern + candidate context, in any phrasing) and optional `k` for retrieval breadth. Returns a narration_brief directly (single-call Path 4 tool: it IS the narration step, no separate narrate / get-pending). Render the playbook from the brief: what-good-looks-like, signals to probe, common failure modes, attributed question scripts (each tied to a guest + date), then references; surface a one-line caution aside when citing a guest with an active caution file. If the input is thin, give a compact playbook (what-good-looks-like + a 3-bullet what-to-probe) plus suggested extensions; never refuse. If `inputs.suggested_app` is present (e.g. a founder's first-PM-hire decision -> #12-38 Founder PM hire, or a strategy question -> #57 Pressure-Test Anything), offer it softly at the end. Follow the brief's voice_rules.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scenario": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "k": { "type": "integer", "minimum": 1, "maximum": 20, "default": 10 }
+        },
+        "required": ["scenario"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "narration_brief" },
+          "audience": { "const": "user" },
+          "directive": { "type": "string" },
+          "voice_rules": { "type": "array", "items": { "type": "string" } },
+          "structure": {
+            "type": "object",
+            "properties": {
+              "sections": { "type": "array", "items": { "type": "string" } },
+              "per_section_template": { "type": "string" },
+              "length_cap": { "type": "string" }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Carries the user's scenario (parsed role / level / concern where present), the retrieved hits (each with slug + kind topic|obsolete|caution + last_updated), an optional `caution` block for cited guests with active caution files, and an optional `suggested_app` { id, name, entry_tool } from the routing map (first-PM-hire -> #12-38, strategy -> #57)."
+          },
+          "corpus": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Map of retrieved source slug to corpus chunk text (truncated), spanning topics / cautions / books."
+          }
+        }
+      },
+      "_meta": {
+        "ui": { "resourceUri": "ui://working-from-lenny/hire-playbook" },
+        "annotations": { "readOnlyHint": true }
+      }
+    }
+  ],
+  "ui": { "renderHint": "card", "preferredWidth": 640, "preferredHeight": 440 },
+  "_meta": {
+    "dev.workingfromlenny.comment": "MCP resource spec for #58 Hiring Playbook. The MCP-app surface of the lenny-hire skill (kept at the repo root, general scope: any role, any level). Same single-call Path 4 shape as #54 Lenny AMA (PHASE2_BUILD.md #11): hire_playbook_ask returns a narration_brief directly, no spine, no persistence, readOnlyHint: true, no sampling. Reuses the shared retrieveAcrossCorpus(text, k) helper (topics + cautions + books). The deliberate difference from AMA is the output shape (what-good-looks-like + signals + failure modes + attributed question scripts, mirroring lenny-hire/SKILL.md) and the caution-aside rule. Relationship: #12-38 Founder PM hire is the narrow, deterministic 'whether + at what level to make your first PM hire' wizard; #58 is the broad free-text hiring-playbook front door for any role over the same corpus. Added 2026-05-25 to make the lenny-hire capability discoverable as an app (owner directive) without narrowing the skill. Bundle .ts (tool handler + manifest registration + validate/smoke) is a routine build pass; this spec is Stage A/B. Tool description verbatim-matches the intended runtime meta.description string.",
+    "dev.workingfromlenny.app": {
+      "id": 58,
+      "name": "Hiring Playbook",
+      "phase": 3,
+      "type": "open playbook / router (corpus-wide retrieval, no state)",
+      "skill_engine": "lenny-hire",
+      "narrow_sibling": "#12-38 Founder PM hire (apps/12-38-founder-pm-hire)"
+    },
+    "dev.workingfromlenny.catalog": {
+      "theme": "business",
+      "featured": false,
+      "order_hint": 11,
+      "one_liner": "A corpus-grounded hiring playbook for any role and level, with attributed question scripts.",
+      "entry_tool": "hire_playbook_ask",
+      "ui_resource": "ui://working-from-lenny/hire-playbook",
+      "skill_slug": "lenny-hire"
+    },
+    "dev.workingfromlenny.status": {
+      "stage_a": true,
+      "stage_b": true,
+      "stage_c": false,
+      "stage_d": false,
+      "note": "Spec drafted 2026-05-25. Bundle tool implementation + gating queued for the routine (ROUTINE.md). Discoverable now via the launcher catalog + the Replit site tile; the wired tool ships when the routine completes Stage C/D."
+    }
+  }
+}

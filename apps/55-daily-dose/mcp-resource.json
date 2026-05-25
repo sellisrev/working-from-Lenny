@@ -190,7 +190,7 @@
       "one_liner": "One current lesson a day, paired with one thing the corpus has since taken back.",
       "entry_tool": "daily_dose_pick",
       "ui_resource": "ui://working-from-lenny/daily-dose",
-      "skill_slug": "daily-dose"
+      "skill_slug": "lenny-actualize"
     },
     "dev.workingfromlenny.path_4": {
       "decided": "2026-05-20",

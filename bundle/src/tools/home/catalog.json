@@ -1,5 +1,5 @@
 {
-  "app_count": 23,
+  "app_count": 25,
   "apps": [
     {
       "app_id": "12-38-founder-pm-hire",
@@ -230,7 +230,29 @@
       "one_liner": "One current lesson a day, paired with one thing the corpus has since taken back.",
       "entry_tool": "daily_dose_pick",
       "ui_resource": "ui://working-from-lenny/daily-dose",
-      "skill_slug": "daily-dose"
+      "skill_slug": "lenny-actualize"
+    },
+    {
+      "app_id": "57-pressure-test-anything",
+      "name": "Pressure-Test Anything",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 10,
+      "one_liner": "Pressure-test any plan, PRD, or decision against the corpus's strongest objections.",
+      "entry_tool": "pressure_test_ask",
+      "ui_resource": "ui://working-from-lenny/pressure-test",
+      "skill_slug": "lenny-pressure-test"
+    },
+    {
+      "app_id": "58-hire-playbook",
+      "name": "Hiring Playbook",
+      "theme": "business",
+      "featured": false,
+      "order_hint": 11,
+      "one_liner": "A corpus-grounded hiring playbook for any role and level, with attributed question scripts.",
+      "entry_tool": "hire_playbook_ask",
+      "ui_resource": "ui://working-from-lenny/hire-playbook",
+      "skill_slug": "lenny-hire"
     },
     {
       "app_id": "6-ai-eval-coverage",
