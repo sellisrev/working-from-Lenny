@@ -205,8 +205,88 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkOkrChain(client, dataDir);
     await checkMvsChain(client, dataDir);
     await checkActivationChain(client, dataDir);
+    await checkGeneralAppsChain(client);
   } finally {
     await client.close();
+  }
+}
+
+/**
+ * #57 Pressure-Test Anything + #58 Hiring Playbook (PHASE2_BUILD #11). Single-
+ * call Path-4 tools: *_ask is plan/scenario-in, narration_brief-out, no spine,
+ * no persistence, readOnlyHint: true. The staged install root is topics-only
+ * (same as the shipped .mcpb — pack.ts stages knowledge/topics only), so this
+ * exercises the degraded topics-grounded path; validate covers the full decay
+ * sweep against the repo knowledge/ tree.
+ */
+async function checkGeneralAppsChain(client: Client): Promise<void> {
+  try {
+    const listed = await client.listTools();
+    const entries = Object.fromEntries(
+      listed.tools.map((t) => [
+        t.name,
+        t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } },
+      ]),
+    );
+    record(
+      "general: ask tools are read-only and chat-native (no ui binding)",
+      entries["pressure_test_ask"]?.annotations?.readOnlyHint === true &&
+        entries["hire_playbook_ask"]?.annotations?.readOnlyHint === true &&
+        entries["pressure_test_ask"]?._meta?.ui?.resourceUri === undefined &&
+        entries["hire_playbook_ask"]?._meta?.ui?.resourceUri === undefined,
+    );
+
+    const pt = await client.callTool({
+      name: "pressure_test_ask",
+      arguments: {
+        plan: "We will grow through invitations and a freemium tier; no retention metric defined.",
+      },
+    });
+    if (pt.isError) {
+      record("general: pressure_test_ask call", false, contentText(pt));
+    } else {
+      const brief = JSON.parse(contentText(pt)) as {
+        type: string;
+        structure: { sections: string[] };
+        inputs: { hits: unknown[] };
+        corpus: Record<string, string>;
+      };
+      record(
+        "general: pressure_test_ask returns a grounded narration_brief",
+        brief.type === "narration_brief" &&
+          brief.inputs.hits.length > 0 &&
+          Object.keys(brief.corpus).length > 0 &&
+          brief.structure.sections.includes("ranked_objections"),
+        `hits ${brief.inputs?.hits?.length}, corpus ${Object.keys(brief.corpus ?? {}).length}`,
+      );
+    }
+
+    const hp = await client.callTool({
+      name: "hire_playbook_ask",
+      arguments: {
+        scenario: "Hiring a senior growth PM for a Series B consumer subscription app.",
+      },
+    });
+    if (hp.isError) {
+      record("general: hire_playbook_ask call", false, contentText(hp));
+    } else {
+      const brief = JSON.parse(contentText(hp)) as {
+        type: string;
+        structure: { sections: string[] };
+        inputs: { hits: unknown[] };
+        corpus: Record<string, string>;
+      };
+      record(
+        "general: hire_playbook_ask returns a grounded narration_brief",
+        brief.type === "narration_brief" &&
+          brief.inputs.hits.length > 0 &&
+          Object.keys(brief.corpus).length > 0 &&
+          brief.structure.sections.includes("question_scripts"),
+        `hits ${brief.inputs?.hits?.length}, corpus ${Object.keys(brief.corpus ?? {}).length}`,
+      );
+    }
+  } catch (err) {
+    record("general: ask-tools smoke", false, (err as Error).message);
   }
 }
 
@@ -267,6 +347,8 @@ async function checkListTools(client: Client): Promise<void> {
       "activation_finder_run",
       "activation_finder_narrate",
       "activation_finder_get_pending_narration",
+      "pressure_test_ask",
+      "hire_playbook_ask",
     ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(

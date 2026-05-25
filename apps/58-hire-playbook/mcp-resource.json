@@ -73,9 +73,9 @@
     "dev.workingfromlenny.status": {
       "stage_a": true,
       "stage_b": true,
-      "stage_c": false,
-      "stage_d": false,
-      "note": "Spec drafted 2026-05-25. Bundle tool implementation + gating queued for the routine (ROUTINE.md). Discoverable now via the launcher catalog + the Replit site tile; the wired tool ships when the routine completes Stage C/D."
+      "stage_c": true,
+      "stage_d": true,
+      "note": "Built 2026-05-25 (routine). hire_playbook_ask handler in bundle/src/tools/58-hire-playbook/ask.ts, single-call Path 4 over the shared retrieveAcrossCorpus helper (topics + cautions + books, no obsolete); registered in server.ts + manifest.json. Gates green (validate 181/181, smoke 152/152). Chat-native (no ui:// resource registered, matching the #54 AMA precedent; catalog ui_resource is aspirational). Known gap: pack.ts bundles knowledge/topics only, so the shipped .mcpb is topics-grounded; the cautions/books layers need a small owner pack.ts edit to ship (see DECISIONS.md 2026-05-25)."
     }
   }
 }

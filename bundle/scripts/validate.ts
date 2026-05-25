@@ -94,8 +94,10 @@ import {
   isAiProductFlagged,
   resolveActivationFamily,
 } from "../src/tools/37-activation-metric-finder/data";
+import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
+import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
 import { loadPrompt } from "../src/lib/prompt-loader";
-import { loadCorpusChunks } from "../src/lib/corpus";
+import { loadCorpusChunks, retrieveAcrossCorpus } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
 
 interface CaseResult {
@@ -131,6 +133,7 @@ async function main(): Promise<void> {
   await checkOkrData();
   await checkMvsData();
   await checkActivationData();
+  await checkGeneralAppsData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -247,6 +250,8 @@ async function checkSchemas(): Promise<void> {
     activationRun,
     activationNarrate,
     activationGetPending,
+    pressureTestAsk,
+    hirePlaybookAsk,
   ];
   for (const t of tools) {
     try {
@@ -379,6 +384,100 @@ async function checkDriftGoldens(): Promise<void> {
       record(`drift:${c.name}`, false, (err as Error).message);
     }
   }
+}
+
+/**
+ * #57 Pressure-Test Anything + #58 Hiring Playbook (PHASE2_BUILD #11 single-call
+ * Path 4). validate runs against the full repo knowledge/ tree (topics +
+ * obsolete + cautions + books all present), so this exercises the complete
+ * corpus-wide retrieval including the decay sweep — the shipped .mcpb is
+ * topics-only (pack.ts stages topics), so smoke covers the degraded path.
+ */
+async function checkGeneralAppsData(): Promise<void> {
+  // retrieveAcrossCorpus returns ranked hits across all four layers.
+  const hits = await retrieveAcrossCorpus(
+    "should we launch a freemium tier to grow our PLG B2B SaaS",
+    12,
+  );
+  record(
+    "general: retrieveAcrossCorpus returns ranked hits",
+    hits.length > 0 && hits.every((h) => h.chunk.length > 0),
+    `got ${hits.length} hits`,
+  );
+  record(
+    "general: hits sorted by descending score",
+    hits.every((h, i) => i === 0 || hits[i - 1]!.score >= h.score),
+  );
+  const kinds = new Set(hits.map((h) => h.kind));
+  record(
+    "general: decay sweep reaches obsolete/caution layers in dev",
+    kinds.has("obsolete") || kinds.has("caution"),
+    `kinds: ${[...kinds].join(", ")}`,
+  );
+
+  // #57 pressure_test_ask: a plan-in / brief-out single call.
+  const pt = (await pressureTestAsk.invoke({
+    plan: "We will grow through invitations and a freemium tier; no retention metric defined yet.",
+    k: 10,
+  })) as {
+    type: string;
+    structure: { sections: string[] };
+    inputs: { hits: unknown[]; decay?: unknown[] };
+    corpus: Record<string, string>;
+  };
+  record(
+    "general: pressure_test_ask returns a grounded narration_brief",
+    pt.type === "narration_brief" &&
+      pt.inputs.hits.length > 0 &&
+      Object.keys(pt.corpus).length > 0 &&
+      pt.structure.sections.includes("ranked_objections"),
+    `hits ${pt.inputs.hits.length}, corpus ${Object.keys(pt.corpus).length}`,
+  );
+
+  // #57 routing: a hiring-shaped plan offers the Hiring Playbook.
+  const ptHire = (await pressureTestAsk.invoke({
+    plan: "Should we hire our first PM, and what do we probe in the interview?",
+    k: 6,
+  })) as { inputs: { suggested_app?: { entry_tool: string } } };
+  record(
+    "general: pressure_test_ask routes a hiring plan to #58",
+    ptHire.inputs.suggested_app?.entry_tool === "hire_playbook_ask",
+    JSON.stringify(ptHire.inputs.suggested_app),
+  );
+
+  // #58 hire_playbook_ask: scenario-in / brief-out single call (no obsolete layer).
+  const hp = (await hirePlaybookAsk.invoke({
+    scenario: "Hiring a senior growth PM for a Series B consumer subscription app.",
+    k: 10,
+  })) as {
+    type: string;
+    structure: { sections: string[] };
+    inputs: { hits: Array<{ kind: string }> };
+    corpus: Record<string, string>;
+  };
+  record(
+    "general: hire_playbook_ask returns a grounded narration_brief",
+    hp.type === "narration_brief" &&
+      hp.inputs.hits.length > 0 &&
+      Object.keys(hp.corpus).length > 0 &&
+      hp.structure.sections.includes("question_scripts"),
+    `hits ${hp.inputs.hits.length}, corpus ${Object.keys(hp.corpus).length}`,
+  );
+  record(
+    "general: hire_playbook_ask excludes the obsolete layer",
+    hp.inputs.hits.every((h) => h.kind !== "obsolete"),
+  );
+
+  // #58 routing: a founder first-PM-hire decision offers Founder PM hire.
+  const hpFounder = (await hirePlaybookAsk.invoke({
+    scenario: "I'm a founder deciding whether to hire my first product manager.",
+    k: 6,
+  })) as { inputs: { suggested_app?: { entry_tool: string } } };
+  record(
+    "general: hire_playbook_ask routes a first-PM founder to #12-38",
+    hpFounder.inputs.suggested_app?.entry_tool === "founder_pm_hire_get_form",
+    JSON.stringify(hpFounder.inputs.suggested_app),
+  );
 }
 
 async function checkUiBuild(): Promise<void> {

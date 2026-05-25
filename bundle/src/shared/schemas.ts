@@ -1327,3 +1327,77 @@ export const ActivationGetPendingNarrationOutput = z.discriminatedUnion("status"
     note: z.string(),
   }),
 ]);
+
+// --- #57 Pressure-Test Anything + #58 Hiring Playbook -----------------------
+// Single-call Path-4 apps (PHASE2_BUILD #11): the *_ask tool IS the narration
+// step, returning a narration_brief directly. No score -> narrate -> get-pending
+// spine, no persistence (readOnlyHint: true). Shared corpus-wide retrieval.
+
+/** One retrieved corpus hit carried in a brief's inputs (slug + provenance, not the chunk). */
+const CorpusHitRef = z.object({
+  slug: z.string(),
+  kind: z.enum(["topic", "obsolete", "caution", "book"]),
+  ref: z.string(),
+  last_updated: z.string().nullable(),
+});
+
+/** A soft cross-app routing offer ({id} accepts "12-38" for the merged founder app). */
+const SuggestedApp = z.object({
+  id: z.union([z.number().int(), z.string()]),
+  name: z.string(),
+  entry_tool: z.string(),
+});
+
+export const PressureTestAskInput = z
+  .object({
+    plan: z.string().min(1).max(4000),
+    k: z.number().int().min(1).max(20).default(10),
+  })
+  .strict();
+
+export const PressureTestAskOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    plan: z.string(),
+    hits: z.array(CorpusHitRef),
+    /** Obsolete + caution hits, surfaced so the host flags what changed rather than repeating expired advice. */
+    decay: z.array(CorpusHitRef).optional(),
+    suggested_app: SuggestedApp.optional(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const HirePlaybookAskInput = z
+  .object({
+    scenario: z.string().min(1).max(4000),
+    k: z.number().int().min(1).max(20).default(10),
+  })
+  .strict();
+
+export const HirePlaybookAskOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    scenario: z.string(),
+    hits: z.array(CorpusHitRef),
+    /** Caution hits for cited guests with active caution files (the one-line speaker-context aside). */
+    caution: z.array(CorpusHitRef).optional(),
+    suggested_app: SuggestedApp.optional(),
+  }),
+  corpus: z.record(z.string()),
+});

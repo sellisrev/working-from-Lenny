@@ -87,6 +87,9 @@ import * as activationNarrate from "./tools/37-activation-metric-finder/narrate"
 import * as activationGetPending from "./tools/37-activation-metric-finder/get-pending";
 import { cleanupOrphanedTmp as cleanupActivationTmp } from "./tools/37-activation-metric-finder/pending";
 
+import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
+import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
+
 import * as homeTool from "./tools/home/home";
 
 interface RegisteredTool {
@@ -155,6 +158,8 @@ const TOOLS: RegisteredTool[] = [
   activationRun as unknown as RegisteredTool,
   activationNarrate as unknown as RegisteredTool,
   activationGetPending as unknown as RegisteredTool,
+  pressureTestAsk as unknown as RegisteredTool,
+  hirePlaybookAsk as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
