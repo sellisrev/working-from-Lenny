@@ -128,6 +128,31 @@ import { cleanupOrphanedTmp as cleanupDecisionLogTmp } from "./tools/25-decision
 import * as pressureTestAsk from "./tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "./tools/58-hire-playbook/ask";
 
+import * as pmNonPmGetModes from "./tools/31-pm-non-pm-manual/get-modes";
+import * as pmNonPmGenerate from "./tools/31-pm-non-pm-manual/generate";
+import * as pmNonPmNarrate from "./tools/31-pm-non-pm-manual/narrate";
+import * as pmNonPmGetPending from "./tools/31-pm-non-pm-manual/get-pending";
+import { cleanupOrphanedTmp as cleanupPmNonPmTmp } from "./tools/31-pm-non-pm-manual/pending";
+
+import * as amaAsk from "./tools/54-lenny-ama/ama-ask";
+
+import * as dailyDosePick from "./tools/55-daily-dose/pick";
+import * as dailyDoseNarrate from "./tools/55-daily-dose/narrate";
+import * as dailyDoseGetPending from "./tools/55-daily-dose/get-pending";
+import { cleanupOrphanedTmp as cleanupDailyDoseTmp } from "./tools/55-daily-dose/pending";
+
+import * as sayingNoGetScenario from "./tools/17-saying-no-rehearsal/get-scenario";
+import * as sayingNoStart from "./tools/17-saying-no-rehearsal/start";
+import * as sayingNoNarrate from "./tools/17-saying-no-rehearsal/narrate";
+import * as sayingNoGetPending from "./tools/17-saying-no-rehearsal/get-pending";
+import { cleanupOrphanedTmp as cleanupSayingNoTmp } from "./tools/17-saying-no-rehearsal/pending";
+
+import * as difficultConvGetScenario from "./tools/18-difficult-conversations-rehearsal/get-scenario";
+import * as difficultConvStart from "./tools/18-difficult-conversations-rehearsal/start";
+import * as difficultConvNarrate from "./tools/18-difficult-conversations-rehearsal/narrate";
+import * as difficultConvGetPending from "./tools/18-difficult-conversations-rehearsal/get-pending";
+import { cleanupOrphanedTmp as cleanupDifficultConvTmp } from "./tools/18-difficult-conversations-rehearsal/pending";
+
 import * as homeTool from "./tools/home/home";
 
 interface RegisteredTool {
@@ -224,6 +249,22 @@ const TOOLS: RegisteredTool[] = [
   decisionLogGetPending as unknown as RegisteredTool,
   pressureTestAsk as unknown as RegisteredTool,
   hirePlaybookAsk as unknown as RegisteredTool,
+  pmNonPmGetModes as unknown as RegisteredTool,
+  pmNonPmGenerate as unknown as RegisteredTool,
+  pmNonPmNarrate as unknown as RegisteredTool,
+  pmNonPmGetPending as unknown as RegisteredTool,
+  amaAsk as unknown as RegisteredTool,
+  dailyDosePick as unknown as RegisteredTool,
+  dailyDoseNarrate as unknown as RegisteredTool,
+  dailyDoseGetPending as unknown as RegisteredTool,
+  sayingNoGetScenario as unknown as RegisteredTool,
+  sayingNoStart as unknown as RegisteredTool,
+  sayingNoNarrate as unknown as RegisteredTool,
+  sayingNoGetPending as unknown as RegisteredTool,
+  difficultConvGetScenario as unknown as RegisteredTool,
+  difficultConvStart as unknown as RegisteredTool,
+  difficultConvNarrate as unknown as RegisteredTool,
+  difficultConvGetPending as unknown as RegisteredTool,
 ];
 
 const RESOURCES: ResourceEntry[] = [
@@ -379,6 +420,46 @@ const RESOURCES: ResourceEntry[] = [
     mimeType: "text/html;profile=mcp-app",
     filePath: path.join(bundleRoot(), "dist", "ui", "decision-log.html"),
   },
+  {
+    uri: "ui://working-from-lenny/pm-non-pm-manual",
+    name: "PM-for-Non-PMs Operating Manual",
+    description:
+      "A generator (no scoring, no per-user state) of three working artifacts that translate core PM frameworks for a leader in a non-software domain. One required input (domain: school principal / nonprofit ED / hospital service-line lead / research-lab PI) plus optional scale and a free-text 'biggest friction'. The three artifact titles are fixed (a jobs-to-be-done interview kit, a prioritization rubric, a 'stop doing' list); the content is tailored to the domain + scale and rendered by the host chat model from a corpus-grounded brief. Plain and practical, respectful of the user's domain expertise, never reverent about product management. Parenting is intentionally out of scope (a separate incumbent occupies it).",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "pm-non-pm-manual.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/lenny-ama",
+    name: "Lenny AMA (always fresh)",
+    description:
+      "The catch-all front door: a single question box that answers any product / growth / strategy / hiring / career / leadership question (or any general question where a product lens is useful) from the current corpus synthesis, in a PM lens. The only corpus-wide tool in the bundle. Always fresh in two senses: it reads the live knowledge base at answer time, and it sweeps the obsolete + cautions layers so the answer flags when older advice has decayed or drew strong audience pushback. Names its sources, ends with a concrete next step, and offers the right specific tool when the question maps to one. No state, no scoring. The UI is an optional question box; the tool is question-in/answer-out and works chat-natively.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "lenny-ama.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/daily-dose",
+    name: "Daily Dose of Knowledge",
+    description:
+      "One thing to learn today, paired with one thing the corpus has quietly taken back. A 'today's dose' card: open it and get one current lesson (a topic with a real passage and a concrete action, grounded in the live synthesis) plus an 'unlearn' half drawn from the corpus's obsolete + cautions layers (advice it has retired, or a popular claim that drew strong audience pushback, and what changed). The pick is deterministic and stable for the day: date-seeded random by default, gap-weighted toward your under-covered areas when this app's local data exists, and degrades to random with no setup. It remembers what you have seen so the unlearning feed advances instead of repeating. No scoring; light single-record local state. The UI is a daily card; the dose renders in chat.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "daily-dose.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/saying-no",
+    name: '"Saying No" Rehearsal',
+    description:
+      'Pick a stakeholder type (CEO / biggest customer / sales VP / eng peer / board member) and the specific ask you need to decline, then rehearse your no in a short back-and-forth. This is the first true multi-turn app: the host chat model runs the role-play from a rehearsal brief the bundle hands it (persona + 5-dimension scoring rubric + corpus-canonical firm-no anchor + turn limits). The bundle tracks no turn state; the conversation is the state. The coach names where your no landed and where you weakened, then delivers the canonical polite firm no for that stakeholder.',
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "saying-no.html"),
+  },
+  {
+    uri: "ui://working-from-lenny/difficult-conversations",
+    name: "Difficult-Conversations Rehearsal",
+    description:
+      "Pick a difficult-conversation scenario (poor performance / peer escalation / layoff delivery / scope cut to a customer / killing a pet project / PIP kickoff) and rehearse it in a short back-and-forth with the host playing the counterparty. Clones the #17 host-driven multi-turn pattern: the host runs the dialog from a rehearsal brief; the bundle tracks no turn state. The coach scores empathy, clarity, decisiveness, willingness to let silence work, and dignity, then delivers the canonical handling with the silence beat marked. A 'fournier' mode skips the role-play and contrasts the user's intended opening against canonical leadership guidance.",
+    mimeType: "text/html;profile=mcp-app",
+    filePath: path.join(bundleRoot(), "dist", "ui", "difficult-conversations.html"),
+  },
 ];
 
 // stderr logging is what appears in interactive runs / smoke. Desktop pipes
@@ -510,6 +591,26 @@ async function main(): Promise<void> {
     await cleanupDecisionLogTmp();
   } catch (err) {
     logErr("cleanup-tmp decision-log failed (non-fatal)", err);
+  }
+  try {
+    await cleanupPmNonPmTmp();
+  } catch (err) {
+    logErr("cleanup-tmp pm-non-pm-manual failed (non-fatal)", err);
+  }
+  try {
+    await cleanupDailyDoseTmp();
+  } catch (err) {
+    logErr("cleanup-tmp daily-dose failed (non-fatal)", err);
+  }
+  try {
+    await cleanupSayingNoTmp();
+  } catch (err) {
+    logErr("cleanup-tmp saying-no failed (non-fatal)", err);
+  }
+  try {
+    await cleanupDifficultConvTmp();
+  } catch (err) {
+    logErr("cleanup-tmp difficult-conversations failed (non-fatal)", err);
   }
 
   const server = new Server(

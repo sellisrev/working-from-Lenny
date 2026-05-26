@@ -143,6 +143,25 @@ import {
 } from "../src/tools/25-decision-log-calibration/data";
 import * as pressureTestAsk from "../src/tools/57-pressure-test-anything/ask";
 import * as hirePlaybookAsk from "../src/tools/58-hire-playbook/ask";
+import * as pmNonPmGetModes from "../src/tools/31-pm-non-pm-manual/get-modes";
+import * as pmNonPmGenerate from "../src/tools/31-pm-non-pm-manual/generate";
+import * as pmNonPmNarrate from "../src/tools/31-pm-non-pm-manual/narrate";
+import * as pmNonPmGetPending from "../src/tools/31-pm-non-pm-manual/get-pending";
+import { DOMAIN_DATA as PM_NON_PM_DOMAIN_DATA, ARTIFACTS as PM_NON_PM_ARTIFACTS } from "../src/tools/31-pm-non-pm-manual/data";
+import * as amaAsk from "../src/tools/54-lenny-ama/ama-ask";
+import * as dailyDosePick from "../src/tools/55-daily-dose/pick";
+import * as dailyDoseNarrate from "../src/tools/55-daily-dose/narrate";
+import * as dailyDoseGetPending from "../src/tools/55-daily-dose/get-pending";
+import * as sayingNoGetScenario from "../src/tools/17-saying-no-rehearsal/get-scenario";
+import * as sayingNoStart from "../src/tools/17-saying-no-rehearsal/start";
+import * as sayingNoNarrate from "../src/tools/17-saying-no-rehearsal/narrate";
+import * as sayingNoGetPending from "../src/tools/17-saying-no-rehearsal/get-pending";
+import { STAKEHOLDER_DATA as SAYING_NO_STAKEHOLDERS, SAYING_NO_RUBRIC } from "../src/tools/17-saying-no-rehearsal/data";
+import * as difficultConvGetScenario from "../src/tools/18-difficult-conversations-rehearsal/get-scenario";
+import * as difficultConvStart from "../src/tools/18-difficult-conversations-rehearsal/start";
+import * as difficultConvNarrate from "../src/tools/18-difficult-conversations-rehearsal/narrate";
+import * as difficultConvGetPending from "../src/tools/18-difficult-conversations-rehearsal/get-pending";
+import { SCENARIO_DATA as DIFFICULT_CONV_SCENARIOS, DIFFICULT_CONV_RUBRIC } from "../src/tools/18-difficult-conversations-rehearsal/data";
 import { loadPrompt } from "../src/lib/prompt-loader";
 import { loadCorpusChunks, retrieveAcrossCorpus } from "../src/lib/corpus";
 import { dataDir } from "../src/lib/paths";
@@ -187,6 +206,11 @@ async function main(): Promise<void> {
   await checkOnboardingData();
   await checkDecisionLogData();
   await checkGeneralAppsData();
+  await checkPmNonPmData();
+  await checkAmaData();
+  await checkDailyDoseData();
+  await checkSayingNoData();
+  await checkDifficultConvData();
   await checkUiBuild();
   await checkInstalledLayout();
   await checkDataDirResolution();
@@ -331,6 +355,22 @@ async function checkSchemas(): Promise<void> {
     decisionLogGetPending,
     pressureTestAsk,
     hirePlaybookAsk,
+    pmNonPmGetModes,
+    pmNonPmGenerate,
+    pmNonPmNarrate,
+    pmNonPmGetPending,
+    amaAsk,
+    dailyDosePick,
+    dailyDoseNarrate,
+    dailyDoseGetPending,
+    sayingNoGetScenario,
+    sayingNoStart,
+    sayingNoNarrate,
+    sayingNoGetPending,
+    difficultConvGetScenario,
+    difficultConvStart,
+    difficultConvNarrate,
+    difficultConvGetPending,
   ];
   for (const t of tools) {
     try {
@@ -979,6 +1019,308 @@ async function checkGeneralAppsData(): Promise<void> {
   );
 }
 
+/**
+ * #31 PM-for-Non-PMs Operating Manual shape guards + get-modes + generate happy path.
+ */
+async function checkPmNonPmData(): Promise<void> {
+  record(
+    "pm-non-pm: 4 domains defined (school-principal, nonprofit-ed, hospital-service-line, research-lab-pi)",
+    Object.keys(PM_NON_PM_DOMAIN_DATA).length === 4,
+    `got ${Object.keys(PM_NON_PM_DOMAIN_DATA).length}`,
+  );
+  record(
+    "pm-non-pm: 3 artifacts defined (JTBD kit, prioritization rubric, stop-doing list)",
+    PM_NON_PM_ARTIFACTS.length === 3,
+    `got ${PM_NON_PM_ARTIFACTS.length}`,
+  );
+
+  // get_modes returns the 3 artifacts + 3 input fields
+  try {
+    const modes = (await pmNonPmGetModes.invoke({} as never)) as {
+      artifacts: Array<{ id: number; title: string }>;
+      fields: Array<{ key: string; kind: string }>;
+      note: string;
+    };
+    record(
+      "pm-non-pm: get_modes returns 3 artifacts + 3 fields",
+      modes.artifacts.length === 3 && modes.fields.length === 3,
+      JSON.stringify({ a: modes.artifacts.length, f: modes.fields.length }),
+    );
+  } catch (err) {
+    record("pm-non-pm: get_modes call", false, (err as Error).message);
+  }
+
+  // generate schema rejects unknown domain
+  const badDomain = pmNonPmGenerate.meta.inputSchema.safeParse({
+    domain: "cto",
+    scale: "small",
+  });
+  record("pm-non-pm: generate inputSchema rejects unknown domain", !badDomain.success);
+
+  // generate schema rejects unknown scale
+  const badScale = pmNonPmGenerate.meta.inputSchema.safeParse({
+    domain: "school-principal",
+    scale: "mega",
+  });
+  record("pm-non-pm: generate inputSchema rejects unknown scale", !badScale.success);
+
+  // generate happy path
+  try {
+    const ok = (await pmNonPmGenerate.invoke({
+      inputs: { domain: "school-principal", scale: "small" },
+      user_context: "",
+    } as never)) as { inputs: Record<string, unknown>; persistence_warning?: string };
+    record(
+      "pm-non-pm: generate happy path returns inputs + no persistence_warning",
+      ok.inputs?.domain === "school-principal" && ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 200),
+    );
+  } catch (err) {
+    record("pm-non-pm: generate happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #54 Lenny AMA (single-call Path 4) — ama_ask schema + happy path.
+ */
+async function checkAmaData(): Promise<void> {
+  // Schema rejects empty question
+  const emptyQ = amaAsk.meta.inputSchema.safeParse({ question: "" });
+  record("ama: inputSchema rejects empty question", !emptyQ.success);
+
+  // Schema rejects oversized question
+  const longQ = amaAsk.meta.inputSchema.safeParse({ question: "x".repeat(1001) });
+  record("ama: inputSchema rejects question > 1000 chars", !longQ.success);
+
+  // Schema accepts a valid question
+  const okQ = amaAsk.meta.inputSchema.safeParse({
+    question: "How should I run my first one-on-ones with a new team?",
+  });
+  record("ama: inputSchema accepts a valid question", okQ.success);
+
+  // Happy path: ama_ask returns a narration_brief
+  try {
+    const ok = (await amaAsk.invoke({
+      question: "How should I think about prioritization when I have too many ideas?",
+      k: 6,
+    } as never)) as {
+      type: string;
+      structure: { sections: string[] };
+      inputs: { hits: unknown[] };
+    };
+    record(
+      "ama: ama_ask returns narration_brief with ranked hits",
+      ok.type === "narration_brief" && ok.inputs.hits.length > 0,
+      `hits ${(ok.inputs.hits as unknown[]).length}, sections ${ok.structure.sections.join(",")}`,
+    );
+  } catch (err) {
+    record("ama: ama_ask happy path", false, (err as Error).message);
+  }
+}
+
+/**
+ * #55 Daily Dose of Knowledge — pick schema, narrate schema, happy path.
+ */
+async function checkDailyDoseData(): Promise<void> {
+  // Schema: topic_slug is optional; unknown slug still parses (validated at runtime)
+  const noSlug = dailyDosePick.meta.inputSchema.safeParse({});
+  record("daily-dose: inputSchema accepts no args", noSlug.success);
+
+  const withSlug = dailyDosePick.meta.inputSchema.safeParse({
+    topic_slug: "pm-pitfalls",
+  });
+  record("daily-dose: inputSchema accepts topic_slug", withSlug.success);
+
+  // Happy path: daily_dose_pick runs, selects a topic, writes pending brief
+  try {
+    const ok = (await dailyDosePick.invoke({ user_context: "" } as never)) as {
+      topic: { slug: string; display_name: string };
+      streak: number;
+      gap_weighted: boolean;
+      persistence_warning?: string;
+    };
+    record(
+      "daily-dose: pick returns topic + streak + no persistence_warning",
+      typeof ok.topic.slug === "string" &&
+        ok.topic.slug.length > 0 &&
+        ok.streak >= 1 &&
+        ok.persistence_warning === undefined,
+      JSON.stringify({ slug: ok.topic.slug, streak: ok.streak, warn: ok.persistence_warning }).slice(0, 200),
+    );
+
+    // get_pending should be ready immediately after pick
+    const pending = (await dailyDoseGetPending.invoke({} as never)) as {
+      status: string;
+      brief?: { type: string };
+    };
+    record(
+      "daily-dose: get_pending returns ready after pick",
+      pending.status === "ready" && pending.brief?.type === "narration_brief",
+      JSON.stringify(pending.status),
+    );
+  } catch (err) {
+    record("daily-dose: pick→get_pending chain", false, (err as Error).message);
+  }
+}
+
+/**
+ * #17 Saying No Rehearsal — data shape, schema, start happy path.
+ */
+async function checkSayingNoData(): Promise<void> {
+  record(
+    "saying-no: 5 stakeholders defined",
+    Object.keys(SAYING_NO_STAKEHOLDERS).length === 5,
+    `got ${Object.keys(SAYING_NO_STAKEHOLDERS).length}`,
+  );
+  record(
+    "saying-no: 5 rubric dimensions defined",
+    SAYING_NO_RUBRIC.length === 5,
+    `got ${SAYING_NO_RUBRIC.length}`,
+  );
+
+  // get_scenario returns the stakeholder list + modes
+  try {
+    const gs = (await sayingNoGetScenario.invoke({} as never)) as {
+      stakeholders: Array<{ slug: string; label: string; pressure_style: string }>;
+      modes: Array<{ slug: string }>;
+    };
+    record(
+      "saying-no: get_scenario returns 5 stakeholders + 2 modes",
+      gs.stakeholders.length === 5 && gs.modes.length === 2,
+      JSON.stringify({ s: gs.stakeholders.length, m: gs.modes.length }),
+    );
+  } catch (err) {
+    record("saying-no: get_scenario call", false, (err as Error).message);
+  }
+
+  // Schema: stakeholder required
+  const missingStakeholder = sayingNoStart.meta.inputSchema.safeParse({
+    scenario: { the_ask: "add feature X" },
+    mode: "rehearse",
+  });
+  record("saying-no: start inputSchema rejects missing stakeholder", !missingStakeholder.success);
+
+  // Schema: the_ask required
+  const missingAsk = sayingNoStart.meta.inputSchema.safeParse({
+    scenario: { stakeholder: "ceo" },
+    mode: "rehearse",
+  });
+  record("saying-no: start inputSchema rejects missing the_ask", !missingAsk.success);
+
+  // Schema: unknown mode rejected
+  const badMode = sayingNoStart.meta.inputSchema.safeParse({
+    scenario: { stakeholder: "ceo", the_ask: "add feature X" },
+    mode: "fournier",
+  });
+  record("saying-no: start inputSchema rejects unknown mode", !badMode.success);
+
+  // Happy path: start (rehearse mode) persists a brief
+  try {
+    const ok = (await sayingNoStart.invoke({
+      scenario: { stakeholder: "sales-vp", the_ask: "Reprioritize the roadmap to add feature Y this quarter" },
+      mode: "rehearse",
+      user_context: "",
+    } as never)) as {
+      scenario: { stakeholder: string };
+      mode: string;
+      persistence_warning?: string;
+    };
+    record(
+      "saying-no: start happy path (rehearse) persists brief",
+      ok.scenario.stakeholder === "sales-vp" &&
+        ok.mode === "rehearse" &&
+        ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 200),
+    );
+
+    const pending = (await sayingNoGetPending.invoke({} as never)) as { status: string };
+    record(
+      "saying-no: get_pending returns ready after start",
+      pending.status === "ready",
+      pending.status,
+    );
+  } catch (err) {
+    record("saying-no: start→get_pending chain", false, (err as Error).message);
+  }
+}
+
+/**
+ * #18 Difficult Conversations Rehearsal — data shape, schema, start happy path.
+ */
+async function checkDifficultConvData(): Promise<void> {
+  record(
+    "difficult-conv: 6 scenarios defined",
+    Object.keys(DIFFICULT_CONV_SCENARIOS).length === 6,
+    `got ${Object.keys(DIFFICULT_CONV_SCENARIOS).length}`,
+  );
+  record(
+    "difficult-conv: 5 rubric dimensions defined",
+    DIFFICULT_CONV_RUBRIC.length === 5,
+    `got ${DIFFICULT_CONV_RUBRIC.length}`,
+  );
+
+  // get_scenario returns the scenario list + modes
+  try {
+    const gs = (await difficultConvGetScenario.invoke({} as never)) as {
+      scenarios: Array<{ slug: string; label: string }>;
+      modes: Array<{ slug: string }>;
+    };
+    record(
+      "difficult-conv: get_scenario returns 6 scenarios + 3 modes",
+      gs.scenarios.length === 6 && gs.modes.length === 3,
+      JSON.stringify({ s: gs.scenarios.length, m: gs.modes.length }),
+    );
+  } catch (err) {
+    record("difficult-conv: get_scenario call", false, (err as Error).message);
+  }
+
+  // Schema: situation.scenario required
+  const missingScenario = difficultConvStart.meta.inputSchema.safeParse({
+    situation: {},
+    mode: "rehearse",
+  });
+  record("difficult-conv: start inputSchema rejects missing scenario", !missingScenario.success);
+
+  // Schema: unknown mode rejected
+  const badMode = difficultConvStart.meta.inputSchema.safeParse({
+    situation: { scenario: "poor-performance" },
+    mode: "custom-mode",
+  });
+  record("difficult-conv: start inputSchema rejects unknown mode", !badMode.success);
+
+  // Happy path: start (show-me mode) persists a brief
+  try {
+    const ok = (await difficultConvStart.invoke({
+      situation: {
+        scenario: "layoff-delivery",
+        your_relationship: "Direct report of 3 years, strong performer until the restructure",
+      },
+      mode: "show-me",
+      user_context: "",
+    } as never)) as {
+      situation: { scenario: string };
+      mode: string;
+      persistence_warning?: string;
+    };
+    record(
+      "difficult-conv: start happy path (show-me) persists brief",
+      ok.situation.scenario === "layoff-delivery" &&
+        ok.mode === "show-me" &&
+        ok.persistence_warning === undefined,
+      JSON.stringify(ok).slice(0, 200),
+    );
+
+    const pending = (await difficultConvGetPending.invoke({} as never)) as { status: string };
+    record(
+      "difficult-conv: get_pending returns ready after start",
+      pending.status === "ready",
+      pending.status,
+    );
+  } catch (err) {
+    record("difficult-conv: start→get_pending chain", false, (err as Error).message);
+  }
+}
+
 async function checkUiBuild(): Promise<void> {
   for (const slug of [
     "pitfalls",
@@ -999,6 +1341,11 @@ async function checkUiBuild(): Promise<void> {
     "burnout-index",
     "onboarding-pm-101",
     "decision-log",
+    "pm-non-pm-manual",
+    "lenny-ama",
+    "daily-dose",
+    "saying-no",
+    "difficult-conversations",
   ]) {
     const distHtml = path.join(bundleRoot, "dist", "ui", `${slug}.html`);
     if (!fsSync.existsSync(distHtml)) {

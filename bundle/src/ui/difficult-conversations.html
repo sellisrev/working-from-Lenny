@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Difficult Conversations Rehearsal</title>
+  <!-- include: styles.css -->
+  <style>
+    .dc-field { margin:12px 0; }
+    .dc-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 6px; }
+    .dc-opts { display:flex; gap:7px; flex-wrap:wrap; }
+    .dc-opt { padding:6px 14px; border:1px solid #cfcfcf; border-radius:20px; font-size:13px; background:#fff; cursor:pointer; transition:all .12s; }
+    .dc-opt:hover { border-color:#555; }
+    .dc-opt.selected { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
+    .dc-textarea { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; resize:vertical; min-height:60px; box-sizing:border-box; }
+    .dc-narrate-hint { font-size:13px; color:#555; margin:10px 0 0; }
+    .dc-mode-desc { font-size:12px; color:#888; margin-top:4px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Difficult Conversations Rehearsal</h1>
+  <p class="app-tagline">Pick a scenario, set the context, then rehearse or get the canonical handling.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="dc-form" novalidate>
+
+    <div class="dc-field">
+      <label class="dc-label">Scenario</label>
+      <div class="dc-opts" id="dc-scenario-opts">
+        <button type="button" class="dc-opt" data-field="scenario" data-val="poor-performance">Poor performance feedback</button>
+        <button type="button" class="dc-opt" data-field="scenario" data-val="peer-escalation">Peer escalation</button>
+        <button type="button" class="dc-opt" data-field="scenario" data-val="layoff-delivery">Layoff delivery</button>
+        <button type="button" class="dc-opt" data-field="scenario" data-val="scope-cut-to-customer">Scope cut to customer</button>
+        <button type="button" class="dc-opt" data-field="scenario" data-val="killing-pet-project">Killing a pet project</button>
+        <button type="button" class="dc-opt" data-field="scenario" data-val="pip-kickoff">PIP kickoff</button>
+      </div>
+    </div>
+
+    <div class="dc-field">
+      <label class="dc-label" for="dc-relationship" style="color:#888;">Your relationship to this person <span style="font-weight:400;">(optional)</span></label>
+      <textarea class="dc-textarea" id="dc-relationship" maxlength="200" placeholder="e.g. Direct report of 2 years, strong performer until recently"></textarea>
+    </div>
+
+    <div class="dc-field">
+      <label class="dc-label" for="dc-approach" style="color:#888;">What you're planning to say <span style="font-weight:400;">(optional — helpful for Fournier mode)</span></label>
+      <textarea class="dc-textarea" id="dc-approach" maxlength="300" placeholder="e.g. I was going to start by asking how they think things have been going lately"></textarea>
+    </div>
+
+    <div class="dc-field">
+      <label class="dc-label">Mode</label>
+      <div class="dc-opts" id="dc-mode-opts">
+        <button type="button" class="dc-opt selected" data-field="mode" data-val="rehearse">Rehearse</button>
+        <button type="button" class="dc-opt" data-field="mode" data-val="show-me">Show me</button>
+        <button type="button" class="dc-opt" data-field="mode" data-val="fournier">Fournier</button>
+      </div>
+      <p class="dc-mode-desc" id="dc-mode-desc">Back-and-forth role-play as the counterparty, then scoring and the canonical handling.</p>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="dc-submit">Start rehearsal</button>
+    </div>
+
+    <p class="pitfalls-validation" id="dc-validation" role="alert">Please select a scenario.</p>
+  </form>
+
+  <div class="pitfalls-error" id="dc-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="dc-output">
+    <p style="font-size:14px;color:#555;margin:0 0 8px;">Your rehearsal brief is ready in chat.</p>
+    <p class="dc-narrate-hint" id="dc-narrate-hint">
+      <span id="dc-hint-auto">Starting your rehearsal in chat&hellip;</span>
+      <span id="dc-hint-staged" style="display:none;">Rehearsal starting in chat below.</span>
+      <span id="dc-hint-fallback" style="display:none;">Auto-start unavailable. Ask Claude in the chat: <strong>"let's run it"</strong> or <strong>"play the counterparty"</strong>.</span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="dc-retake-btn">Set up a new rehearsal</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var MODE_DESCS = {
+    "rehearse": "Back-and-forth role-play as the counterparty, then scoring and the canonical handling.",
+    "show-me": "Skip the role-play. See the canonical handling for this scenario directly.",
+    "fournier": "Skip the role-play. Get keep / cut / the one move you're missing — Camille Fournier style."
+  };
+
+  var state = { scenario: null, mode: "rehearse" };
+
+  function $(id) { return document.getElementById(id); }
+
+  function pickOpt(field, val, containerId) {
+    state[field] = val;
+    var container = $(containerId);
+    if (!container) return;
+    Array.prototype.forEach.call(container.querySelectorAll(".dc-opt"), function (b) {
+      b.classList.toggle("selected", b.dataset.val === val);
+    });
+    if (field === "mode") {
+      $("dc-mode-desc").textContent = MODE_DESCS[val] || "";
+    }
+  }
+
+  function showError(msg) {
+    var el = $("dc-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("dc-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function handleSubmit() {
+    clearError();
+    $("dc-validation").classList.remove("visible");
+
+    if (!state.scenario) {
+      $("dc-validation").classList.add("visible");
+      return;
+    }
+
+    var situation = { scenario: state.scenario };
+    var relationship = $("dc-relationship").value.trim();
+    if (relationship) situation.your_relationship = relationship;
+    var approach = $("dc-approach").value.trim();
+    if (approach) situation.intended_approach = approach;
+
+    var btn = $("dc-submit");
+    btn.disabled = true;
+    btn.textContent = "Setting up…";
+
+    window.mcp.callTool("difficult_conversations_start", { situation: situation, mode: state.mode })
+      .then(function (result) {
+        var data = parseToolResult(result);
+        renderOutput(data);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Start rehearsal";
+      });
+  }
+
+  function renderOutput(data) {
+    var out = $("dc-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    var auto = $("dc-hint-auto");
+    var staged = $("dc-hint-staged");
+    var fallback = $("dc-hint-fallback");
+
+    if (data && data.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Brief could not be persisted: " + data.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just set up a Difficult Conversations rehearsal in the embedded widget. " +
+        "Please call difficult_conversations_get_pending_narration to fetch my saved brief and start the rehearsal."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-start failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    state = { scenario: null, mode: "rehearse" };
+    document.querySelectorAll(".dc-opt").forEach(function (b) {
+      b.classList.toggle("selected", b.dataset.field === "mode" && b.dataset.val === "rehearse");
+    });
+    $("dc-relationship").value = "";
+    $("dc-approach").value = "";
+    $("dc-mode-desc").textContent = MODE_DESCS["rehearse"];
+    $("dc-output").classList.remove("visible");
+    $("dc-hint-auto").style.display = "";
+    $("dc-hint-staged").style.display = "none";
+    $("dc-hint-fallback").style.display = "none";
+    clearError();
+    $("dc-validation").classList.remove("visible");
+    $("dc-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.querySelectorAll(".dc-opt").forEach(function (btn) {
+    var field = btn.dataset.field;
+    var containerId = "dc-" + field + "-opts";
+    btn.addEventListener("click", function () { pickOpt(field, btn.dataset.val, containerId); });
+  });
+  $("dc-submit").addEventListener("click", handleSubmit);
+  $("dc-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>

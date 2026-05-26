@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Dose of Knowledge</title>
+  <!-- include: styles.css -->
+  <style>
+    .dose-card { background:#f8f8f8; border:1px solid #e8e8e8; border-radius:10px; padding:16px; margin:12px 0; }
+    .dose-topic { font-size:15px; font-weight:600; color:#1a1a1a; margin:0 0 4px; }
+    .dose-meta { font-size:12px; color:#888; margin:0 0 10px; }
+    .dose-unlearn { background:#fff8f0; border-left:3px solid #f0a000; padding:10px 12px; border-radius:0 6px 6px 0; margin:10px 0 0; font-size:13px; color:#555; }
+    .dose-unlearn-label { font-size:11px; font-weight:600; color:#f0a000; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+    .dose-narrate-hint { font-size:13px; color:#555; margin:10px 0 0; }
+    .dose-streak { font-size:12px; color:#888; margin:10px 0 0; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Daily Dose of Knowledge</h1>
+  <p class="app-tagline">One lesson + one thing the corpus has quietly taken back. Fresh every day.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <div id="dose-loading" style="display:none;">
+    <p style="font-size:14px;color:#888;">Picking today's dose&hellip;</p>
+  </div>
+
+  <div id="dose-ready" style="display:none;">
+    <div class="dose-card" id="dose-card">
+      <p class="dose-topic" id="dose-topic"></p>
+      <p class="dose-meta" id="dose-meta"></p>
+      <div class="dose-unlearn" id="dose-unlearn" style="display:none;">
+        <div class="dose-unlearn-label">Unlearn</div>
+        <div id="dose-unlearn-text"></div>
+      </div>
+    </div>
+
+    <p class="dose-narrate-hint" id="dose-narrate-hint">
+      <span id="dose-hint-auto">Queueing your dose in chat&hellip;</span>
+      <span id="dose-hint-staged" style="display:none;">Your dose is rendering in chat below.</span>
+      <span id="dose-hint-fallback" style="display:none;">Auto-narration unavailable. Ask Claude: <strong>"give me my daily dose"</strong>.</span>
+    </p>
+    <p class="dose-streak" id="dose-streak"></p>
+
+    <div class="pitfalls-actions" style="margin-top:12px;">
+      <button type="button" class="pitfalls-btn" id="dose-again-btn">New topic</button>
+    </div>
+  </div>
+
+  <div class="pitfalls-error" id="dose-error" role="alert"></div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  function $(id) { return document.getElementById(id); }
+
+  function showError(msg) {
+    var el = $("dose-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("dose-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function pickDose(topicSlug) {
+    clearError();
+    $("dose-loading").style.display = "";
+    $("dose-ready").style.display = "none";
+
+    var args = {};
+    if (topicSlug) args.topic_slug = topicSlug;
+
+    window.mcp.callTool("daily_dose_pick", args)
+      .then(function (result) {
+        var data = parseToolResult(result);
+        renderDose(data);
+      })
+      .catch(function (err) {
+        $("dose-loading").style.display = "none";
+        showError(err.message || String(err));
+      });
+  }
+
+  function renderDose(data) {
+    $("dose-loading").style.display = "none";
+
+    var topic = data.topic || {};
+    $("dose-topic").textContent = topic.display_name || topic.slug || "Today's topic";
+
+    var metaParts = [];
+    if (data.gap_weighted && data.weighting_signal) metaParts.push("Gap-weighted: " + data.weighting_signal);
+    else metaParts.push("Date-picked");
+    if (topic.last_updated) metaParts.push("Updated " + topic.last_updated);
+    $("dose-meta").textContent = metaParts.join(" · ");
+
+    var unlearn = $("dose-unlearn");
+    var unlearnText = $("dose-unlearn-text");
+    if (data.invalidation_headline) {
+      unlearnText.textContent = data.invalidation_headline;
+      unlearn.style.display = "";
+    } else {
+      unlearn.style.display = "none";
+    }
+
+    $("dose-streak").textContent = data.streak && data.streak > 1 ? "Dose " + data.streak + " in a row" : "";
+
+    $("dose-ready").style.display = "";
+    $("dose-ready").scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(data);
+  }
+
+  function requestNarration(data) {
+    var auto = $("dose-hint-auto");
+    var staged = $("dose-hint-staged");
+    var fallback = $("dose-hint-fallback");
+
+    if (data && data.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + data.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just opened the Daily Dose in the embedded widget. " +
+        "Please call daily_dose_get_pending_narration to fetch my saved brief and render today's dose."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  $("dose-again-btn").addEventListener("click", function () { pickDose(); });
+
+  // Auto-pick on load
+  pickDose();
+})();
+</script>
+
+</body>
+</html>

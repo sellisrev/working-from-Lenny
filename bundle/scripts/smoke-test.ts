@@ -115,6 +115,11 @@ async function stageInstallRoot(installRoot: string): Promise<void> {
     path.join(installRoot, "dist", "ui", "burnout-index.html"),
     path.join(installRoot, "dist", "ui", "onboarding-pm-101.html"),
     path.join(installRoot, "dist", "ui", "decision-log.html"),
+    path.join(installRoot, "dist", "ui", "pm-non-pm-manual.html"),
+    path.join(installRoot, "dist", "ui", "lenny-ama.html"),
+    path.join(installRoot, "dist", "ui", "daily-dose.html"),
+    path.join(installRoot, "dist", "ui", "saying-no.html"),
+    path.join(installRoot, "dist", "ui", "difficult-conversations.html"),
     path.join(
       installRoot,
       "dist",
@@ -218,6 +223,11 @@ async function runSmoke(installRoot: string, dataDir: string): Promise<void> {
     await checkOnboardingChain(client, dataDir);
     await checkDecisionLogChain(client, dataDir);
     await checkGeneralAppsChain(client);
+    await checkPmNonPmChain(client, dataDir);
+    await checkAmaChain(client);
+    await checkDailyDoseChain(client, dataDir);
+    await checkSayingNoChain(client, dataDir);
+    await checkDifficultConvChain(client, dataDir);
   } finally {
     await client.close();
   }
@@ -690,6 +700,297 @@ async function checkGeneralAppsChain(client: Client): Promise<void> {
   }
 }
 
+// ───────────────────────────────────────────────────────────
+// #31 PM-for-Non-PMs Operating Manual smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkPmNonPmChain(client: Client, dataDir: string): Promise<void> {
+  try {
+    const list = await client.listTools();
+    const entries = Object.fromEntries(
+      list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } }]),
+    );
+    record(
+      "pm-non-pm: get_modes binds ui:// via _meta.ui.resourceUri",
+      entries["pm_non_pm_get_modes"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/pm-non-pm-manual",
+    );
+
+    const modesResult = JSON.parse(contentText(await client.callTool({ name: "pm_non_pm_get_modes", arguments: {} })));
+    record(
+      "pm-non-pm: get_modes returns 4 domains + 3 artifacts",
+      Array.isArray(modesResult.artifacts) && modesResult.artifacts.length === 3 &&
+        Array.isArray(modesResult.fields) && modesResult.fields.length === 3,
+    );
+
+    const before = JSON.parse(contentText(await client.callTool({ name: "pm_non_pm_get_pending_narration", arguments: {} })));
+    record("pm-non-pm: get_pending pre-generate → no_pending", before.status === "no_pending");
+
+    const genResult = JSON.parse(contentText(await client.callTool({
+      name: "pm_non_pm_generate",
+      arguments: { inputs: { domain: "nonprofit-ed", scale: "mid" } },
+    })));
+    record(
+      "pm-non-pm: generate returns domain + no persistence_warning",
+      genResult.inputs?.domain === "nonprofit-ed" && genResult.persistence_warning === undefined,
+      JSON.stringify(genResult).slice(0, 200),
+    );
+
+    const file = path.join(dataDir, "_pending", "pm-non-pm-manual-pending.json");
+    record("pm-non-pm: generate wrote pending file", fsSync.existsSync(file));
+
+    const after = JSON.parse(contentText(await client.callTool({ name: "pm_non_pm_get_pending_narration", arguments: {} })));
+    record(
+      "pm-non-pm: get_pending after generate returns ready brief",
+      after.status === "ready" && after.brief?.type === "narration_brief",
+      JSON.stringify(after.status),
+    );
+
+    const read = await client.readResource({ uri: "ui://working-from-lenny/pm-non-pm-manual" });
+    const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+    record(
+      "pm-non-pm: read_resource returns inlined HTML with window.mcp",
+      text.includes("window.mcp") && !text.includes("<!-- include:"),
+    );
+  } catch (err) {
+    record("pm-non-pm: chain smoke", false, (err as Error).message);
+  }
+}
+
+// ───────────────────────────────────────────────────────────
+// #54 Lenny AMA smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkAmaChain(client: Client): Promise<void> {
+  try {
+    const list = await client.listTools();
+    const entries = Object.fromEntries(
+      list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } }]),
+    );
+    record(
+      "ama: ama_ask is read-only and binds ui://",
+      entries["ama_ask"]?.annotations?.readOnlyHint === true &&
+        entries["ama_ask"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/lenny-ama",
+    );
+
+    const result = await client.callTool({
+      name: "ama_ask",
+      arguments: { question: "How do I prioritize when everything seems urgent?" },
+    });
+    if (result.isError) {
+      record("ama: ama_ask call", false, contentText(result));
+      return;
+    }
+    const brief = JSON.parse(contentText(result)) as {
+      type: string;
+      structure: { sections: string[] };
+      inputs: { hits: unknown[] };
+    };
+    record(
+      "ama: ama_ask returns narration_brief with hits",
+      brief.type === "narration_brief" &&
+        brief.inputs.hits.length > 0 &&
+        brief.structure.sections.length > 0,
+      `hits ${brief.inputs.hits.length}, sections ${brief.structure.sections.join(",")}`,
+    );
+  } catch (err) {
+    record("ama: chain smoke", false, (err as Error).message);
+  }
+}
+
+// ───────────────────────────────────────────────────────────
+// #55 Daily Dose of Knowledge smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkDailyDoseChain(client: Client, dataDir: string): Promise<void> {
+  try {
+    const list = await client.listTools();
+    const entries = Object.fromEntries(
+      list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } }]),
+    );
+    record(
+      "daily-dose: daily_dose_pick binds ui:// via _meta.ui.resourceUri",
+      entries["daily_dose_pick"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/daily-dose",
+    );
+    record(
+      "daily-dose: daily_dose_pick has readOnlyHint=false (writes state)",
+      entries["daily_dose_pick"]?.annotations?.readOnlyHint === false,
+    );
+    record(
+      "daily-dose: narrate + get_pending are read-only",
+      entries["daily_dose_narrate"]?.annotations?.readOnlyHint === true &&
+        entries["daily_dose_get_pending_narration"]?.annotations?.readOnlyHint === true,
+    );
+
+    const before = JSON.parse(contentText(await client.callTool({ name: "daily_dose_get_pending_narration", arguments: {} })));
+    record("daily-dose: get_pending pre-pick → no_pending", before.status === "no_pending");
+
+    const pickResult = JSON.parse(contentText(await client.callTool({
+      name: "daily_dose_pick",
+      arguments: {},
+    })));
+    record(
+      "daily-dose: pick returns topic + streak + no persistence_warning",
+      typeof pickResult.topic?.slug === "string" &&
+        pickResult.streak >= 1 &&
+        pickResult.persistence_warning === undefined,
+      JSON.stringify(pickResult).slice(0, 200),
+    );
+
+    const file = path.join(dataDir, "_pending", "daily-dose-pending.json");
+    record("daily-dose: pick wrote pending file", fsSync.existsSync(file));
+
+    const after = JSON.parse(contentText(await client.callTool({ name: "daily_dose_get_pending_narration", arguments: {} })));
+    record(
+      "daily-dose: get_pending after pick returns ready brief",
+      after.status === "ready" && after.brief?.type === "narration_brief",
+      JSON.stringify(after.status),
+    );
+
+    const read = await client.readResource({ uri: "ui://working-from-lenny/daily-dose" });
+    const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+    record(
+      "daily-dose: read_resource returns inlined HTML with window.mcp",
+      text.includes("window.mcp") && !text.includes("<!-- include:"),
+    );
+  } catch (err) {
+    record("daily-dose: chain smoke", false, (err as Error).message);
+  }
+}
+
+// ───────────────────────────────────────────────────────────
+// #17 Saying No Rehearsal smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkSayingNoChain(client: Client, dataDir: string): Promise<void> {
+  try {
+    const list = await client.listTools();
+    const entries = Object.fromEntries(
+      list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } }]),
+    );
+    record(
+      "saying-no: saying_no_get_scenario binds ui:// via _meta.ui.resourceUri",
+      entries["saying_no_get_scenario"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/saying-no",
+    );
+    record(
+      "saying-no: all tools are read-only (ephemeral brief only, no durable writes)",
+      entries["saying_no_start"]?.annotations?.readOnlyHint === true &&
+        entries["saying_no_narrate"]?.annotations?.readOnlyHint === true &&
+        entries["saying_no_get_pending_narration"]?.annotations?.readOnlyHint === true,
+    );
+
+    const scenarios = JSON.parse(contentText(await client.callTool({ name: "saying_no_get_scenario", arguments: {} })));
+    record(
+      "saying-no: get_scenario returns 5 stakeholders + 2 modes",
+      Array.isArray(scenarios.stakeholders) && scenarios.stakeholders.length === 5 &&
+        Array.isArray(scenarios.modes) && scenarios.modes.length === 2,
+    );
+
+    const before = JSON.parse(contentText(await client.callTool({ name: "saying_no_get_pending_narration", arguments: {} })));
+    record("saying-no: get_pending pre-start → no_pending", before.status === "no_pending");
+
+    const startResult = JSON.parse(contentText(await client.callTool({
+      name: "saying_no_start",
+      arguments: {
+        scenario: { stakeholder: "ceo", the_ask: "Add this to next quarter" },
+        mode: "show-me",
+      },
+    })));
+    record(
+      "saying-no: start returns scenario + mode + no persistence_warning",
+      startResult.scenario?.stakeholder === "ceo" &&
+        startResult.mode === "show-me" &&
+        startResult.persistence_warning === undefined,
+      JSON.stringify(startResult).slice(0, 200),
+    );
+
+    const file = path.join(dataDir, "_pending", "saying-no-rehearsal-pending.json");
+    record("saying-no: start wrote pending file", fsSync.existsSync(file));
+
+    const after = JSON.parse(contentText(await client.callTool({ name: "saying_no_get_pending_narration", arguments: {} })));
+    record(
+      "saying-no: get_pending after start returns ready brief",
+      after.status === "ready" && after.brief?.type === "narration_brief",
+      JSON.stringify(after.status),
+    );
+
+    const read = await client.readResource({ uri: "ui://working-from-lenny/saying-no" });
+    const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+    record(
+      "saying-no: read_resource returns inlined HTML with window.mcp",
+      text.includes("window.mcp") && !text.includes("<!-- include:"),
+    );
+  } catch (err) {
+    record("saying-no: chain smoke", false, (err as Error).message);
+  }
+}
+
+// ───────────────────────────────────────────────────────────
+// #18 Difficult Conversations Rehearsal smoke checks
+// ───────────────────────────────────────────────────────────
+
+async function checkDifficultConvChain(client: Client, dataDir: string): Promise<void> {
+  try {
+    const list = await client.listTools();
+    const entries = Object.fromEntries(
+      list.tools.map((t) => [t.name, t as { _meta?: { ui?: { resourceUri?: string } }; annotations?: { readOnlyHint?: boolean } }]),
+    );
+    record(
+      "difficult-conv: difficult_conversations_get_scenario binds ui:// via _meta.ui.resourceUri",
+      entries["difficult_conversations_get_scenario"]?._meta?.ui?.resourceUri === "ui://working-from-lenny/difficult-conversations",
+    );
+    record(
+      "difficult-conv: all tools are read-only (ephemeral brief only, no durable writes)",
+      entries["difficult_conversations_start"]?.annotations?.readOnlyHint === true &&
+        entries["difficult_conversations_narrate"]?.annotations?.readOnlyHint === true &&
+        entries["difficult_conversations_get_pending_narration"]?.annotations?.readOnlyHint === true,
+    );
+
+    const scenarios = JSON.parse(contentText(await client.callTool({ name: "difficult_conversations_get_scenario", arguments: {} })));
+    record(
+      "difficult-conv: get_scenario returns 6 scenarios + 3 modes",
+      Array.isArray(scenarios.scenarios) && scenarios.scenarios.length === 6 &&
+        Array.isArray(scenarios.modes) && scenarios.modes.length === 3,
+    );
+
+    const before = JSON.parse(contentText(await client.callTool({ name: "difficult_conversations_get_pending_narration", arguments: {} })));
+    record("difficult-conv: get_pending pre-start → no_pending", before.status === "no_pending");
+
+    const startResult = JSON.parse(contentText(await client.callTool({
+      name: "difficult_conversations_start",
+      arguments: {
+        situation: { scenario: "poor-performance" },
+        mode: "fournier",
+      },
+    })));
+    record(
+      "difficult-conv: start returns situation + mode + no persistence_warning",
+      startResult.situation?.scenario === "poor-performance" &&
+        startResult.mode === "fournier" &&
+        startResult.persistence_warning === undefined,
+      JSON.stringify(startResult).slice(0, 200),
+    );
+
+    const file = path.join(dataDir, "_pending", "difficult-conversations-rehearsal-pending.json");
+    record("difficult-conv: start wrote pending file", fsSync.existsSync(file));
+
+    const after = JSON.parse(contentText(await client.callTool({ name: "difficult_conversations_get_pending_narration", arguments: {} })));
+    record(
+      "difficult-conv: get_pending after start returns ready brief",
+      after.status === "ready" && after.brief?.type === "narration_brief",
+      JSON.stringify(after.status),
+    );
+
+    const read = await client.readResource({ uri: "ui://working-from-lenny/difficult-conversations" });
+    const text = read.contents[0] && "text" in read.contents[0] ? (read.contents[0] as { text: string }).text : "";
+    record(
+      "difficult-conv: read_resource returns inlined HTML with window.mcp",
+      text.includes("window.mcp") && !text.includes("<!-- include:"),
+    );
+  } catch (err) {
+    record("difficult-conv: chain smoke", false, (err as Error).message);
+  }
+}
+
 async function checkListTools(client: Client): Promise<void> {
   try {
     const result = await client.listTools();
@@ -775,6 +1076,22 @@ async function checkListTools(client: Client): Promise<void> {
       "decision_log_get_pending_narration",
       "pressure_test_ask",
       "hire_playbook_ask",
+      "pm_non_pm_get_modes",
+      "pm_non_pm_generate",
+      "pm_non_pm_narrate",
+      "pm_non_pm_get_pending_narration",
+      "ama_ask",
+      "daily_dose_pick",
+      "daily_dose_narrate",
+      "daily_dose_get_pending_narration",
+      "saying_no_get_scenario",
+      "saying_no_start",
+      "saying_no_narrate",
+      "saying_no_get_pending_narration",
+      "difficult_conversations_get_scenario",
+      "difficult_conversations_start",
+      "difficult_conversations_narrate",
+      "difficult_conversations_get_pending_narration",
     ].sort();
     const namesOk = JSON.stringify(names) === JSON.stringify(expected);
     record(

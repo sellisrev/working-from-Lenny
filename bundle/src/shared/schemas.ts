@@ -2111,3 +2111,405 @@ export const DecisionLogGetPendingNarrationOutput = z.discriminatedUnion("status
     note: z.string(),
   }),
 ]);
+
+// ── #31 PM-for-Non-PMs Operating Manual ──────────────────────────────────────
+
+export const PmNonPmDomainEnum = z.enum([
+  "school-principal",
+  "nonprofit-ed",
+  "hospital-service-line",
+  "research-lab-pi",
+]);
+export const PmNonPmScaleEnum = z.enum(["small", "mid", "large"]);
+
+export const PmNonPmGetModesInput = z.object({}).strict();
+export const PmNonPmGetModesOutput = z.object({
+  artifacts: z.array(z.object({ id: z.number().int().min(1).max(3), title: z.string() })).length(3),
+  fields: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.enum(["enum", "text"]),
+      options: z.array(z.string()).optional(),
+      optional: z.boolean().optional(),
+    }),
+  ),
+  note: z.string(),
+});
+
+export const PmNonPmInputsSchema = z.object({
+  domain: PmNonPmDomainEnum,
+  scale: PmNonPmScaleEnum.default("mid"),
+  biggest_friction: z.string().max(200).default(""),
+});
+
+export const PmNonPmGenerateInput = z.object({
+  inputs: PmNonPmInputsSchema,
+  user_context: z.string().default(""),
+});
+export const PmNonPmGenerateOutput = z.object({
+  inputs: z.record(z.unknown()),
+  persistence_warning: z.string().optional(),
+});
+
+export const PmNonPmNarrateInput = z.object({
+  inputs: z.record(z.unknown()),
+  user_context: z.string().default(""),
+});
+export const PmNonPmNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    domain: PmNonPmDomainEnum,
+    scale: PmNonPmScaleEnum,
+    biggest_friction: z.string(),
+    user_context: z.string(),
+    stakeholders: z.object({
+      users: z.array(z.string()),
+      buyers_funders: z.array(z.string()),
+    }),
+    rice_labels: z.object({
+      reach: z.string(),
+      impact: z.string(),
+      confidence: z.string(),
+      effort: z.string(),
+    }),
+    override_gate: z.string(),
+    stop_doing_candidates: z.array(z.string()),
+    artifact_anchors: z.record(z.array(z.string())),
+    scale_calibration: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const PmNonPmGetPendingNarrationInput = z.object({}).strict();
+export const PmNonPmGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: PmNonPmNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ── #54 Lenny AMA ─────────────────────────────────────────────────────────────
+
+export const AmaAskInput = z
+  .object({
+    question: z.string().min(1).max(1000),
+    k: z.number().int().min(1).max(20).default(8),
+  })
+  .strict();
+
+export const AmaAskOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    question: z.string(),
+    hits: z.array(CorpusHitRef),
+    decay: z.array(CorpusHitRef).optional(),
+    suggested_app: SuggestedApp.optional(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+// ── #55 Daily Dose of Knowledge ───────────────────────────────────────────────
+
+const DailyDoseInvalidationStatus = z.enum(["obsolete", "caution", "none_new"]);
+
+export const DailyDoseInvalidation = z.object({
+  status: DailyDoseInvalidationStatus,
+  slug: z.string().optional(),
+  claim: z.string().optional(),
+  what_changed: z.string().optional(),
+  source: z.string().optional(),
+  vote_count: z.number().int().optional(),
+  confidence: z.string().optional(),
+  paired_with_topic: z.boolean().optional(),
+});
+
+const DailyDoseTopic = z.object({
+  slug: z.string(),
+  display_name: z.string(),
+  last_updated: z.string().nullable(),
+});
+
+export const DailyDosePickInput = z.object({
+  topic_slug: z.string().optional(),
+  user_context: z.string().default(""),
+});
+export const DailyDosePickOutput = z.object({
+  topic: DailyDoseTopic,
+  invalidation_headline: z.string(),
+  gap_weighted: z.boolean(),
+  weighting_signal: z.string().optional(),
+  streak: z.number().int().min(1),
+  persistence_warning: z.string().optional(),
+});
+
+export const DailyDoseNarrateInput = z.object({
+  topic_slug: z.string(),
+  user_context: z.string().default(""),
+  recent_invalidation: DailyDoseInvalidation.optional(),
+  streak: z.number().int().min(1).default(1),
+  gap_weighted: z.boolean().default(false),
+  weighting_signal: z.string().optional(),
+});
+
+export const DailyDoseNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    topic: DailyDoseTopic,
+    user_context: z.string(),
+    streak: z.number().int(),
+    gap_weighted: z.boolean(),
+    weighting_signal: z.string().optional(),
+    recent_invalidation: DailyDoseInvalidation,
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const DailyDoseGetPendingNarrationInput = z.object({}).strict();
+export const DailyDoseGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: DailyDoseNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ── #17 "Saying No" Rehearsal ─────────────────────────────────────────────────
+
+export const SayingNoStakeholderEnum = z.enum([
+  "ceo",
+  "biggest-customer",
+  "sales-vp",
+  "eng-peer",
+  "board-member",
+]);
+export const SayingNoModeEnum = z.enum(["rehearse", "show-me"]);
+
+export const SayingNoScenario = z.object({
+  stakeholder: SayingNoStakeholderEnum,
+  the_ask: z.string().min(1).max(300),
+  your_constraint: z.string().max(200).default(""),
+});
+
+export const SayingNoGetScenarioInput = z.object({}).strict();
+export const SayingNoGetScenarioOutput = z.object({
+  stakeholders: z.array(
+    z.object({
+      slug: SayingNoStakeholderEnum,
+      label: z.string(),
+      pressure_style: z.string(),
+    }),
+  ).length(5),
+  modes: z.array(
+    z.object({
+      slug: SayingNoModeEnum,
+      label: z.string(),
+      description: z.string(),
+    }),
+  ).length(2),
+  note: z.string(),
+});
+
+export const SayingNoStartInput = z.object({
+  scenario: SayingNoScenario,
+  mode: SayingNoModeEnum.default("rehearse"),
+  user_context: z.string().default(""),
+});
+export const SayingNoStartOutput = z.object({
+  scenario: SayingNoScenario,
+  mode: SayingNoModeEnum,
+  persistence_warning: z.string().optional(),
+});
+
+export const SayingNoNarrateInput = z.object({
+  scenario: SayingNoScenario,
+  mode: SayingNoModeEnum.default("rehearse"),
+  user_context: z.string().default(""),
+});
+
+const SayingNoRubricDimension = z.object({
+  id: z.string(),
+  label: z.string(),
+  what_to_watch: z.string(),
+});
+
+export const SayingNoNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    scenario: SayingNoScenario,
+    mode: SayingNoModeEnum,
+    user_context: z.string(),
+    stakeholder_persona: z.object({
+      label: z.string(),
+      opening_line: z.string(),
+      pressure_style: z.string(),
+      what_they_can_hear: z.string(),
+    }),
+    rubric: z.array(SayingNoRubricDimension).length(5),
+    turn_limit: z.number().int(),
+    canonical_no: z.string(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const SayingNoGetPendingNarrationInput = z.object({}).strict();
+export const SayingNoGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: SayingNoNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);
+
+// ── #18 Difficult-Conversations Rehearsal ─────────────────────────────────────
+
+export const DifficultConversationsScenarioEnum = z.enum([
+  "poor-performance",
+  "peer-escalation",
+  "layoff-delivery",
+  "scope-cut-to-customer",
+  "killing-pet-project",
+  "pip-kickoff",
+]);
+export const DifficultConversationsModeEnum = z.enum(["rehearse", "show-me", "fournier"]);
+
+export const DifficultConversationsSituation = z.object({
+  scenario: DifficultConversationsScenarioEnum,
+  your_relationship: z.string().max(200).default(""),
+  intended_approach: z.string().max(600).default(""),
+});
+
+export const DifficultConversationsGetScenarioInput = z.object({}).strict();
+export const DifficultConversationsGetScenarioOutput = z.object({
+  scenarios: z.array(
+    z.object({
+      slug: DifficultConversationsScenarioEnum,
+      label: z.string(),
+      counterparty_reaction: z.string(),
+    }),
+  ).length(6),
+  modes: z.array(
+    z.object({
+      slug: DifficultConversationsModeEnum,
+      label: z.string(),
+      description: z.string(),
+    }),
+  ).length(3),
+  note: z.string(),
+});
+
+export const DifficultConversationsStartInput = z.object({
+  situation: DifficultConversationsSituation,
+  mode: DifficultConversationsModeEnum.default("rehearse"),
+  user_context: z.string().default(""),
+});
+export const DifficultConversationsStartOutput = z.object({
+  situation: DifficultConversationsSituation,
+  mode: DifficultConversationsModeEnum,
+  persistence_warning: z.string().optional(),
+});
+
+export const DifficultConversationsNarrateInput = z.object({
+  situation: DifficultConversationsSituation,
+  mode: DifficultConversationsModeEnum.default("rehearse"),
+  user_context: z.string().default(""),
+});
+
+const DifficultConversationsRubricDimension = z.object({
+  id: z.string(),
+  label: z.string(),
+  what_to_watch: z.string(),
+});
+
+const FournierStructure = z.object({
+  keep: z.string(),
+  cut: z.string(),
+  one_move_missing: z.string(),
+});
+
+export const DifficultConversationsNarrateOutput = z.object({
+  type: z.literal("narration_brief"),
+  audience: z.literal("user"),
+  directive: z.string(),
+  voice_rules: z.array(z.string()),
+  structure: z.object({
+    sections: z.array(z.string()),
+    per_section_template: z.string(),
+    length_cap: z.string(),
+  }),
+  inputs: z.object({
+    situation: DifficultConversationsSituation,
+    mode: DifficultConversationsModeEnum,
+    user_context: z.string(),
+    scenario_persona: z.object({
+      label: z.string(),
+      opening_line: z.string(),
+      counterparty_reaction: z.string(),
+      trap: z.string(),
+      canonical_handling: z.string(),
+      silence_beat: z.string(),
+    }),
+    rubric: z.array(DifficultConversationsRubricDimension).length(5),
+    turn_limit: z.number().int(),
+    fournier_structure: FournierStructure.optional(),
+  }),
+  corpus: z.record(z.string()),
+});
+
+export const DifficultConversationsGetPendingNarrationInput = z.object({}).strict();
+export const DifficultConversationsGetPendingNarrationOutput = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("ready"),
+    saved_at: z.string(),
+    brief: DifficultConversationsNarrateOutput,
+  }),
+  z.object({
+    status: z.literal("no_pending"),
+    note: z.string(),
+  }),
+]);

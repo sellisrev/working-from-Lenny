@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>"Saying No" Rehearsal</title>
+  <!-- include: styles.css -->
+  <style>
+    .sn-field { margin:12px 0; }
+    .sn-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 6px; }
+    .sn-opts { display:flex; gap:7px; flex-wrap:wrap; }
+    .sn-opt { padding:6px 14px; border:1px solid #cfcfcf; border-radius:20px; font-size:13px; background:#fff; cursor:pointer; transition:all .12s; }
+    .sn-opt:hover { border-color:#555; }
+    .sn-opt.selected { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
+    .sn-textarea { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; resize:vertical; min-height:60px; box-sizing:border-box; }
+    .sn-narrate-hint { font-size:13px; color:#555; margin:10px 0 0; }
+    .sn-mode-desc { font-size:12px; color:#888; margin-top:4px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">"Saying No" Rehearsal</h1>
+  <p class="app-tagline">Pick a stakeholder, describe the ask you need to decline, then practice your no.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="sn-form" novalidate>
+
+    <div class="sn-field">
+      <label class="sn-label">Stakeholder</label>
+      <div class="sn-opts" id="sn-stakeholder-opts">
+        <button type="button" class="sn-opt" data-field="stakeholder" data-val="ceo">CEO</button>
+        <button type="button" class="sn-opt" data-field="stakeholder" data-val="biggest-customer">Biggest customer</button>
+        <button type="button" class="sn-opt" data-field="stakeholder" data-val="sales-vp">Sales VP</button>
+        <button type="button" class="sn-opt" data-field="stakeholder" data-val="eng-peer">Eng peer</button>
+        <button type="button" class="sn-opt" data-field="stakeholder" data-val="board-member">Board member</button>
+      </div>
+    </div>
+
+    <div class="sn-field">
+      <label class="sn-label" for="sn-ask">The ask you need to decline</label>
+      <textarea class="sn-textarea" id="sn-ask" maxlength="300" placeholder="e.g. Add this feature to the roadmap for next quarter"></textarea>
+    </div>
+
+    <div class="sn-field">
+      <label class="sn-label" for="sn-constraint" style="color:#888;">Your constraint <span style="font-weight:400;">(optional)</span></label>
+      <textarea class="sn-textarea" id="sn-constraint" maxlength="200" placeholder="e.g. We're committed to shipping X — can't split the team"></textarea>
+    </div>
+
+    <div class="sn-field">
+      <label class="sn-label">Mode</label>
+      <div class="sn-opts" id="sn-mode-opts">
+        <button type="button" class="sn-opt selected" data-field="mode" data-val="rehearse">Rehearse</button>
+        <button type="button" class="sn-opt" data-field="mode" data-val="show-me">Show me</button>
+      </div>
+      <p class="sn-mode-desc" id="sn-mode-desc">Back-and-forth role-play, then scoring and the canonical version.</p>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="sn-submit">Start rehearsal</button>
+    </div>
+
+    <p class="pitfalls-validation" id="sn-validation" role="alert">Please select a stakeholder and enter the ask.</p>
+  </form>
+
+  <div class="pitfalls-error" id="sn-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="sn-output">
+    <p style="font-size:14px;color:#555;margin:0 0 8px;">Your rehearsal brief is ready in chat.</p>
+    <p class="sn-narrate-hint" id="sn-narrate-hint">
+      <span id="sn-hint-auto">Starting your rehearsal in chat&hellip;</span>
+      <span id="sn-hint-staged" style="display:none;">Rehearsal starting in chat below.</span>
+      <span id="sn-hint-fallback" style="display:none;">Auto-start unavailable. Ask Claude in the chat: <strong>"let's run it"</strong> or <strong>"play the stakeholder"</strong>.</span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="sn-retake-btn">Set up a new rehearsal</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var MODE_DESCS = {
+    "rehearse": "Back-and-forth role-play, then scoring and the canonical version.",
+    "show-me": "Skip the role-play. See the canonical polite firm no for this stakeholder directly."
+  };
+
+  var state = { stakeholder: null, mode: "rehearse" };
+
+  function $(id) { return document.getElementById(id); }
+
+  function pickOpt(field, val, containerId) {
+    state[field] = val;
+    var container = $(containerId);
+    if (!container) return;
+    Array.prototype.forEach.call(container.querySelectorAll(".sn-opt"), function (b) {
+      b.classList.toggle("selected", b.dataset.val === val);
+    });
+    if (field === "mode") {
+      $("sn-mode-desc").textContent = MODE_DESCS[val] || "";
+    }
+  }
+
+  function showError(msg) {
+    var el = $("sn-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("sn-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function handleSubmit() {
+    clearError();
+    $("sn-validation").classList.remove("visible");
+
+    var theAsk = $("sn-ask").value.trim();
+    if (!state.stakeholder || !theAsk) {
+      $("sn-validation").classList.add("visible");
+      return;
+    }
+
+    var scenario = { stakeholder: state.stakeholder, the_ask: theAsk };
+    var constraint = $("sn-constraint").value.trim();
+    if (constraint) scenario.your_constraint = constraint;
+
+    var btn = $("sn-submit");
+    btn.disabled = true;
+    btn.textContent = "Setting up…";
+
+    window.mcp.callTool("saying_no_start", { scenario: scenario, mode: state.mode })
+      .then(function (result) {
+        var data = parseToolResult(result);
+        renderOutput(data);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Start rehearsal";
+      });
+  }
+
+  function renderOutput(data) {
+    var out = $("sn-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    var auto = $("sn-hint-auto");
+    var staged = $("sn-hint-staged");
+    var fallback = $("sn-hint-fallback");
+
+    if (data && data.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Brief could not be persisted: " + data.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just set up a Saying No rehearsal in the embedded widget. " +
+        "Please call saying_no_get_pending_narration to fetch my saved brief and start the rehearsal."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-start failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    state = { stakeholder: null, mode: "rehearse" };
+    document.querySelectorAll(".sn-opt").forEach(function (b) {
+      b.classList.toggle("selected", b.dataset.field === "mode" && b.dataset.val === "rehearse");
+    });
+    $("sn-ask").value = "";
+    $("sn-constraint").value = "";
+    $("sn-mode-desc").textContent = MODE_DESCS["rehearse"];
+    $("sn-output").classList.remove("visible");
+    $("sn-hint-auto").style.display = "";
+    $("sn-hint-staged").style.display = "none";
+    $("sn-hint-fallback").style.display = "none";
+    clearError();
+    $("sn-validation").classList.remove("visible");
+    $("sn-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.querySelectorAll(".sn-opt").forEach(function (btn) {
+    var field = btn.dataset.field;
+    var containerId = "sn-" + field + "-opts";
+    btn.addEventListener("click", function () { pickOpt(field, btn.dataset.val, containerId); });
+  });
+  $("sn-submit").addEventListener("click", handleSubmit);
+  $("sn-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>

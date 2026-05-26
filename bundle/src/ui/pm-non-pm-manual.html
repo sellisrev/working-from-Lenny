@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PM-for-Non-PMs Operating Manual</title>
+  <!-- include: styles.css -->
+  <style>
+    .pnp-field { margin:12px 0; }
+    .pnp-label { font-size:13px; font-weight:500; color:#1a1a1a; margin:0 0 6px; }
+    .pnp-opts { display:flex; gap:7px; flex-wrap:wrap; }
+    .pnp-opt { padding:6px 14px; border:1px solid #cfcfcf; border-radius:20px; font-size:13px; background:#fff; cursor:pointer; transition:all .12s; }
+    .pnp-opt:hover { border-color:#555; }
+    .pnp-opt.selected { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
+    .pnp-textarea { width:100%; padding:7px 9px; border:1px solid #cfcfcf; border-radius:7px; font-size:13px; resize:vertical; min-height:55px; box-sizing:border-box; }
+    .pnp-artifacts { margin:8px 0 0; }
+    .pnp-artifact { font-size:13px; color:#555; padding:3px 0; border-left:2px solid #e0e0e0; padding-left:8px; margin:4px 0; }
+    .pnp-narrate-hint { font-size:13px; color:#555; margin:10px 0 0; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">PM-for-Non-PMs Operating Manual</h1>
+  <p class="app-tagline">Three working artifacts adapted to your domain — JTBD interview kit, prioritization rubric, stop-doing list.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="pnp-form" novalidate>
+
+    <div class="pnp-field">
+      <label class="pnp-label">Your domain</label>
+      <div class="pnp-opts" id="pnp-domain-opts">
+        <button type="button" class="pnp-opt" data-field="domain" data-val="school-principal">School principal</button>
+        <button type="button" class="pnp-opt" data-field="domain" data-val="nonprofit-ed">Nonprofit ED</button>
+        <button type="button" class="pnp-opt" data-field="domain" data-val="hospital-service-line">Hospital service-line</button>
+        <button type="button" class="pnp-opt" data-field="domain" data-val="research-lab-pi">Research lab PI</button>
+      </div>
+    </div>
+
+    <div class="pnp-field">
+      <label class="pnp-label" style="color:#888;">Scale <span style="font-weight:400;">(optional)</span></label>
+      <div class="pnp-opts" id="pnp-scale-opts">
+        <button type="button" class="pnp-opt" data-field="scale" data-val="small">Small</button>
+        <button type="button" class="pnp-opt selected" data-field="scale" data-val="mid">Mid</button>
+        <button type="button" class="pnp-opt" data-field="scale" data-val="large">Large</button>
+      </div>
+    </div>
+
+    <div class="pnp-field">
+      <label class="pnp-label" for="pnp-friction" style="color:#888;">The one PM-adjacent thing causing the most friction in your work <span style="font-weight:400;">(optional)</span></label>
+      <textarea class="pnp-textarea" id="pnp-friction" maxlength="200" placeholder="e.g. Getting buy-in from funders for new initiatives"></textarea>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="pnp-submit">Build my manual</button>
+    </div>
+
+    <p class="pitfalls-validation" id="pnp-validation" role="alert">Please select your domain.</p>
+  </form>
+
+  <div class="pitfalls-error" id="pnp-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="pnp-output">
+    <p style="font-size:14px;color:#555;margin:0 0 8px;">Your three artifacts are rendering in chat below.</p>
+    <div class="pnp-artifacts" id="pnp-artifacts-list"></div>
+    <p class="pnp-narrate-hint" id="pnp-narrate-hint">
+      <span id="pnp-narrate-hint-auto">Queueing your manual in chat&hellip;</span>
+      <span id="pnp-narrate-hint-staged" style="display:none;">Your manual is rendering in chat below.</span>
+      <span id="pnp-narrate-hint-fallback" style="display:none;">Auto-narration unavailable. Ask Claude in the chat: <strong>"give me my operating manual"</strong>.</span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="pnp-retake-btn">Start over</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  var ARTIFACTS = [
+    "Jobs-to-be-done interview kit",
+    "Prioritization rubric",
+    "'Stop doing' list"
+  ];
+
+  var state = { domain: null, scale: "mid" };
+
+  function $(id) { return document.getElementById(id); }
+
+  function pickOpt(field, val, containerId) {
+    state[field] = val;
+    var container = $(containerId);
+    if (!container) return;
+    Array.prototype.forEach.call(container.querySelectorAll(".pnp-opt"), function (b) {
+      b.classList.toggle("selected", b.dataset.val === val);
+    });
+  }
+
+  function showError(msg) {
+    var el = $("pnp-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("pnp-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function handleSubmit() {
+    clearError();
+    $("pnp-validation").classList.remove("visible");
+
+    if (!state.domain) {
+      $("pnp-validation").classList.add("visible");
+      return;
+    }
+
+    var inputs = { domain: state.domain, scale: state.scale };
+    var friction = $("pnp-friction").value.trim();
+    if (friction) inputs.biggest_friction = friction;
+
+    var btn = $("pnp-submit");
+    btn.disabled = true;
+    btn.textContent = "Generating…";
+
+    window.mcp.callTool("pm_non_pm_generate", { inputs: inputs })
+      .then(function (result) {
+        var data = parseToolResult(result);
+        renderOutput(data);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Build my manual";
+      });
+  }
+
+  function renderOutput(data) {
+    var list = $("pnp-artifacts-list");
+    list.innerHTML = "";
+    ARTIFACTS.forEach(function (title, i) {
+      var div = document.createElement("div");
+      div.className = "pnp-artifact";
+      div.textContent = (i + 1) + ". " + title;
+      list.appendChild(div);
+    });
+
+    var out = $("pnp-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    requestNarration(data);
+  }
+
+  function requestNarration(data) {
+    var auto = $("pnp-narrate-hint-auto");
+    var staged = $("pnp-narrate-hint-staged");
+    var fallback = $("pnp-narrate-hint-fallback");
+
+    if (data && data.persistence_warning) {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      showError("Auto-narration unavailable: " + data.persistence_warning);
+      return;
+    }
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      auto.style.display = "none";
+      fallback.style.display = "inline";
+      return;
+    }
+
+    window.mcp.sendMessage(
+      "I just filled in the PM-for-Non-PMs Operating Manual form in the embedded widget. " +
+        "Please call pm_non_pm_get_pending_narration to fetch my saved brief and render my three artifacts."
+    )
+      .then(function () {
+        auto.style.display = "none";
+        staged.style.display = "inline";
+      })
+      .catch(function (err) {
+        auto.style.display = "none";
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleRetake() {
+    state = { domain: null, scale: "mid" };
+    document.querySelectorAll(".pnp-opt").forEach(function (b) {
+      if (b.dataset.field === "scale" && b.dataset.val === "mid") {
+        b.classList.add("selected");
+      } else {
+        b.classList.remove("selected");
+      }
+    });
+    $("pnp-friction").value = "";
+    $("pnp-output").classList.remove("visible");
+    $("pnp-narrate-hint-auto").style.display = "";
+    $("pnp-narrate-hint-staged").style.display = "none";
+    $("pnp-narrate-hint-fallback").style.display = "none";
+    clearError();
+    $("pnp-validation").classList.remove("visible");
+    $("pnp-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.querySelectorAll(".pnp-opt").forEach(function (btn) {
+    var field = btn.dataset.field;
+    var containerId = "pnp-" + field + "-opts";
+    btn.addEventListener("click", function () { pickOpt(field, btn.dataset.val, containerId); });
+  });
+  $("pnp-submit").addEventListener("click", handleSubmit);
+  $("pnp-retake-btn").addEventListener("click", handleRetake);
+})();
+</script>
+
+</body>
+</html>

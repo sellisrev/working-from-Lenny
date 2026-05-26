@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lenny AMA</title>
+  <!-- include: styles.css -->
+  <style>
+    .ama-question { width:100%; padding:10px 12px; border:1px solid #cfcfcf; border-radius:8px; font-size:14px; resize:vertical; min-height:80px; box-sizing:border-box; font-family:inherit; }
+    .ama-question:focus { border-color:#555; outline:none; }
+    .ama-hint { font-size:12px; color:#888; margin:6px 0 0; }
+    .ama-output-text { font-size:13px; color:#555; margin:0 0 8px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <h1 class="app-title">Lenny AMA</h1>
+  <p class="app-tagline">Any product, growth, or leadership question — answered from the live corpus, decay-aware, with sources.</p>
+  <p class="spm-build-marker" style="font-size:11px;color:#999;margin-top:-8px;">build: bridge-v1 / __WFL_BUNDLE_VERSION__</p>
+
+  <form class="spm-form" id="ama-form" novalidate>
+    <div>
+      <textarea class="ama-question" id="ama-question" maxlength="1000"
+        placeholder="Ask anything: How do I pick a north star metric? How should I give difficult feedback? What makes a good PM interview?"></textarea>
+      <p class="ama-hint">Up to 1000 characters. Answer comes from the current corpus with named sources.</p>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button type="button" class="pitfalls-btn pitfalls-btn-primary" id="ama-submit">Ask</button>
+    </div>
+
+    <p class="pitfalls-validation" id="ama-validation" role="alert">Please enter a question.</p>
+  </form>
+
+  <div class="pitfalls-error" id="ama-error" role="alert"></div>
+
+  <div class="pitfalls-output" id="ama-output">
+    <p class="ama-output-text">Your answer is rendering in chat below.</p>
+    <p id="ama-narrate-hint" style="font-size:13px;color:#555;margin:4px 0 0;">
+      <span id="ama-narrate-hint-staged" style="display:none;">Answer rendering in chat&hellip;</span>
+      <span id="ama-narrate-hint-fallback" style="display:none;">Auto-narration unavailable. Check the chat for your answer.</span>
+    </p>
+    <div class="pitfalls-actions">
+      <button type="button" class="pitfalls-btn" id="ama-again-btn">Ask another</button>
+    </div>
+  </div>
+
+  <footer class="wfl-feedback"><a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a></footer>
+</div>
+
+<!-- include: mcp-rpc.js -->
+<script>
+(function () {
+  "use strict";
+
+  function $(id) { return document.getElementById(id); }
+
+  function showError(msg) {
+    var el = $("ama-error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    var el = $("ama-error");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function parseToolResult(result) {
+    if (!result || !Array.isArray(result.content)) throw new Error("Malformed tool result");
+    var first = result.content[0];
+    if (!first || first.type !== "text") throw new Error("Tool returned non-text content");
+    return JSON.parse(first.text);
+  }
+
+  function handleSubmit() {
+    clearError();
+    $("ama-validation").classList.remove("visible");
+
+    var question = $("ama-question").value.trim();
+    if (!question) {
+      $("ama-validation").classList.add("visible");
+      return;
+    }
+
+    var btn = $("ama-submit");
+    btn.disabled = true;
+    btn.textContent = "Asking…";
+
+    window.mcp.callTool("ama_ask", { question: question, k: 8 })
+      .then(function (result) {
+        var data = parseToolResult(result);
+        renderOutput(data, question);
+      })
+      .catch(function (err) { showError(err.message || String(err)); })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = "Ask";
+      });
+  }
+
+  function renderOutput(data, question) {
+    var out = $("ama-output");
+    out.classList.add("visible");
+    out.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    var staged = $("ama-narrate-hint-staged");
+    var fallback = $("ama-narrate-hint-fallback");
+
+    if (typeof window.mcp.sendMessage !== "function") {
+      fallback.style.display = "inline";
+      return;
+    }
+
+    var directive = data && data.directive ? data.directive : "";
+    window.mcp.sendMessage(
+      "I just submitted a question in the Lenny AMA widget: '" + question.slice(0, 200) + "'. " +
+        "The ama_ask tool already returned a narration_brief. Please render the answer from that brief following its directive and voice_rules."
+    )
+      .then(function () { staged.style.display = "inline"; })
+      .catch(function (err) {
+        fallback.style.display = "inline";
+        showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
+      });
+  }
+
+  function handleAgain() {
+    $("ama-question").value = "";
+    $("ama-output").classList.remove("visible");
+    $("ama-narrate-hint-staged").style.display = "none";
+    $("ama-narrate-hint-fallback").style.display = "none";
+    clearError();
+    $("ama-validation").classList.remove("visible");
+    $("ama-form").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("ama-question").focus();
+  }
+
+  $("ama-submit").addEventListener("click", handleSubmit);
+  $("ama-again-btn").addEventListener("click", handleAgain);
+  $("ama-question").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSubmit();
+  });
+})();
+</script>
+
+</body>
+</html>

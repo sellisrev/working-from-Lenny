@@ -217,3 +217,119 @@ export async function retrieveAcrossCorpus(
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, Math.max(1, k));
 }
+
+// ---------------------------------------------------------------------------
+// Daily Dose helpers (PHASE2_BUILD #12): topic listing and invalidation feed.
+// ---------------------------------------------------------------------------
+
+export interface TopicMeta {
+  slug: string;
+  display_name: string;
+  last_updated: string | null;
+}
+
+function parseFrontmatterField(raw: string, field: string): string | null {
+  const m = raw.match(new RegExp(`^${field}:\\s*(.+)$`, "m"));
+  return m ? m[1]!.trim() : null;
+}
+
+async function readFileRaw(filePath: string): Promise<string | null> {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+export async function listTopicMetas(): Promise<TopicMeta[]> {
+  const dir = path.join(knowledgeRoot(), KIND_DIRS.topic);
+  let entries: string[];
+  try {
+    entries = await fs.readdir(dir);
+  } catch {
+    return [];
+  }
+  const out: TopicMeta[] = [];
+  for (const name of entries) {
+    if (!name.endsWith(".md") || name.startsWith("_")) continue;
+    const slug = name.slice(0, -3);
+    const raw = await readFileRaw(path.join(dir, name));
+    if (!raw) continue;
+    const display_name =
+      parseFrontmatterField(raw, "display_name") ??
+      slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    const last_updated = parseLastUpdated(raw);
+    out.push({ slug, display_name, last_updated });
+  }
+  return out;
+}
+
+export interface InvalidationMeta {
+  slug: string;
+  kind: "obsolete" | "caution";
+  last_updated: string | null;
+  topic_slug: string | null;
+  claim: string;
+  what_changed: string;
+  source: string;
+  vote_count?: number;
+  confidence?: string;
+}
+
+function extractFirstClaim(body: string): string {
+  const headingMatch = body.match(/^##\s+"?([^"\n]+)"?/m);
+  if (headingMatch) return headingMatch[1]!.trim().slice(0, 200);
+  return body.slice(0, 100).replace(/\n/g, " ").trim();
+}
+
+function extractClaimBullet(body: string, bullet: string): string {
+  const r = new RegExp(`\\*\\*${bullet}\\*\\*:\\s*([^\n]+)`, "i");
+  const m = body.match(r);
+  return m ? m[1]!.trim().slice(0, 300) : "";
+}
+
+function extractTopVoteCount(body: string): number | undefined {
+  const m = body.match(/\*\*(\d+)\s+votes?\*\*/i);
+  return m ? parseInt(m[1]!, 10) : undefined;
+}
+
+export async function listInvalidationMetas(): Promise<InvalidationMeta[]> {
+  const out: InvalidationMeta[] = [];
+  for (const kind of ["obsolete", "caution"] as const) {
+    const dir = path.join(knowledgeRoot(), KIND_DIRS[kind]);
+    let entries: string[];
+    try {
+      entries = await fs.readdir(dir);
+    } catch {
+      continue;
+    }
+    for (const name of entries) {
+      if (!name.endsWith(".md") || name.startsWith("_")) continue;
+      const slug = name.slice(0, -3);
+      const raw = await readFileRaw(path.join(dir, name));
+      if (!raw) continue;
+      const body = stripFrontmatter(raw);
+      const last_updated = parseLastUpdated(raw);
+      const topic_slug = parseFrontmatterField(raw, "topic_slug");
+      const claim = extractFirstClaim(body);
+      const what_changed =
+        kind === "obsolete"
+          ? extractClaimBullet(body, "Why obsolete")
+          : extractClaimBullet(body, "Why this is flagged as a caution");
+      const source =
+        kind === "obsolete"
+          ? extractClaimBullet(body, "Originally said by")
+          : extractClaimBullet(body, "Said by");
+      const entry: InvalidationMeta = { slug, kind, last_updated, topic_slug, claim, what_changed, source };
+      if (kind === "caution") {
+        const vc = extractTopVoteCount(body);
+        if (vc !== undefined) entry.vote_count = vc;
+      } else {
+        const conf = extractClaimBullet(body, "Confidence in retirement");
+        if (conf) entry.confidence = conf.split(/[.\s]/)[0]!.toLowerCase();
+      }
+      out.push(entry);
+    }
+  }
+  return out;
+}
