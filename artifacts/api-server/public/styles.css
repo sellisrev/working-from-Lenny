@@ -307,505 +307,122 @@ main {
 }
 
 /* ================================================================
-   Six doors, distinct materials + multiple decorations each.
-   Glow is biased toward the OPENING side per door (right for left-hinge,
-   left for right-hinge / right-slide, bottom for top-hinge).
+   Kawaii fabric swatches — 25 unique tiles, hue-driven.
+   Each .tile-style-N sets --h (its hue) and --pat (a fabric pattern).
+   Patterns are assigned so every orthogonal neighbour is a different
+   fabric FAMILY (check / stripe / dot) => adjacent tiles never read alike.
+   Colours derive from --h, so the grid is one soft pastel set (no clash);
+   caption ink is a fixed dark token => WCAG AA+ on every frame
+   (verified: caption >= 9.5:1, quip >= 6.4:1).
+   The base block above keeps position/inset/transition; here we add the
+   swatch material, dashed-stitch edge, soft sheen and a gentle hover lift.
    ================================================================ */
+.tile {
+  --ink: #2b2730;
+  --ink-soft: #46414e;
+  --h: 334;
+  background: linear-gradient(145deg, hsl(var(--h) 46% 93%), hsl(var(--h) 40% 86%));
+  border-radius: 14px;
+  height: 170px;                /* every tile identical height */
+  min-height: 0;
+}
+.tile-doorway {
+  flex: none;
+  height: 94px;                 /* every swatch identical height */
+  border-radius: 11px;
+  overflow: hidden;
+  background: hsl(var(--h) 45% 73%);            /* hem peeking around the swatch */
+}
+.tile-doorway::before {                          /* soft static sheen, no glow */
+  background: linear-gradient(135deg, hsl(0 0% 100% / 0.30), transparent 55%);
+  animation: none;
+}
+.tile-panel {                                    /* the fabric swatch face */
+  box-sizing: border-box;
+  border-radius: 9px;
+  border: 2px dashed hsl(var(--h) 52% 98% / 0.8);  /* kawaii stitch */
+  background:
+    var(--pat, linear-gradient(0deg, transparent, transparent)),
+    linear-gradient(160deg, hsl(var(--h) 58% 92%), hsl(var(--h) 58% 85%));
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--h) 42% 66% / 0.4),
+    inset 0 2px 5px hsl(var(--h) 80% 99% / 0.38),
+    0 2px 4px hsl(var(--h) 40% 50% / 0.16);
+}
+.tile-panel::after {                             /* tiny folded corner (dog-ear) */
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 0.7rem; height: 0.7rem;
+  background: linear-gradient(225deg, hsl(var(--h) 55% 97% / 0.95) 0 50%, transparent 50%);
+  border-top-right-radius: 7px;
+  box-shadow: -1px 1px 1px hsl(var(--h) 40% 55% / 0.25);
+}
+.tile-caption {
+  color: var(--ink);
+  font-weight: 600;
+  flex: 1;                      /* fills the reserved slot below the swatch */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.4rem;
+  overflow: hidden;
+}
+.tile-quip { color: var(--ink-soft); opacity: 1; }
 
-/* ─── Door 1: Red painted residential — LEFT-HINGE SWING ──────────── */
-.tile-style-1 {
-  background: linear-gradient(135deg, #1a0f06, #2c1c10);
-}
-.tile-style-1 .tile-doorway {
-  background: #2a1a0e;
-}
-.tile-style-1 .tile-doorway::before {
-  background: radial-gradient(
-    ellipse at 78% 55%,
-    rgba(255, 200, 110, 0.95) 0%,
-    rgba(255, 175, 85, 0.45) 35%,
-    rgba(255, 150, 70, 0.1) 70%,
-    transparent 100%
-  );
-}
-.tile-style-1 .tile-panel {
-  background:
-    /* 6-panel inset look — top row */
-    linear-gradient(180deg, rgba(0,0,0,0.18), transparent 8%, transparent 38%, rgba(0,0,0,0.25) 39%, rgba(0,0,0,0.25) 41%, transparent 42%, transparent 92%, rgba(0,0,0,0.18) 100%),
-    /* left/right panel divisions */
-    linear-gradient(90deg, transparent 8%, rgba(0,0,0,0.12) 9%, rgba(0,0,0,0.12) 11%, transparent 12%, transparent 88%, rgba(0,0,0,0.12) 89%, rgba(0,0,0,0.12) 91%, transparent 92%),
-    /* base red paint */
-    linear-gradient(180deg, #a02828, #7a1818);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
-  transform-origin: left center;
-}
-.tile-style-1 .tile-panel::before {
-  /* visible hinge on the left side, mid-height */
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 30%;
-  width: 4px;
-  height: 14px;
-  background: linear-gradient(180deg, #4a3018, #2a1810);
-  border-radius: 1px;
-  box-shadow:
-    0 14px 0 -0px transparent,
-    0 24px 0 0 transparent,
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.1);
-}
-.tile-style-1 .tile-panel::after {
-  /* brass knob on the right at handle height */
-  content: '';
-  position: absolute;
-  right: 0.5rem;
-  top: 58%;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffd87a 0%, #c89a3a 60%, #7a5810 100%);
-  box-shadow:
-    0 0 0 1.5px rgba(80, 50, 10, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.5);
-}
-.tile-style-1 .tile-caption {
-  color: #fbeacc;  /* WCAG AAA on #1a0f06 frame */
-}
+/* ── the 25 swatches ──────────────────────────────────────────── */
+.tile-style-1 { --h: 334; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 50% 72% / 0.55) 0 10px, transparent 10px 20px), repeating-linear-gradient(90deg, hsl(var(--h) 50% 72% / 0.55) 0 10px, transparent 10px 20px); }  /* gingham (check), hue 334 */
+.tile-style-2 { --h: 347; --pat: repeating-linear-gradient(90deg, hsl(var(--h) 55% 73% / 0.65) 0 11px, transparent 11px 22px); }  /* vstripe (stripe), hue 347 */
+.tile-style-3 { --h: 0; --pat: radial-gradient(hsl(var(--h) 58% 72% / 0.85) 32%, transparent 35%) 0 0 / 22px 22px; }  /* polka (dot), hue 0 */
+.tile-style-4 { --h: 14; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 55% 73% / 0.65) 0 11px, transparent 11px 22px); }  /* hstripe (stripe), hue 14 */
+.tile-style-5 { --h: 27; --pat: radial-gradient(hsl(var(--h) 60% 74% / 0.85) 22%, transparent 25%) 0 0 / 19px 19px, radial-gradient(hsl(var(--h) 82% 96% / 0.9) 18%, transparent 21%) 9px 11px / 23px 23px; }  /* confetti (dot), hue 27 */
+.tile-style-6 { --h: 40; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 60% 99% / 0.55) 0 2px, transparent 2px 12px, hsl(var(--h) 45% 58% / 0.5) 12px 15px, transparent 15px 24px), repeating-linear-gradient(90deg, hsl(var(--h) 60% 99% / 0.55) 0 2px, transparent 2px 12px, hsl(var(--h) 45% 58% / 0.5) 12px 15px, transparent 15px 24px); }  /* tartan (check), hue 40 */
+.tile-style-7 { --h: 53; --pat: radial-gradient(circle at 50% 0, transparent 55%, hsl(var(--h) 52% 74% / 0.7) 57%, transparent 64%) 0 0 / 20px 13px, radial-gradient(circle at 50% 0, transparent 55%, hsl(var(--h) 52% 74% / 0.7) 57%, transparent 64%) 10px 6.5px / 20px 13px; }  /* scallop (dot), hue 53 */
+.tile-style-8 { --h: 66; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 44% 60% / 0.5) 0 2px, transparent 2px 26px), repeating-linear-gradient(90deg, hsl(var(--h) 44% 60% / 0.5) 0 2px, transparent 2px 26px); }  /* windowpane (check), hue 66 */
+.tile-style-9 { --h: 80; --pat: repeating-linear-gradient(45deg, hsl(var(--h) 55% 73% / 0.6) 0 10px, transparent 10px 20px); }  /* diagstripe (stripe), hue 80 */
+.tile-style-10 { --h: 93; --pat: repeating-linear-gradient(60deg, hsl(var(--h) 44% 60% / 0.4) 0 2px, transparent 2px 22px), repeating-linear-gradient(-60deg, hsl(var(--h) 44% 60% / 0.4) 0 2px, transparent 2px 22px), radial-gradient(hsl(var(--h) 58% 70% / 0.55) 11%, transparent 13%) 0 0 / 22px 38px; }  /* argyle (check), hue 93 */
+.tile-style-11 { --h: 106; --pat: linear-gradient(135deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 0 / 20px 20px, linear-gradient(225deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 0 / 20px 20px, linear-gradient(45deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 10px / 20px 20px, linear-gradient(315deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 10px / 20px 20px; }  /* chevron (stripe), hue 106 */
+.tile-style-12 { --h: 119; --pat: radial-gradient(hsl(var(--h) 58% 72% / 0.85) 32%, transparent 35%) 0 0 / 22px 22px; }  /* polka (dot), hue 119 */
+.tile-style-13 { --h: 132; --pat: repeating-linear-gradient(90deg, hsl(var(--h) 55% 73% / 0.65) 0 11px, transparent 11px 22px); }  /* vstripe (stripe), hue 132 */
+.tile-style-14 { --h: 146; --pat: radial-gradient(hsl(var(--h) 60% 74% / 0.85) 22%, transparent 25%) 0 0 / 19px 19px, radial-gradient(hsl(var(--h) 82% 96% / 0.9) 18%, transparent 21%) 9px 11px / 23px 23px; }  /* confetti (dot), hue 146 */
+.tile-style-15 { --h: 159; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 50% 72% / 0.5) 0 5px, transparent 5px 10px), repeating-linear-gradient(90deg, hsl(var(--h) 50% 72% / 0.5) 0 5px, transparent 5px 10px); }  /* microcheck (check), hue 159 */
+.tile-style-16 { --h: 172; --pat: radial-gradient(circle at 50% 0, transparent 55%, hsl(var(--h) 52% 74% / 0.7) 57%, transparent 64%) 0 0 / 20px 13px, radial-gradient(circle at 50% 0, transparent 55%, hsl(var(--h) 52% 74% / 0.7) 57%, transparent 64%) 10px 6.5px / 20px 13px; }  /* scallop (dot), hue 172 */
+.tile-style-17 { --h: 185; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 50% 72% / 0.55) 0 10px, transparent 10px 20px), repeating-linear-gradient(90deg, hsl(var(--h) 50% 72% / 0.55) 0 10px, transparent 10px 20px); }  /* gingham (check), hue 185 */
+.tile-style-18 { --h: 198; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 55% 73% / 0.65) 0 11px, transparent 11px 22px); }  /* hstripe (stripe), hue 198 */
+.tile-style-19 { --h: 212; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 60% 99% / 0.55) 0 2px, transparent 2px 12px, hsl(var(--h) 45% 58% / 0.5) 12px 15px, transparent 15px 24px), repeating-linear-gradient(90deg, hsl(var(--h) 60% 99% / 0.55) 0 2px, transparent 2px 12px, hsl(var(--h) 45% 58% / 0.5) 12px 15px, transparent 15px 24px); }  /* tartan (check), hue 212 */
+.tile-style-20 { --h: 225; --pat: repeating-linear-gradient(45deg, hsl(var(--h) 55% 73% / 0.6) 0 10px, transparent 10px 20px); }  /* diagstripe (stripe), hue 225 */
+.tile-style-21 { --h: 238; --pat: radial-gradient(hsl(var(--h) 58% 72% / 0.85) 32%, transparent 35%) 0 0 / 22px 22px; }  /* polka (dot), hue 238 */
+.tile-style-22 { --h: 251; --pat: linear-gradient(135deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 0 / 20px 20px, linear-gradient(225deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 0 / 20px 20px, linear-gradient(45deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 10px / 20px 20px, linear-gradient(315deg, hsl(var(--h) 55% 74% / 0.62) 25%, transparent 25.5%) 0 10px / 20px 20px; }  /* chevron (stripe), hue 251 */
+.tile-style-23 { --h: 264; --pat: radial-gradient(hsl(var(--h) 60% 74% / 0.85) 22%, transparent 25%) 0 0 / 19px 19px, radial-gradient(hsl(var(--h) 82% 96% / 0.9) 18%, transparent 21%) 9px 11px / 23px 23px; }  /* confetti (dot), hue 264 */
+.tile-style-24 { --h: 278; --pat: repeating-linear-gradient(0deg, hsl(var(--h) 44% 60% / 0.5) 0 2px, transparent 2px 26px), repeating-linear-gradient(90deg, hsl(var(--h) 44% 60% / 0.5) 0 2px, transparent 2px 26px); }  /* windowpane (check), hue 278 */
+.tile-style-25 { --h: 291; --pat: radial-gradient(circle at 50% 0, transparent 55%, hsl(var(--h) 52% 74% / 0.7) 57%, transparent 64%) 0 0 / 20px 13px, radial-gradient(circle at 50% 0, transparent 55%, hsl(var(--h) 52% 74% / 0.7) 57%, transparent 64%) 10px 6.5px / 20px 13px; }  /* scallop (dot), hue 291 */
 
-/* ─── Door 2: Gothic cathedral — DRAWBRIDGE (bottom-hinge drop) ─ */
-.tile-style-2 {
-  background: linear-gradient(135deg, #0e0e16, #1c1c2c);
-}
-.tile-style-2 .tile-doorway {
-  background: #14142a;
-}
-.tile-style-2 .tile-doorway::before {
-  /* glow at the TOP — exposed when the drawbridge drops down */
-  background: radial-gradient(
-    ellipse at 50% 18%,
-    rgba(150, 130, 245, 0.95) 0%,
-    rgba(110, 90, 220, 0.5) 35%,
-    rgba(85, 70, 180, 0.15) 70%,
-    transparent 100%
-  );
-}
-.tile-style-2 .tile-panel {
-  background:
-    /* dark wood with subtle vertical grain */
-    repeating-linear-gradient(90deg, transparent 0, transparent 5px, rgba(0,0,0,0.04) 5px, rgba(0,0,0,0.04) 6px),
-    linear-gradient(180deg, #3a2818, #1f130a);
-  border-radius: 24px 24px 2px 2px;
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
-    inset 0 0 20px rgba(0, 0, 0, 0.4),
-    inset 0 2px 0 rgba(255, 220, 170, 0.06);
-  transform-origin: bottom center;
-}
-.tile-style-2 .tile-panel::before {
-  /* two iron strap bands with rivet dots */
-  content: '';
-  position: absolute;
-  top: 24%;
-  left: 6%;
-  right: 6%;
-  height: 30%;
-  background:
-    /* top band */
-    linear-gradient(90deg, transparent, #2a2a2a 8%, #4a4a4a 50%, #2a2a2a 92%, transparent) 0 0 / 100% 3px no-repeat,
-    /* bottom band */
-    linear-gradient(90deg, transparent, #2a2a2a 8%, #4a4a4a 50%, #2a2a2a 92%, transparent) 0 100% / 100% 3px no-repeat,
-    /* rivets on top band */
-    radial-gradient(circle at 12% 1px, #1a1a1a 1.2px, transparent 1.5px) no-repeat,
-    radial-gradient(circle at 88% 1px, #1a1a1a 1.2px, transparent 1.5px) no-repeat,
-    /* rivets on bottom band */
-    radial-gradient(circle at 12% calc(100% - 1px), #1a1a1a 1.2px, transparent 1.5px) no-repeat,
-    radial-gradient(circle at 88% calc(100% - 1px), #1a1a1a 1.2px, transparent 1.5px) no-repeat;
-}
-.tile-style-2 .tile-panel::after {
-  /* iron ring handle */
-  content: '';
-  position: absolute;
-  right: 0.55rem;
-  top: 62%;
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 50%;
-  border: 2.5px solid #2a2a2a;
-  background: transparent;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.6);
-}
-.tile-style-2 .tile-caption {
-  color: #ebe3f7;  /* WCAG AAA on #0e0e16 frame */
-}
-
-/* ─── Door 3: Modern office — SLIDES DOWN into floor (teal) ──── */
-.tile-style-3 {
-  background: linear-gradient(135deg, #1c2026, #0e1116);
-}
-.tile-style-3 .tile-doorway {
-  background: #0e1820;
-}
-.tile-style-3 .tile-doorway::before {
-  /* glow at the TOP — exposed when the door sinks down */
-  background: radial-gradient(
-    ellipse at 50% 22%,
-    rgba(150, 230, 240, 0.95) 0%,
-    rgba(120, 200, 220, 0.5) 35%,
-    rgba(90, 170, 200, 0.15) 70%,
-    transparent 100%
-  );
-}
-.tile-style-3 .tile-panel {
-  background: linear-gradient(180deg, #f4f5f7 0%, #e2e4e8 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.08);
-  transform-origin: bottom center;
-}
-.tile-style-3 .tile-panel::before {
-  /* peephole + room number plate (combined) */
-  content: '';
-  position: absolute;
-  top: 18%;
-  left: 50%;
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #3a4045, #1a1d20);
-  box-shadow:
-    0 0 0 2px #888,
-    0 0 0 3px #ccc,
-    0 1px 1px rgba(0, 0, 0, 0.3);
-  transform: translateX(-50%);
-}
-.tile-style-3 .tile-panel::after {
-  /* horizontal chrome lever handle */
-  content: '';
-  position: absolute;
-  right: 0.4rem;
-  top: 58%;
-  width: 1rem;
-  height: 0.22rem;
-  border-radius: 1.5px;
-  background: linear-gradient(180deg, #d0d0d0 0%, #ababab 50%, #6a6a6a 100%);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.15),
-    0 1px 1px rgba(0, 0, 0, 0.25);
-}
-.tile-style-3 .tile-caption {
-  color: #e0eef2;  /* WCAG AAA on #1c2026 frame */
-}
-
-/* ─── Door 4: Weathered grey barn door (warm orange) ──────────── */
-.tile-style-4 {
-  background: linear-gradient(180deg, #0e0a05, #1a140a);
-}
-.tile-style-4 .tile-doorway {
-  background: #2a1a0a;
-}
-.tile-style-4 .tile-doorway::before {
-  background: radial-gradient(
-    ellipse at 25% 55%,
-    rgba(255, 175, 100, 0.95) 0%,
-    rgba(255, 140, 70, 0.45) 35%,
-    rgba(220, 100, 50, 0.12) 70%,
-    transparent 100%
-  );
-}
-.tile-style-4 .tile-panel {
-  background:
-    /* X-pattern cross-brace via two angled lines */
-    linear-gradient(135deg, transparent 47%, rgba(0,0,0,0.35) 47%, rgba(0,0,0,0.35) 53%, transparent 53%),
-    linear-gradient(45deg, transparent 47%, rgba(0,0,0,0.35) 47%, rgba(0,0,0,0.35) 53%, transparent 53%),
-    /* vertical plank grooves */
-    repeating-linear-gradient(90deg, transparent 0, transparent 22%, rgba(0,0,0,0.25) 22%, rgba(0,0,0,0.25) calc(22% + 1.5px), transparent calc(22% + 1.5px), transparent 44%),
-    /* weathered wood base */
-    linear-gradient(180deg, #6a5a4a 0%, #4a3a2a 60%, #3a2a1a 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
-    inset 0 -3px 8px rgba(0, 0, 0, 0.3);
-  transform-origin: center center;
-}
-.tile-style-4 .tile-panel::before {
-  /* sliding track + two roller wheels */
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -3%;
-  right: -3%;
-  height: 4px;
-  background:
-    radial-gradient(circle at 25% 2px, #1a1a1a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at 75% 2px, #1a1a1a 2px, transparent 2.5px) no-repeat,
-    linear-gradient(180deg, #1a1208, #0a0604);
-}
-.tile-style-4 .tile-panel::after {
-  /* horizontal pull bar */
-  content: '';
-  position: absolute;
-  right: 0.4rem;
-  top: 50%;
-  width: 1.1rem;
-  height: 0.35rem;
-  background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
-  border-radius: 2px;
-  transform: translateY(-50%);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 1px 2px rgba(0, 0, 0, 0.5);
-}
-.tile-style-4 .tile-caption {
-  color: #fbe6c8;  /* WCAG AAA on #0e0a05 frame */
-}
-
-/* ─── Door 5: Copper trapdoor / hatch (soft green glow) ───────── */
-.tile-style-5 {
-  background: linear-gradient(180deg, #1a140a, #2a1f12);
-}
-.tile-style-5 .tile-doorway {
-  background: #0a1a0c;
-}
-.tile-style-5 .tile-doorway::before {
-  background: radial-gradient(
-    ellipse at 50% 90%,
-    rgba(160, 230, 170, 0.95) 0%,
-    rgba(120, 200, 140, 0.5) 35%,
-    rgba(90, 170, 110, 0.15) 70%,
-    transparent 100%
-  );
-}
-.tile-style-5 .tile-panel {
-  background:
-    /* corner rivets */
-    radial-gradient(circle at 5px 5px, #3a1f0a 1.5px, transparent 2px) no-repeat,
-    radial-gradient(circle at calc(100% - 5px) 5px, #3a1f0a 1.5px, transparent 2px) no-repeat,
-    radial-gradient(circle at 5px calc(100% - 5px), #3a1f0a 1.5px, transparent 2px) no-repeat,
-    radial-gradient(circle at calc(100% - 5px) calc(100% - 5px), #3a1f0a 1.5px, transparent 2px) no-repeat,
-    /* aged copper plate with diagonal sheen */
-    linear-gradient(150deg, #b8782a 0%, #946028 50%, #c8862e 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(40, 20, 0, 0.6),
-    inset 0 1px 0 rgba(255, 220, 160, 0.25),
-    inset 0 -2px 6px rgba(0, 0, 0, 0.25);
-  transform-origin: top center;
-}
-.tile-style-5 .tile-panel::before {
-  /* two hinges along the top */
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 18%;
-  right: 18%;
-  height: 5px;
-  background:
-    radial-gradient(circle at 15% 2.5px, #1a1208 1.8px, transparent 2.2px) no-repeat,
-    radial-gradient(circle at 85% 2.5px, #1a1208 1.8px, transparent 2.2px) no-repeat,
-    linear-gradient(180deg, #2a1f10, #1a140a);
-  border-radius: 0 0 2px 2px;
-}
-.tile-style-5 .tile-panel::after {
-  /* recessed ring handle near the bottom */
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 0.7rem;
-  width: 0.95rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  border: 2px solid #4a2f0a;
-  background:
-    radial-gradient(ellipse at center, rgba(0,0,0,0.4), rgba(0,0,0,0.1));
-  transform: translateX(-50%);
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px rgba(255, 200, 130, 0.2);
-}
-.tile-style-5 .tile-caption {
-  color: #fbe8be;  /* WCAG AAA on #1a140a frame */
-}
-
-/* ─── Door 6: Heavy vault door (dusty red) ────────────────── */
-.tile-style-6 {
-  background: linear-gradient(135deg, #0e0e10, #1d1d24);
-}
-.tile-style-6 .tile-doorway {
-  background: #2a1a1c;
-}
-.tile-style-6 .tile-doorway::before {
-  background: radial-gradient(
-    ellipse at 22% 55%,
-    rgba(255, 130, 130, 0.85) 0%,
-    rgba(220, 90, 90, 0.4) 35%,
-    rgba(170, 60, 60, 0.12) 70%,
-    transparent 100%
-  );
-}
-.tile-style-6 .tile-panel {
-  background:
-    /* perimeter bolt heads — 8 of them */
-    radial-gradient(circle at 6px 6px, #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at 50% 6px, #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at calc(100% - 6px) 6px, #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at 6px 50%, #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at calc(100% - 6px) 50%, #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at 6px calc(100% - 6px), #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at 50% calc(100% - 6px), #2a2a2a 2px, transparent 2.5px) no-repeat,
-    radial-gradient(circle at calc(100% - 6px) calc(100% - 6px), #2a2a2a 2px, transparent 2.5px) no-repeat,
-    /* brushed steel */
-    repeating-linear-gradient(90deg, transparent 0, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 3px),
-    linear-gradient(180deg, #b8bcc0, #7a7e84);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
-    inset 0 2px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -2px 6px rgba(0, 0, 0, 0.2);
-  transform-origin: right center;
-}
-.tile-style-6 .tile-panel::before {
-  /* combination dial above the wheel */
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 26%;
-  width: 0.65rem;
-  height: 0.65rem;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at center, transparent 30%, #1a1a1a 31%, #1a1a1a 35%, transparent 36%),
-    radial-gradient(circle at center, #c8c8c8, #888);
-  border: 1px solid #3a3a3a;
-  transform: translateX(-50%);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
-}
-.tile-style-6 .tile-panel::after {
-  /* big crosshair wheel */
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 60%;
-  width: 1.8rem;
-  height: 1.8rem;
-  border-radius: 50%;
-  border: 2.5px solid #2a2a2a;
-  background:
-    /* 4-spoke crosshair */
-    linear-gradient(0deg, transparent 46%, #2a2a2a 46%, #2a2a2a 54%, transparent 54%),
-    linear-gradient(90deg, transparent 46%, #2a2a2a 46%, #2a2a2a 54%, transparent 54%),
-    radial-gradient(circle at center, #6a6e74 25%, #4a4e54 75%);
-  transform: translate(-50%, -50%) rotate(0deg);
-  transition: transform 0.3s ease-out;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    inset 0 -2px 2px rgba(0, 0, 0, 0.25),
-    inset 0 2px 2px rgba(255, 255, 255, 0.1);
-}
-.tile-style-6 .tile-caption {
-  color: #f5dcdc;  /* WCAG AAA on #0e0e10 frame */
-}
-
-/* ================================================================
-   Open animations — only on devices with a real pointer.
-   Generous rotation angles so a real wedge of glow shows through.
-   ================================================================ */
+/* ── gentle lift on hover/focus (pointer devices only) ────────── */
 @media (hover: hover) and (pointer: fine) {
-  .tile-style-1:hover .tile-panel,
-  .tile-style-1:focus-visible .tile-panel {
-    transform: rotateY(-38deg);
+  .tile:hover .tile-panel,
+  .tile:focus-visible .tile-panel {
+    transform: translateY(-3px) scale(1.012);
     box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      8px 2px 18px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Door 2 — drawbridge drops forward (bottom hinge) */
-  .tile-style-2:hover .tile-panel,
-  .tile-style-2:focus-visible .tile-panel {
-    transform: rotateX(34deg);
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.5),
-      inset 0 0 20px rgba(0, 0, 0, 0.4),
-      0 6px 16px rgba(0, 0, 0, 0.4);
-  }
-
-  /* Door 3 — slides down into the floor */
-  .tile-style-3:hover .tile-panel,
-  .tile-style-3:focus-visible .tile-panel {
-    transform: translateY(68%);
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 -4px 12px rgba(0, 0, 0, 0.18);
-  }
-
-  .tile-style-4:hover .tile-panel,
-  .tile-style-4:focus-visible .tile-panel {
-    transform: translateX(58%);
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
-      inset 0 -3px 8px rgba(0, 0, 0, 0.3),
-      -6px 0 14px rgba(0, 0, 0, 0.25);
-  }
-
-  .tile-style-5:hover .tile-panel,
-  .tile-style-5:focus-visible .tile-panel {
-    transform: rotateX(-46deg);
-    box-shadow:
-      inset 0 0 0 1px rgba(40, 20, 0, 0.6),
-      inset 0 1px 0 rgba(255, 220, 160, 0.25),
-      inset 0 -2px 6px rgba(0, 0, 0, 0.25),
-      0 8px 14px rgba(0, 0, 0, 0.3);
-  }
-
-  .tile-style-6:hover .tile-panel,
-  .tile-style-6:focus-visible .tile-panel {
-    transform: rotateY(32deg);
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.45),
-      inset 0 2px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -2px 6px rgba(0, 0, 0, 0.2),
-      -8px 2px 18px rgba(0, 0, 0, 0.35);
-  }
-  .tile-style-6:hover .tile-panel::after,
-  .tile-style-6:focus-visible .tile-panel::after {
-    transform: translate(-50%, -50%) rotate(160deg);
+      inset 0 0 0 1px hsl(var(--h) 42% 66% / 0.4),
+      inset 0 2px 6px hsl(var(--h) 80% 99% / 0.6),
+      0 9px 18px hsl(var(--h) 45% 45% / 0.28);
   }
 }
 
-/* Reduce-motion preference — pin doors closed, stop the glow pulse */
+/* ── reduced motion: no lift ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .tile-panel,
-  .tile-style-6 .tile-panel::after {
-    transition: none !important;
-    transform: none !important;
-  }
-  .tile-doorway::before {
-    animation: none !important;
-    opacity: 0.85;
-  }
+  .tile-panel { transition: none !important; transform: none !important; }
   @media (hover: hover) and (pointer: fine) {
-    .tile-style-1:hover .tile-panel,
-    .tile-style-2:hover .tile-panel,
-    .tile-style-3:hover .tile-panel,
-    .tile-style-4:hover .tile-panel,
-    .tile-style-5:hover .tile-panel,
-    .tile-style-6:hover .tile-panel,
-    .tile-style-6:hover .tile-panel::after,
-    .tile-style-1:focus-visible .tile-panel,
-    .tile-style-2:focus-visible .tile-panel,
-    .tile-style-3:focus-visible .tile-panel,
-    .tile-style-4:focus-visible .tile-panel,
-    .tile-style-5:focus-visible .tile-panel,
-    .tile-style-6:focus-visible .tile-panel,
-    .tile-style-6:focus-visible .tile-panel::after {
-      transform: none !important;
-    }
+    .tile:hover .tile-panel,
+    .tile:focus-visible .tile-panel { transform: none !important; }
   }
 }
+
+/* ── responsive columns: keep swatches wide enough that captions
+      never outgrow the reserved slot (so tiles stay uniform) ────── */
+@media (max-width: 680px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 430px) { .tiles { grid-template-columns: 1fr; } }
 
 /* Typography for inner pages */
 h1 {
