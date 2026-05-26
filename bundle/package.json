@@ -1,9 +1,9 @@
 {
   "name": "@working-from-lenny/bundle",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Working from Lenny — MCP App bundle source. Worked example: #44 PM Pitfalls Self-Audit.",
-  "license": "TBD-before-v0.1.0",
+  "license": "MIT",
   "type": "commonjs",
   "main": "dist/server.js",
   "scripts": {
