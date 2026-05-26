@@ -7,7 +7,8 @@
   "type": "commonjs",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsx scripts/build-html.ts",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json && tsx scripts/build-html.ts",
     "validate": "tsx scripts/validate.ts",
     "smoke": "tsx scripts/smoke-test.ts",
     "pack": "tsx scripts/pack.ts",

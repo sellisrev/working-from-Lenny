@@ -352,12 +352,12 @@
     // Each prompt is grounded by appending the tile's own skill + corpus links
     // (derived from the sibling "skill ↗" footer link), so claude.ai fetches the
     // real method and corpus instead of improvising from training data.
-    var CORPUS_TOPICS = 'https://raw.githubusercontent.com/sellisrev/working-from-Lenny/main/knowledge/topics/<file>.md';
+    var CORPUS_TOPICS = 'https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/<file>.md';
     function rawSkillUrl(footerHref) {
       var m = footerHref.match(/working-from-Lenny\/(?:tree|blob)\/main\/(.*)$/);
       var path = m ? m[1].replace(/\/$/, '') : '';
       if (path && !/\.md$/.test(path)) path += '/SKILL.md';
-      return 'https://raw.githubusercontent.com/sellisrev/working-from-Lenny/main/' + path;
+      return 'https://github.com/sellisrev/working-from-Lenny/blob/main/' + path;
     }
     document.querySelectorAll('a[data-q]').forEach(function (a) {
       var grounding = '';
