@@ -1,6 +1,8 @@
 modules = ["nodejs-24"]
 
 [deployment]
+build = ["pnpm", "--filter", "@workspace/api-server", "run", "build"]
+run = ["pnpm", "--filter", "@workspace/api-server", "run", "start"]
 router = "application"
 deploymentTarget = "autoscale"
 
