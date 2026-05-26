@@ -23,6 +23,12 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - name: Pin pnpm peer config to match the lockfile
+        # The repo's .npmrc (auto-install-peers=false) is gitignored, so CI must
+        # recreate it; otherwise pnpm 9 defaults auto-install-peers=true and the
+        # frozen install fails with ERR_PNPM_LOCKFILE_CONFIG_MISMATCH.
+        run: printf 'auto-install-peers=false\nstrict-peer-dependencies=false\n' > .npmrc
+
       - name: Install bundle dependencies
         run: pnpm install --frozen-lockfile --filter bundle
 
