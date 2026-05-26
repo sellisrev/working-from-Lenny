@@ -338,7 +338,12 @@
 
       const mode = document.querySelector('input[name="mode"]:checked').value;
       const inputBlock = buildInputBlock(inputs);
-      const prompt = PROMPTS[mode](inputBlock);
+      const grounding =
+        'IMPORTANT — before writing anything, you MUST fetch and read this skill,\n' +
+        'then match its voice and format exactly. Do NOT improvise the format from\n' +
+        'memory. If you cannot fetch it, say so and stop.\n' +
+        'https://raw.githubusercontent.com/sellisrev/working-from-Lenny/main/skills/how-you-build/SKILL.md\n\n';
+      const prompt = grounding + PROMPTS[mode](inputBlock);
       const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
       window.open(url, '_blank', 'noopener');
     }

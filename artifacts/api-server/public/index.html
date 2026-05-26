@@ -349,8 +349,32 @@
     // Progressive enhancement: tiles that fall back to claude.ai carry the
     // structured prompt in data-q. Build the ?q= here so the HTML stays
     // readable and a no-JS visitor still reaches claude.ai (just unprefilled).
+    // Each prompt is grounded by appending the tile's own skill + corpus links
+    // (derived from the sibling "skill ↗" footer link), so claude.ai fetches the
+    // real method and corpus instead of improvising from training data.
+    var CORPUS_TOPICS = 'https://raw.githubusercontent.com/sellisrev/working-from-Lenny/main/knowledge/topics/<file>.md';
+    function rawSkillUrl(footerHref) {
+      var m = footerHref.match(/working-from-Lenny\/(?:tree|blob)\/main\/(.*)$/);
+      var path = m ? m[1].replace(/\/$/, '') : '';
+      if (path && !/\.md$/.test(path)) path += '/SKILL.md';
+      return 'https://raw.githubusercontent.com/sellisrev/working-from-Lenny/main/' + path;
+    }
     document.querySelectorAll('a[data-q]').forEach(function (a) {
-      a.href = 'https://claude.ai/new?q=' + encodeURIComponent(a.dataset.q);
+      var grounding = '';
+      var card = a.closest('.appcard');
+      var skillLink = card ? card.querySelector('.appcard-foot a[href*="github.com"]') : null;
+      if (skillLink) {
+        grounding =
+          '\n\nIMPORTANT — do this BEFORE writing anything. You MUST fetch the URLs ' +
+          'below and read them. Do NOT answer from memory or general knowledge of ' +
+          'Lenny\'s work; ground every claim ONLY in the files you fetch. If you cannot ' +
+          'fetch them, say so and stop rather than guessing. 1) Fetch the method + ' +
+          'corpus anchors: ' + rawSkillUrl(skillLink.getAttribute('href')) +
+          ' — its "Corpus anchors" section lists the exact topic files. 2) Then fetch ' +
+          'each anchor file you need from ' + CORPUS_TOPICS +
+          ' . Quote only claims, guests, and dates that appear in the files you fetched.';
+      }
+      a.href = 'https://claude.ai/new?q=' + encodeURIComponent(a.dataset.q + grounding);
     });
   </script>
 
