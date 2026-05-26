@@ -3,15 +3,15 @@
   "name": "working-from-lenny",
   "display_name": "Working from Lenny",
   "version": "0.9.0",
-  "description": "Eleven PM tools drawn from the Lenny's Newsletter and How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
-  "long_description": "Eleven small tools (quiz-and-narration apps, paste-and-critique apps, wizard apps, and rehearsal apps) built on a current-consensus knowledge base over Lenny Rachitsky's newsletter and podcast plus Claire Vo's How I AI show. Tools return structured 'narration briefs' (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for the few stateful tools lives in the bundle's local data dir; no remote storage.",
+  "description": "25 PM tools drawn from Lenny Rachitsky's newsletter and Claire Vo's How I AI corpora. Each tool returns a corpus-grounded brief; the host chat model renders the user-facing narration.",
+  "long_description": "25 tools across four themes (self-reflective, business, for-non-PMs, just-for-fun) built on a current-consensus knowledge base. Tools return structured narration briefs (corpus chunks + picks + voice rules + structure); the host chat model renders the user-facing prose. State for stateful tools lives in the bundle's local data dir; no remote storage. Corpus is decay-aware: obsolete claims are flagged, cautions surfaced, and the knowledge base is updated at least monthly.",
   "author": {
     "name": "Serge V.",
-    "url": "https://github.com/sellisrev/from-Lenny"
+    "url": "https://github.com/sellisrev/working-from-Lenny"
   },
-  "homepage": "https://github.com/sellisrev/from-Lenny",
-  "documentation": "https://github.com/sellisrev/from-Lenny#readme",
-  "license": "TBD-before-v0.1.0",
+  "homepage": "https://github.com/sellisrev/working-from-Lenny",
+  "documentation": "https://github.com/sellisrev/working-from-Lenny#readme",
+  "license": "MIT",
   "server": {
     "type": "node",
     "entry_point": "dist/server.js",

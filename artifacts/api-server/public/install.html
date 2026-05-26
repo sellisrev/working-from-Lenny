@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Install the MCP App - Working from Lenny</title>
+  <meta name="description" content="Install Working from Lenny as a Claude MCP App. All 25 PM tools in one bundle, running locally in Claude Desktop.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Install the MCP App - Working from Lenny">
+  <meta property="og:description" content="Install Working from Lenny as a Claude MCP App. All 25 PM tools in one bundle, running locally in Claude Desktop.">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Install the MCP App - Working from Lenny">
+  <meta name="twitter:description" content="Install Working from Lenny as a Claude MCP App. All 25 PM tools in one bundle.">
+  <meta name="twitter:image" content="/og-image.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav><a href="/" class="nav-back">← <span class="brand-logo">🔥</span>Working from Lenny</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>Install the MCP App</h1>
+
+      <p class="lede">All 25 PM tools in one bundle, running locally inside Claude Desktop. No API key, no server, no data leaving your machine.</p>
+
+      <h2>What you get</h2>
+      <ul>
+        <li>Every app from the site — quiz, wizard, generator, and rehearsal tools — available directly in chat</li>
+        <li>Corpus-grounded answers: tools pull from the same current-consensus knowledge base and flag anything that has recently changed</li>
+        <li>A home launcher (<code>wfl_home</code>) that lists every app with one-line descriptions and links to open each one</li>
+        <li>Local persistence for stateful tools (PM Ladder, Decision Log, Daily Dose streak) — your data stays on your machine</li>
+      </ul>
+
+      <h2>Requirements</h2>
+      <ul>
+        <li>Claude Desktop (Mac or Windows) — <a href="https://claude.ai/download" target="_blank" rel="noopener">download here</a></li>
+        <li>Node.js 20 or later</li>
+      </ul>
+
+      <h2>Install</h2>
+
+      <ol>
+        <li>
+          <strong>Download the latest release.</strong><br>
+          Go to <a href="https://github.com/sellisrev/working-from-Lenny/releases/latest" target="_blank" rel="noopener">github.com/sellisrev/working-from-Lenny/releases/latest</a>
+          and download <code>working-from-lenny.mcpb</code>.
+        </li>
+        <li>
+          <strong>Open Claude Desktop.</strong><br>
+          Go to <strong>Settings → MCP Apps</strong> (or press <kbd>⌘,</kbd> on Mac).
+        </li>
+        <li>
+          <strong>Drag in the file.</strong><br>
+          Drag <code>working-from-lenny.mcpb</code> into the MCP Apps panel, or click the <strong>+</strong> button and select the file.
+        </li>
+        <li>
+          <strong>Start a new conversation.</strong><br>
+          Type <em>show me what you can do</em> or ask any PM question. Claude will call <code>wfl_home</code> to show the menu, or jump straight into whichever tool fits.
+        </li>
+      </ol>
+
+      <div class="callout">
+        <strong>Prefer skills?</strong> Each app also runs as a Claude skill. Every tile on the <a href="/">home page</a> carries a <em>skill ↗</em> link. Skills work without installing the MCP App.
+      </div>
+
+      <h2>Questions or issues</h2>
+      <p>
+        <a href="https://github.com/sellisrev/working-from-Lenny/issues" target="_blank" rel="noopener">Open an issue on GitHub</a>
+        or use the <a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">feedback form</a>.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="/about">Built by Serge (and Claude)</a>
+      <span class="sep">·</span>
+      <a href="https://www.lennysnewsletter.com/" target="_blank" rel="noopener">thanks to Lenny</a>
+      <span class="sep">·</span>
+      <a href="https://forms.gle/26K5fD32e12bD7L36" target="_blank" rel="noopener">Feedback</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/sellisrev/working-from-Lenny" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+</body>
+</html>

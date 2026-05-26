@@ -1,0 +1,45 @@
+name: Build and release .mcpb
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install bundle dependencies
+        run: pnpm install --frozen-lockfile --filter bundle
+
+      - name: Build
+        run: pnpm -C bundle run build
+
+      - name: Validate
+        run: pnpm -C bundle run validate
+
+      - name: Install mcpb CLI
+        run: npm install -g @anthropic-ai/mcpb
+
+      - name: Pack .mcpb
+        run: pnpm -C bundle run pack
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bundle/dist/working-from-lenny.mcpb
+          generate_release_notes: true

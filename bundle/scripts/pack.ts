@@ -83,16 +83,15 @@ async function stageRuntimeAssets(): Promise<void> {
     );
   }
 
-  const topicsSrc = path.join(repoRoot, "knowledge", "topics");
-  const topicsDest = path.join(stagingRoot, "knowledge", "topics");
-  await fs.mkdir(topicsDest, { recursive: true });
-  for (const entry of await fs.readdir(topicsSrc, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-    if (entry.name.startsWith("_")) continue;
-    await fs.copyFile(
-      path.join(topicsSrc, entry.name),
-      path.join(topicsDest, entry.name),
-    );
+  for (const layer of ["topics", "obsolete", "cautions", "books"]) {
+    const src = path.join(repoRoot, "knowledge", layer);
+    const dest = path.join(stagingRoot, "knowledge", layer);
+    await fs.mkdir(dest, { recursive: true });
+    for (const entry of await fs.readdir(src, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+      if (entry.name.startsWith("_")) continue;
+      await fs.copyFile(path.join(src, entry.name), path.join(dest, entry.name));
+    }
   }
 }
 
