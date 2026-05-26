@@ -43,18 +43,22 @@
   <div class="pitfalls-error" id="ch-error" role="alert"></div>
 
   <div class="pitfalls-output" id="ch-output">
-    <p class="pitfalls-picks-header">You're here</p>
-    <p class="ch-stage-name" id="ch-stage-name"></p>
-    <p style="font-size:13px;color:#555;margin:6px 0 2px;">What placed you here:</p>
-    <ul class="ch-signals" id="ch-signals"></ul>
     <p class="pitfalls-narrate-hint" id="ch-narrate-hint">
       <span id="ch-hint-auto">Queueing your stage diagnosis in chat…</span>
-      <span id="ch-hint-staged" style="display:none;">Your diagnosis is rendering in chat below.</span>
+      <span id="ch-hint-staged" style="display:none;">Your diagnosis is rendering in chat below ↓</span>
       <span id="ch-hint-fallback" style="display:none;">
-        For the full diagnosis (the play for your next stage + how it usually goes wrong), ask Claude in chat:
+        Auto-narration unavailable, so here’s your raw placement. For the full diagnosis (the play for your next stage + how it usually goes wrong), ask Claude in chat:
         <strong>"read my chasm diagnosis"</strong>.
       </span>
     </p>
+    <!-- Deterministic stage placement, held back on the happy path so the chat
+         diagnosis is the deliverable; revealed only as a narration fallback. -->
+    <div class="ch-results" id="ch-results" hidden>
+      <p class="pitfalls-picks-header">You're here</p>
+      <p class="ch-stage-name" id="ch-stage-name"></p>
+      <p style="font-size:13px;color:#555;margin:6px 0 2px;">What placed you here:</p>
+      <ul class="ch-signals" id="ch-signals"></ul>
+    </div>
     <div class="pitfalls-actions">
       <button type="button" class="pitfalls-btn" id="ch-retake-btn">Start over</button>
     </div>
@@ -208,21 +212,37 @@
       list.appendChild(li);
     });
 
+    // Hold the deterministic placement back; the chat diagnosis is the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("ch-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("ch-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(scored);
   }
 
+  function resetNarrationHint() {
+    $("ch-hint-auto").style.display = "inline";
+    $("ch-hint-staged").style.display = "none";
+    $("ch-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("ch-results").hidden = false;
+  }
+
   function requestNarration(scored) {
     var auto = $("ch-hint-auto"), staged = $("ch-hint-staged"), fallback = $("ch-hint-fallback");
     if (scored && scored.persistence_warning) {
       auto.style.display = "none"; fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
-      auto.style.display = "none"; fallback.style.display = "inline"; return;
+      auto.style.display = "none"; fallback.style.display = "inline"; revealResults(); return;
     }
     window.mcp.sendMessage(
       "I just filled in the Crossing-the-Chasm stage finder in the embedded widget. " +
@@ -231,6 +251,7 @@
       .then(function () { auto.style.display = "none"; staged.style.display = "inline"; })
       .catch(function (err) {
         auto.style.display = "none"; fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -254,11 +275,10 @@
     $("ch-fields").innerHTML = "";
     buildForm(); updateSum();
     $("ch-output").classList.remove("visible");
+    $("ch-results").hidden = true;
     $("ch-validation").classList.remove("visible");
     clearError();
-    $("ch-hint-auto").style.display = "inline";
-    $("ch-hint-staged").style.display = "none";
-    $("ch-hint-fallback").style.display = "none";
+    resetNarrationHint();
     $("ch-form").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

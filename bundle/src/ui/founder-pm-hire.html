@@ -109,18 +109,22 @@
   <div class="fph-error" id="fph-error" role="alert"></div>
 
   <div class="fph-output" id="fph-output">
-    <p class="fph-verdict" id="fph-verdict"></p>
-    <p class="fph-playbook" id="fph-playbook"></p>
-
     <p class="fph-narrate-hint" id="fph-narrate-hint">
       <span id="fph-narrate-hint-auto">Queueing your reading in chat…</span>
       <span id="fph-narrate-hint-staged" style="display:none;">
-        Your full reading is rendering in chat below.
+        Your full reading is rendering in chat below ↓
       </span>
       <span id="fph-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in chat: <strong>"render my founder PM hire verdict"</strong>.
+        Auto-narration unavailable, so here’s your verdict. Ask Claude in chat: <strong>"render my founder PM hire verdict"</strong>.
       </span>
     </p>
+
+    <!-- Deterministic verdict, held back on the happy path so the chat reading
+         is the deliverable; revealed only as a narration fallback. -->
+    <div class="fph-results" id="fph-results" hidden>
+      <p class="fph-verdict" id="fph-verdict"></p>
+      <p class="fph-playbook" id="fph-playbook"></p>
+    </div>
 
     <div class="fph-actions">
       <button type="button" class="fph-btn" id="fph-reset-btn">Run again</button>
@@ -247,10 +251,25 @@
     $("fph-playbook").textContent = parsed.playbook
       ? "Interim playbook: " + parsed.playbook
       : "";
+    // Hold the deterministic verdict back; the chat reading is the deliverable.
+    // requestNarration() reveals it only on a narration fallback.
+    $("fph-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("fph-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(parsed);
+  }
+
+  function resetNarrationHint() {
+    $("fph-narrate-hint-auto").style.display = "inline";
+    $("fph-narrate-hint-staged").style.display = "none";
+    $("fph-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("fph-results").hidden = false;
   }
 
   function requestNarration(parsed) {
@@ -260,12 +279,14 @@
     if (parsed && parsed.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + parsed.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -276,6 +297,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -286,6 +308,8 @@
       if (el) el.value = "";
     });
     $("fph-output").classList.remove("visible");
+    $("fph-results").hidden = true;
+    resetNarrationHint();
     $("fph-validation").classList.remove("visible");
     clearError();
     updateSubmitState();

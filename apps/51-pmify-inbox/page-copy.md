@@ -36,7 +36,7 @@ User input is not stored. Per the plan's privacy posture: only the tool-invocati
 
 ### 2a. What this app does for you
 
-Paste a message from outside the office — your mother asking you to call more often, a friend wondering about Saturday, a teacher's note, a dentist reminder — and the app returns the corporate-PM-translated version you'd send a sales VP, with footnotes naming the bad-PM patterns each line triggers. A second mode goes the other way: paste a real work decline you sent recently and see what it sounds like in normal-human English. Built for the PM who has caught themselves typing "I'll need to deprioritize that ask" to their own family, and the family member who has noticed and wonders if it's a phase.
+Paste a message from outside the office — a neighbor asking if you can feed their cat, a friend wondering about Saturday, a landlord's note about the recycling, a dentist reminder — and the app returns the corporate-PM-translated version you'd send a sales VP, with footnotes naming the bad-PM patterns each line triggers. A second mode goes the other way: paste a real work decline you sent recently and see what it sounds like in normal-human English. Built for the PM who has caught themselves typing "I'll need to deprioritize that ask" to a friend, and the friend who has noticed and wonders if it's a phase.
 
 ### 2b. How it works
 

@@ -168,16 +168,18 @@
   <div class="aec-error" id="aec-error" role="alert"></div>
 
   <div class="aec-output" id="aec-output">
-    <p class="aec-confirm">Your scorecard is on its way.</p>
-    <ul class="aec-cat-list" id="aec-cat-list"></ul>
-
     <p class="aec-narrate-hint" id="aec-narrate-hint">
       <span id="aec-narrate-hint-auto">Queueing your scorecard in chat…</span>
-      <span id="aec-narrate-hint-staged" style="display:none;">Your scorecard is rendering in chat below.</span>
+      <span id="aec-narrate-hint-staged" style="display:none;">Your scorecard is rendering in chat below ↓</span>
       <span id="aec-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in chat: <strong>"score my eval coverage"</strong>.
+        Auto-narration unavailable. The scorecard is generated in chat — ask Claude: <strong>"score my eval coverage"</strong>. It covers:
       </span>
     </p>
+
+    <!-- The scorecard itself is the chat-side deliverable; this is only the
+         category list it covers. Held back so it doesn't pre-empt the
+         narration; revealed only as a narration fallback. -->
+    <ul class="aec-cat-list" id="aec-cat-list" hidden></ul>
 
     <div class="aec-actions">
       <button type="button" class="aec-btn" id="aec-reset-btn">Score another feature</button>
@@ -419,10 +421,25 @@
       li.textContent = "• " + c.label;
       list.appendChild(li);
     });
+    // Hold the category list back; the scorecard is the chat-side deliverable.
+    // requestNarration() reveals it only on a narration fallback.
+    $("aec-cat-list").hidden = true;
+    resetNarrationHint();
+
     var out = $("aec-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(parsed);
+  }
+
+  function resetNarrationHint() {
+    $("aec-narrate-hint-auto").style.display = "inline";
+    $("aec-narrate-hint-staged").style.display = "none";
+    $("aec-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("aec-cat-list").hidden = false;
   }
 
   function requestNarration(parsed) {
@@ -432,12 +449,14 @@
     if (parsed && parsed.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + parsed.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -448,6 +467,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -462,6 +482,8 @@
       }
     });
     $("aec-output").classList.remove("visible");
+    $("aec-cat-list").hidden = true;
+    resetNarrationHint();
     $("aec-validation").classList.remove("visible");
     clearError();
     updateState();

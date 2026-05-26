@@ -116,16 +116,20 @@
   <div class="act-error" id="act-error" role="alert"></div>
 
   <div class="act-output" id="act-output">
-    <span class="act-tag" id="act-shape-tag"></span><span class="act-ai-flag" id="act-ai-flag"></span>
-    <p class="act-family" id="act-family"></p>
-
     <p class="act-narrate-hint" id="act-narrate-hint">
       <span id="act-narrate-hint-auto">Queueing your candidates in chat…</span>
-      <span id="act-narrate-hint-staged" style="display:none;">Your activation candidates are rendering in chat below.</span>
+      <span id="act-narrate-hint-staged" style="display:none;">Your activation candidates are rendering in chat below ↓</span>
       <span id="act-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in chat: <strong>"find my activation event"</strong>.
+        Auto-narration unavailable, so here’s your raw shape. Ask Claude in chat: <strong>"find my activation event"</strong>.
       </span>
     </p>
+
+    <!-- Deterministic shape/family, held back on the happy path so the chat
+         candidates are the deliverable; revealed only as a narration fallback. -->
+    <div class="act-results" id="act-results" hidden>
+      <span class="act-tag" id="act-shape-tag"></span><span class="act-ai-flag" id="act-ai-flag"></span>
+      <p class="act-family" id="act-family"></p>
+    </div>
 
     <div class="act-actions">
       <button type="button" class="act-btn" id="act-reset-btn">Try a different shape</button>
@@ -318,10 +322,25 @@
     $("act-shape-tag").textContent = parsed.inputs.business_shape;
     $("act-ai-flag").textContent = parsed.ai_product_flagged ? "AI-product caveat applied" : "";
     $("act-family").textContent = "Family: " + parsed.activation_family + (parsed.has_funnel ? " (with funnel audit)" : "");
+    // Hold the deterministic shape/family back; the chat candidates are the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("act-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("act-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(parsed);
+  }
+
+  function resetNarrationHint() {
+    $("act-narrate-hint-auto").style.display = "inline";
+    $("act-narrate-hint-staged").style.display = "none";
+    $("act-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("act-results").hidden = false;
   }
 
   function requestNarration(parsed) {
@@ -331,12 +350,14 @@
     if (parsed && parsed.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + parsed.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -347,6 +368,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -365,6 +387,8 @@
       }
     });
     $("act-output").classList.remove("visible");
+    $("act-results").hidden = true;
+    resetNarrationHint();
     $("act-validation").classList.remove("visible");
     clearError();
     updateState();

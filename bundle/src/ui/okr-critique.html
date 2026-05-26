@@ -141,17 +141,20 @@
   <div class="okr-error" id="okr-error" role="alert"></div>
 
   <div class="okr-output" id="okr-output">
-    <p class="okr-confirm">Your critique is on its way.</p>
-    <p class="okr-parse" id="okr-parse"></p>
-    <p class="okr-parse" id="okr-too-many"></p>
-
     <p class="okr-narrate-hint" id="okr-narrate-hint">
       <span id="okr-narrate-hint-auto">Queueing your critique in chat…</span>
-      <span id="okr-narrate-hint-staged" style="display:none;">Your critique is rendering in chat below.</span>
+      <span id="okr-narrate-hint-staged" style="display:none;">Your critique is rendering in chat below ↓</span>
       <span id="okr-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in chat: <strong>"critique my OKRs"</strong>.
+        Auto-narration unavailable, so here’s what was parsed. The critique runs in chat — ask Claude: <strong>"critique my OKRs"</strong>.
       </span>
     </p>
+
+    <!-- Deterministic parse summary, held back on the happy path so the chat
+         critique is the deliverable; revealed only as a narration fallback. -->
+    <div class="okr-results" id="okr-results" hidden>
+      <p class="okr-parse" id="okr-parse"></p>
+      <p class="okr-parse" id="okr-too-many"></p>
+    </div>
 
     <div class="okr-actions">
       <button type="button" class="okr-btn" id="okr-reset-btn">Critique another set</button>
@@ -221,10 +224,25 @@
     } else {
       tooMany.textContent = "";
     }
+    // Hold the parse summary back; the chat critique is the deliverable.
+    // requestNarration() reveals it only on a narration fallback.
+    $("okr-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("okr-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(parsed);
+  }
+
+  function resetNarrationHint() {
+    $("okr-narrate-hint-auto").style.display = "inline";
+    $("okr-narrate-hint-staged").style.display = "none";
+    $("okr-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("okr-results").hidden = false;
   }
 
   function requestNarration(parsed) {
@@ -234,12 +252,14 @@
     if (parsed && parsed.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + parsed.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -250,6 +270,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -259,6 +280,8 @@
     $("okr-stance").value = "hybrid";
     $("okr-level").value = "team";
     $("okr-output").classList.remove("visible");
+    $("okr-results").hidden = true;
+    resetNarrationHint();
     $("okr-validation").classList.remove("visible");
     clearError();
     updateState();

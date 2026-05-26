@@ -61,13 +61,15 @@
 
         <p class="pmify-privacy">Your paste is not stored. The Translate button opens your input in Claude in a new tab.</p>
 
+        <p class="app-fullexp-lead">Want it on hand for good? <a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pmify-inbox" target="_blank" rel="noopener">Install the Claude Code skill ↗</a> · <a href="/install">Install the MCP app</a></p>
+
       </form>
 
       <!-- Block 2: Description -->
       <div class="pmify-description">
 
         <h2>What this app does for you</h2>
-        <p>Paste a message from outside the office — your mother asking you to call more often, a friend wondering about Saturday, a teacher's note, a dentist reminder — and the app returns the corporate-PM-translated version you'd send a sales VP, with footnotes naming the bad-PM patterns each line triggers. A second mode goes the other way: paste a real work decline you sent recently and see what it sounds like in normal-human English. Built for the PM who has caught themselves typing "I'll need to deprioritize that ask" to their own family, and the family member who has noticed and wonders if it's a phase.</p>
+        <p>Paste a message from outside the office — a neighbor asking if you can feed their cat, a friend wondering about Saturday, a landlord's note about the recycling, a dentist reminder — and the app returns the corporate-PM-translated version you'd send a sales VP, with footnotes naming the bad-PM patterns each line triggers. A second mode goes the other way: paste a real work decline you sent recently and see what it sounds like in normal-human English. Built for the PM who has caught themselves typing "I'll need to deprioritize that ask" to a friend, and the friend who has noticed and wonders if it's a phase.</p>
 
         <h2>How it works</h2>
         <p>Two modes share one prompt structure: translate the pasted message in one direction or the other, then footnote the output with citations from the corpus's pm-pitfalls, spotting-bad-pm-behaviors, saying-no, and process-vs-outcomes themes. The translation runs through Gemini Flash on the web, with the free-tier ceiling described in the foundation block. If it's hit, a single click hands the same translation off to Claude in your own subscription. Your pasted text is not stored; only the count of translations done that day, which is what the rate limit tracks.</p>
@@ -105,7 +107,7 @@
     // ───────────────────────────────────────────────────────────
     const PLACEHOLDERS = {
       'pm-ify': [
-        'Hey honey, can you call your mother on Sunday? She has been worried.',
+        'Hey, you have gone a bit quiet lately. Everything okay? Want to grab coffee this week?',
         'Hi! Are we still on for Saturday? Let me know what time works.',
         'Reminder: Dr. Smith on Thursday at 3pm. Please confirm.',
         'The grocery list is on the fridge. Don’t forget the milk this time.',

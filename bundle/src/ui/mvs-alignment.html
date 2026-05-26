@@ -99,16 +99,19 @@
   <div class="mvs-error" id="mvs-error" role="alert"></div>
 
   <div class="mvs-output" id="mvs-output">
-    <p class="mvs-confirm">Your alignment reading is on its way.</p>
-    <p class="mvs-vague" id="mvs-vague"></p>
-
     <p class="mvs-narrate-hint" id="mvs-narrate-hint">
       <span id="mvs-narrate-hint-auto">Queueing your alignment reading in chat…</span>
-      <span id="mvs-narrate-hint-staged" style="display:none;">Your alignment reading is rendering in chat below.</span>
+      <span id="mvs-narrate-hint-staged" style="display:none;">Your alignment reading is rendering in chat below ↓</span>
       <span id="mvs-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in chat: <strong>"render the drift map"</strong>.
+        Auto-narration unavailable. The reading runs in chat — ask Claude: <strong>"render the drift map"</strong>.
       </span>
     </p>
+
+    <!-- Deterministic heuristic flag, held back on the happy path so the chat
+         alignment reading is the deliverable; revealed only as a fallback. -->
+    <div class="mvs-results" id="mvs-results" hidden>
+      <p class="mvs-vague" id="mvs-vague"></p>
+    </div>
 
     <div class="mvs-actions">
       <button type="button" class="mvs-btn" id="mvs-reset-btn">Check a different set</button>
@@ -218,10 +221,25 @@
     } else {
       vague.textContent = "";
     }
+    // Hold the heuristic flag back; the chat alignment reading is the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("mvs-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("mvs-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(parsed);
+  }
+
+  function resetNarrationHint() {
+    $("mvs-narrate-hint-auto").style.display = "inline";
+    $("mvs-narrate-hint-staged").style.display = "none";
+    $("mvs-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("mvs-results").hidden = false;
   }
 
   function requestNarration(parsed) {
@@ -231,12 +249,14 @@
     if (parsed && parsed.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + parsed.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -247,6 +267,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -257,6 +278,8 @@
       if (el) el.value = "";
     });
     $("mvs-output").classList.remove("visible");
+    $("mvs-results").hidden = true;
+    resetNarrationHint();
     $("mvs-validation").classList.remove("visible");
     clearError();
     updateState();

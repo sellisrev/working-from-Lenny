@@ -232,23 +232,27 @@
   <div class="ladder-error" id="ladder-error" role="alert"></div>
 
   <div class="ladder-output" id="ladder-output">
-    <h2 class="ladder-effective" id="ladder-effective"></h2>
-    <p class="ladder-effective-title" id="ladder-effective-title"></p>
-
-    <table class="ladder-dims-table" id="ladder-dims-table">
-      <tbody id="ladder-dims-body"></tbody>
-    </table>
-
     <p class="ladder-narrate-hint" id="ladder-narrate-hint">
       <span id="ladder-narrate-hint-auto">Queueing your gap report in chat…</span>
       <span id="ladder-narrate-hint-staged" style="display:none;">
-        Your gap report is rendering in chat below.
+        Your gap report is rendering in chat below ↓
       </span>
       <span id="ladder-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. For your gap report, ask Claude in chat:
+        Auto-narration unavailable, so here’s your raw result. For your gap report, ask Claude in chat:
         <strong>"narrate my ladder"</strong>. The assistant uses your dimension levels + a corpus brief to render it.
       </span>
     </p>
+
+    <!-- Deterministic result, held back on the happy path so the chat gap
+         report is the deliverable; revealed only as a narration fallback. -->
+    <div class="ladder-results" id="ladder-results" hidden>
+      <h2 class="ladder-effective" id="ladder-effective"></h2>
+      <p class="ladder-effective-title" id="ladder-effective-title"></p>
+
+      <table class="ladder-dims-table" id="ladder-dims-table">
+        <tbody id="ladder-dims-body"></tbody>
+      </table>
+    </div>
 
     <div class="ladder-actions">
       <button type="button" class="ladder-btn" id="ladder-retake-btn">Retake assessment</button>
@@ -540,11 +544,26 @@
       body.appendChild(tr);
     });
 
+    // Hold the deterministic result back; the chat gap report is the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("ladder-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("ladder-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
 
     requestNarration(scored);
+  }
+
+  function resetNarrationHint() {
+    $("ladder-narrate-hint-auto").style.display = "inline";
+    $("ladder-narrate-hint-staged").style.display = "none";
+    $("ladder-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("ladder-results").hidden = false;
   }
 
   function requestNarration(scored) {
@@ -555,6 +574,7 @@
     if (scored && scored.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
@@ -562,6 +582,7 @@
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
 
@@ -577,6 +598,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -601,6 +623,8 @@
     current = 0;
     $("ladder-validation").classList.remove("visible");
     $("ladder-output").classList.remove("visible");
+    $("ladder-results").hidden = true;
+    resetNarrationHint();
     clearError();
     updateProgress();
     document.getElementById("ladder-form").scrollIntoView({ behavior: "smooth", block: "start" });

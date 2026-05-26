@@ -40,16 +40,20 @@
   <div class="pitfalls-error" id="sp-error" role="alert"></div>
 
   <div class="pitfalls-output" id="sp-output">
-    <p class="pitfalls-picks-header">Your power map</p>
-    <div id="sp-map"></div>
     <p class="pitfalls-narrate-hint" id="sp-narrate-hint">
       <span id="sp-hint-auto">Queueing your power-map reading in chat…</span>
-      <span id="sp-hint-staged" style="display:none;">Your reading is rendering in chat below.</span>
+      <span id="sp-hint-staged" style="display:none;">Your reading is rendering in chat below ↓</span>
       <span id="sp-hint-fallback" style="display:none;">
-        For the full reading (benefit-and-barrier per power + the test next quarter + the honest headline), ask Claude in chat:
+        Auto-narration unavailable, so here’s your raw map. For the full reading (benefit-and-barrier per power + the test next quarter + the honest headline), ask Claude in chat:
         <strong>"read my power map"</strong>.
       </span>
     </p>
+    <!-- Deterministic power map, held back on the happy path so the chat
+         reading is the deliverable; revealed only as a narration fallback. -->
+    <div class="sp-results" id="sp-results" hidden>
+      <p class="pitfalls-picks-header">Your power map</p>
+      <div id="sp-map"></div>
+    </div>
     <div class="pitfalls-actions">
       <button type="button" class="pitfalls-btn" id="sp-retake-btn">Start over</button>
     </div>
@@ -238,10 +242,25 @@
       map.appendChild(bucketEl(f.label, flagged.map(function (c) { return c.power_name; }), true));
     });
 
+    // Hold the deterministic map back; the chat reading is the deliverable.
+    // requestNarration() reveals it only on a narration fallback.
+    $("sp-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("sp-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(scored);
+  }
+
+  function resetNarrationHint() {
+    $("sp-hint-auto").style.display = "inline";
+    $("sp-hint-staged").style.display = "none";
+    $("sp-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("sp-results").hidden = false;
   }
 
   function bucketEl(label, names, isFlag) {
@@ -270,12 +289,14 @@
     if (scored && scored.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -287,6 +308,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -316,11 +338,10 @@
     $("sp-powers").innerHTML = "";
     buildForm();
     $("sp-output").classList.remove("visible");
+    $("sp-results").hidden = true;
     $("sp-validation").classList.remove("visible");
     clearError();
-    $("sp-hint-auto").style.display = "inline";
-    $("sp-hint-staged").style.display = "none";
-    $("sp-hint-fallback").style.display = "none";
+    resetNarrationHint();
     $("sp-form").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

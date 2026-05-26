@@ -107,14 +107,18 @@
   <div class="pitfalls-error" id="bi-error" role="alert"></div>
 
   <div class="pitfalls-output" id="bi-output">
-    <p class="bi-tier" id="bi-tier-text"></p>
-    <p class="bi-override-note" id="bi-override-note" style="display:none;">Your calendar looks manageable. The dread and no-good-day pairing matters more than the load numbers.</p>
-    <p id="bi-drivers" class="bi-drivers"></p>
     <p class="bi-narrate-hint" id="bi-narrate-hint">
       <span id="bi-narrate-hint-auto">Queueing your recovery prescription in chat&hellip;</span>
-      <span id="bi-narrate-hint-staged" style="display:none;">Your recovery prescription is rendering in chat below.</span>
-      <span id="bi-narrate-hint-fallback" style="display:none;">Auto-narration unavailable. Ask Claude in the chat: <strong>"read my burnout index"</strong>.</span>
+      <span id="bi-narrate-hint-staged" style="display:none;">Your recovery prescription is rendering in chat below &darr;</span>
+      <span id="bi-narrate-hint-fallback" style="display:none;">Auto-narration unavailable, so here&rsquo;s your raw index. Ask Claude in the chat: <strong>"read my burnout index"</strong>.</span>
     </p>
+    <!-- Deterministic index, held back on the happy path so the chat recovery
+         prescription is the deliverable; revealed only as a narration fallback. -->
+    <div class="bi-results" id="bi-results" hidden>
+      <p class="bi-tier" id="bi-tier-text"></p>
+      <p class="bi-override-note" id="bi-override-note" style="display:none;">Your calendar looks manageable. The dread and no-good-day pairing matters more than the load numbers.</p>
+      <p id="bi-drivers" class="bi-drivers"></p>
+    </div>
     <div class="pitfalls-actions">
       <button type="button" class="pitfalls-btn" id="bi-retake-btn">Retake</button>
     </div>
@@ -256,11 +260,26 @@
       });
     }
 
+    // Hold the deterministic index back; the chat recovery prescription is the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("bi-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("bi-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
 
     requestNarration(scored);
+  }
+
+  function resetNarrationHint() {
+    $("bi-narrate-hint-auto").style.display = "";
+    $("bi-narrate-hint-staged").style.display = "none";
+    $("bi-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("bi-results").hidden = false;
   }
 
   function requestNarration(scored) {
@@ -271,6 +290,7 @@
     if (scored && scored.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
@@ -278,6 +298,7 @@
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
 
@@ -292,6 +313,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -302,10 +324,9 @@
     ["bi-meetings","bi-deepwork","bi-afterhours","bi-vacation"].forEach(function (id) { $$(id).value = ""; });
     $$("bi-recovery").value = "";
     $("bi-output").classList.remove("visible");
+    $("bi-results").hidden = true;
     $("bi-override-note").style.display = "none";
-    $("bi-narrate-hint-auto").style.display = "";
-    $("bi-narrate-hint-staged").style.display = "none";
-    $("bi-narrate-hint-fallback").style.display = "none";
+    resetNarrationHint();
     clearError();
     $("bi-validation").classList.remove("visible");
     $("bi-form").scrollIntoView({ behavior: "smooth", block: "start" });

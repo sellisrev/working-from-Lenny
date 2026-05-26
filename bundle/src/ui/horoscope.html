@@ -187,21 +187,25 @@
   <div class="horoscope-error" id="horoscope-error" role="alert"></div>
 
   <div class="horoscope-output" id="horoscope-output">
-    <h2 class="horoscope-archetype-name" id="horoscope-archetype-name"></h2>
-    <p class="horoscope-archetype-meta" id="horoscope-archetype-virtue"></p>
-    <p class="horoscope-archetype-meta" id="horoscope-archetype-pitfall"></p>
-    <p class="horoscope-archetype-next" id="horoscope-archetype-next"></p>
-
     <p class="horoscope-narrate-hint" id="horoscope-narrate-hint">
       <span id="horoscope-narrate-hint-auto">Queueing your personalized reading in chat…</span>
       <span id="horoscope-narrate-hint-staged" style="display:none;">
-        Your personalized reading is rendering in chat below.
+        Your personalized reading is rendering in chat below ↓
       </span>
       <span id="horoscope-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. For a personalized reading, ask Claude in chat:
+        Auto-narration unavailable, so here’s your archetype. For a personalized reading, ask Claude in chat:
         <strong>"narrate my horoscope"</strong>. The assistant uses your archetype + today's reading + a corpus brief to render it.
       </span>
     </p>
+
+    <!-- Deterministic archetype reveal, held back on the happy path so the
+         chat reading is the deliverable; revealed only as a narration fallback. -->
+    <div class="horoscope-results" id="horoscope-results" hidden>
+      <h2 class="horoscope-archetype-name" id="horoscope-archetype-name"></h2>
+      <p class="horoscope-archetype-meta" id="horoscope-archetype-virtue"></p>
+      <p class="horoscope-archetype-meta" id="horoscope-archetype-pitfall"></p>
+      <p class="horoscope-archetype-next" id="horoscope-archetype-next"></p>
+    </div>
 
     <div class="horoscope-actions">
       <button type="button" class="horoscope-btn" id="horoscope-retake-btn">Retake quiz</button>
@@ -418,11 +422,26 @@
     $("horoscope-archetype-next").textContent =
       "If that doesn't fit, your runner-up was " + scored.next_archetype_name + ".";
 
+    // Hold the archetype reveal back; the chat reading is the deliverable.
+    // requestNarration() reveals it only on a narration fallback.
+    $("horoscope-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("horoscope-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
 
     requestNarration(scored);
+  }
+
+  function resetNarrationHint() {
+    $("horoscope-narrate-hint-auto").style.display = "inline";
+    $("horoscope-narrate-hint-staged").style.display = "none";
+    $("horoscope-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("horoscope-results").hidden = false;
   }
 
   function requestNarration(scored) {
@@ -433,6 +452,7 @@
     if (scored && scored.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
@@ -440,6 +460,7 @@
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
 
@@ -455,6 +476,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -478,6 +500,8 @@
     current = 0;
     $("horoscope-validation").classList.remove("visible");
     $("horoscope-output").classList.remove("visible");
+    $("horoscope-results").hidden = true;
+    resetNarrationHint();
     clearError();
     updateProgress();
     document.getElementById("horoscope-form").scrollIntoView({ behavior: "smooth", block: "start" });

@@ -21,6 +21,10 @@
   <style>
     .horoscope-reading-body { margin: 1.5rem 0 0.5rem; }
     .horoscope-reading-body p { margin: 0 0 0.75rem; line-height: 1.65; }
+    .horoscope-weather { font-style: italic; color: #555; font-size: 0.95rem; }
+    .horoscope-reading-nudge { }
+    .horoscope-reading-nudge .horoscope-nudge-label { font-weight: 600; }
+    .horoscope-reading-closer { font-style: italic; color: #444; }
     .horoscope-reading-topic { font-size: 0.875rem; color: #555; border-left: 3px solid #ccc; padding: 0.6rem 1rem; background: #f7f7f7; margin: 0; }
     .horoscope-link-btn { background: none; border: none; color: #1a56db; text-decoration: underline; cursor: pointer; padding: 0; font: inherit; }
     .horoscope-quiz { margin-top: 1.5rem; }
@@ -63,11 +67,16 @@
         </div>
         <div class="horoscope-reading-body" id="horoscope-reading-body" style="display:none"></div>
 
+        <p class="app-fullexp-lead">That’s your archetype, its virtue, and its pitfall. The full daily reading (today’s aspect, prediction, and nudge) is composed on demand. Get the full experience:</p>
         <div class="horoscope-actions">
+          <a href="#" class="horoscope-btn horoscope-btn-primary" id="horoscope-claude-btn" target="_blank" rel="noopener">Read it in Claude.ai ↗</a>
+          <a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pm-horoscope" class="horoscope-btn" target="_blank" rel="noopener">Install the Claude Code skill ↗</a>
+          <a href="/install" class="horoscope-btn">Install the MCP app</a>
+        </div>
+        <div class="horoscope-actions app-actions-secondary">
           <button type="button" class="horoscope-btn" id="horoscope-change-btn">← change archetype</button>
           <button type="button" class="horoscope-btn" id="horoscope-share-btn">share this reading</button>
           <span class="horoscope-share-confirm" id="horoscope-share-confirm" aria-live="polite">link copied</span>
-          <a href="#" class="horoscope-btn horoscope-btn-primary" id="horoscope-claude-btn" target="_blank" rel="noopener">want a longer reading?</a>
         </div>
       </section>
 
@@ -963,6 +972,76 @@
       return h;
     }
 
+    // ───────────────────────────────────────────────────────────
+    // Day-to-day flourishes — WEB PRESENTATION ONLY (not synced corpus data).
+    // These wrap the corpus slots (aspect/prediction/nudge/topic, which are the
+    // part kept in sync with bundle/.../horoscope-data.json) in horoscope
+    // framing that rotates by date, so a daily visitor keeps getting a fresh,
+    // funnier-shaped reading instead of the same "Today, …" wrapper. The MCP
+    // App gets its variation from the host model rendering the brief; this is
+    // the deterministic web equivalent. Add freely — they don't touch the
+    // synced data contract.
+    //
+    // OPENERS lead into the (lowercase) aspect line; NUDGE_LABELS label the
+    // action; CLOSERS are a parting flourish (all keyed by date+archetype).
+    // WEATHER is the day's shared "cosmic mood," keyed by date only so every
+    // sign reads the same forecast that day — like a real horoscope's weather.
+    var OPENERS = [
+      "The chart is unambiguous today: ",
+      "Reading your transits: ",
+      "The aspect that rules your day: ",
+      "Cast against today's sky: ",
+      "Today's configuration: ",
+      "The transit of the day: ",
+      "Your house of product hosts a visitor: ",
+      "The omens are in: ",
+      "What the cosmos and your calendar agree on: ",
+      "Drawn from today's sky: ",
+      "The planets, like your stakeholders, have aligned: ",
+      "Mercury is doing something, and so are you: "
+    ];
+    var NUDGE_LABELS = [
+      "Your rite for the day:",
+      "Today's offering:",
+      "The recommended ritual:",
+      "Do this within the hour:",
+      "Your move:",
+      "The transit favors one act:",
+      "Small ceremony, big delta:"
+    ];
+    var CLOSERS = [
+      "The transits favor shipping over polishing. Act accordingly.",
+      "Trust the evidence, not the loudest voice in the room.",
+      "What you protect today, next quarter thanks you for.",
+      "The bold reading: you already know the call. Make it before lunch.",
+      "Lucky if you keep it small. Unlucky if you call a meeting first.",
+      "Your fortune improves the moment you write it down.",
+      "Favor the customer who'll quote you on record over the one who tracked you down in Slack.",
+      "The stars are confident. They are also, like all forecasts, never actually predictive.",
+      "A good day to be useful rather than busy. Pick one task and finish it.",
+      "The omens reward the one no you actually mean.",
+      "Spend the day on the bet, not the deck about the bet.",
+      "Read the lucky topic below, then close the tab and go do the thing."
+    ];
+    var WEATHER = [
+      "Cosmic weather: a 'quick sync' will attempt to evolve into a recurring meeting. Resist.",
+      "Retrograde watch: a Slack thread will try to become a decision without anyone deciding.",
+      "The void-of-course hour lands during your focus block. Defend it like a roadmap.",
+      "Mercury retrograde in the backlog: an old ticket returns wearing a new label.",
+      "High pressure over the calendar today: three 'optional' invites, all somehow mandatory.",
+      "Gibbous moon, gibbous PRD: 80 percent done, and there it stays until you decide otherwise.",
+      "Fair winds for shipping; gusty conditions for anyone asking 'can we also just add…'.",
+      "A comet crosses your house of metrics. Someone will mistake a vanity number for a north star.",
+      "Eclipse season for the roadmap: something prominent gets quietly removed and no one mentions it.",
+      "The stars favor saying no. The stars have not met your stakeholders, but they are not wrong.",
+      "Turbulence near 2pm: a dashboard tells you something you already suspected and calls it a discovery.",
+      "Aligned planets, unaligned team. Only one of those is yours to fix today.",
+      "A meeting will end five minutes early. Treat this as the rare omen it is.",
+      "The cosmos advises the boring thing that works over the exciting thing in a deck.",
+      "Low visibility on the OKRs today. Proceed by instrument, not by vibes.",
+      "Saturn rewards the PM who writes the one-pager before calling the meeting, not after."
+    ];
+
     function composeReading(archetype, dateStr) {
       var data = HOROSCOPE_DATA[archetype.id];
       if (!data) return null;
@@ -974,9 +1053,13 @@
       var nudgeIdx = wflHash(dateStr + '::' + archetype.id + '::n') % data.nudges.length;
       var topicIdx = wflHash(dateStr + '::' + archetype.id + '::t') % data.topics.length;
       return {
+        weather: WEATHER[wflHash(dateStr + '::weather') % WEATHER.length],
+        opener: OPENERS[wflHash(dateStr + '::' + archetype.id + '::o') % OPENERS.length],
         aspect: aspect,
         prediction: data.predictions[predIdx],
+        nudgeLabel: NUDGE_LABELS[wflHash(dateStr + '::' + archetype.id + '::nl') % NUDGE_LABELS.length],
         nudge: data.nudges[nudgeIdx],
+        closer: CLOSERS[wflHash(dateStr + '::' + archetype.id + '::c') % CLOSERS.length],
         topic: data.topics[topicIdx]
       };
     }
@@ -1250,9 +1333,12 @@
       const placeholderEl = document.getElementById('horoscope-reading-placeholder');
       const composed = composeReading(a, isoToday());
       if (composed) {
-        const text = 'Today, ' + composed.aspect + '. ' + composed.prediction + ' ' + composed.nudge + '.';
+        var core = escHtml(composed.opener + composed.aspect) + '. ' + escHtml(composed.prediction);
         readingEl.innerHTML =
-          '<p class="horoscope-reading-text">' + escHtml(text) + '</p>' +
+          '<p class="horoscope-weather">' + escHtml(composed.weather) + '</p>' +
+          '<p class="horoscope-reading-text">' + core + '</p>' +
+          '<p class="horoscope-reading-nudge"><span class="horoscope-nudge-label">' + escHtml(composed.nudgeLabel) + '</span> ' + escHtml(composed.nudge) + '</p>' +
+          '<p class="horoscope-reading-closer">' + escHtml(composed.closer) + '</p>' +
           '<p class="horoscope-reading-topic">Lucky topic: <strong>' + escHtml(composed.topic) + '</strong></p>';
         readingEl.style.display = '';
         placeholderEl.style.display = 'none';

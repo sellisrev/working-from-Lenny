@@ -142,16 +142,20 @@
   <div class="nsm-error" id="nsm-error" role="alert"></div>
 
   <div class="nsm-output" id="nsm-output">
-    <span class="nsm-tag" id="nsm-shape-tag"></span>
-    <p class="nsm-family" id="nsm-family"></p>
-
     <p class="nsm-narrate-hint" id="nsm-narrate-hint">
       <span id="nsm-narrate-hint-auto">Queueing your candidates in chat…</span>
-      <span id="nsm-narrate-hint-staged" style="display:none;">Your NSM candidates are rendering in chat below.</span>
+      <span id="nsm-narrate-hint-staged" style="display:none;">Your NSM candidates are rendering in chat below ↓</span>
       <span id="nsm-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in chat: <strong>"find my NSM"</strong>.
+        Auto-narration unavailable, so here’s your raw shape. Ask Claude in chat: <strong>"find my NSM"</strong>.
       </span>
     </p>
+
+    <!-- Deterministic shape/family, held back on the happy path so the chat
+         candidates are the deliverable; revealed only as a narration fallback. -->
+    <div class="nsm-results" id="nsm-results" hidden>
+      <span class="nsm-tag" id="nsm-shape-tag"></span>
+      <p class="nsm-family" id="nsm-family"></p>
+    </div>
 
     <div class="nsm-actions">
       <button type="button" class="nsm-btn" id="nsm-reset-btn">Try another shape</button>
@@ -347,10 +351,26 @@
   function renderResult(parsed) {
     $("nsm-shape-tag").textContent = parsed.inputs.business_shape;
     $("nsm-family").textContent = "Family: " + parsed.nsm_family + (parsed.has_dashboard ? " (with dashboard audit)" : "");
+
+    // Hold the deterministic shape/family back; the chat candidates are the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("nsm-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("nsm-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
     requestNarration(parsed);
+  }
+
+  function resetNarrationHint() {
+    $("nsm-narrate-hint-auto").style.display = "inline";
+    $("nsm-narrate-hint-staged").style.display = "none";
+    $("nsm-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("nsm-results").hidden = false;
   }
 
   function requestNarration(parsed) {
@@ -360,12 +380,14 @@
     if (parsed && parsed.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + parsed.persistence_warning);
       return;
     }
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
     window.mcp.sendMessage(
@@ -376,6 +398,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -394,6 +417,8 @@
       }
     });
     $("nsm-output").classList.remove("visible");
+    $("nsm-results").hidden = true;
+    resetNarrationHint();
     $("nsm-validation").classList.remove("visible");
     clearError();
     updateState();

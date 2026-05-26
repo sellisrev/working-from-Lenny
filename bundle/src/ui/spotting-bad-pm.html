@@ -36,19 +36,23 @@
   <div class="pitfalls-error" id="spm-error" role="alert"></div>
 
   <div class="pitfalls-output" id="spm-output">
-    <p class="pitfalls-score" id="spm-tier-text"></p>
-    <p class="pitfalls-picks-header" id="spm-patterns-header"></p>
-    <ol class="pitfalls-picks" id="spm-patterns-list"></ol>
     <p class="pitfalls-narrate-hint" id="spm-narrate-hint">
       <span id="spm-narrate-hint-auto">Queueing your field-guide read in chat&hellip;</span>
       <span id="spm-narrate-hint-staged" style="display:none;">
-        Your field-guide read is rendering in chat below.
+        Your field-guide read is rendering in chat below &darr;
       </span>
       <span id="spm-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. Ask Claude in the chat:
+        Auto-narration unavailable, so here&rsquo;s your raw result. Ask Claude in the chat:
         <strong>"read my field guide"</strong>. The assistant uses your ratings and a corpus brief to render the diagnosis and next moves.
       </span>
     </p>
+    <!-- Deterministic result, held back on the happy path so the chat
+         field-guide read is the deliverable; revealed only as a fallback. -->
+    <div class="spm-results" id="spm-results" hidden>
+      <p class="pitfalls-score" id="spm-tier-text"></p>
+      <p class="pitfalls-picks-header" id="spm-patterns-header"></p>
+      <ol class="pitfalls-picks" id="spm-patterns-list"></ol>
+    </div>
     <div class="pitfalls-actions">
       <button type="button" class="pitfalls-btn" id="spm-retake-btn">Retake</button>
     </div>
@@ -307,11 +311,26 @@
       list.appendChild(li);
     });
 
+    // Hold the deterministic result back; the chat field-guide read is the
+    // deliverable. requestNarration() reveals it only on a narration fallback.
+    $("spm-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("spm-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
 
     requestNarration(scored);
+  }
+
+  function resetNarrationHint() {
+    $("spm-narrate-hint-auto").style.display = "inline";
+    $("spm-narrate-hint-staged").style.display = "none";
+    $("spm-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("spm-results").hidden = false;
   }
 
   function requestNarration(scored) {
@@ -322,6 +341,7 @@
     if (scored && scored.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
@@ -329,6 +349,7 @@
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
 
@@ -343,6 +364,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -366,6 +388,8 @@
     current = 0;
     $("spm-validation").classList.remove("visible");
     $("spm-output").classList.remove("visible");
+    $("spm-results").hidden = true;
+    resetNarrationHint();
     clearError();
     updateProgress();
     document.getElementById("spm-form").scrollIntoView({ behavior: "smooth", block: "start" });

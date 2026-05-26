@@ -36,19 +36,28 @@
   <div class="pitfalls-error" id="pitfalls-error" role="alert"></div>
 
   <div class="pitfalls-output" id="pitfalls-output">
-    <p class="pitfalls-score" id="pitfalls-score-text"></p>
-    <p class="pitfalls-picks-header" id="pitfalls-picks-header"></p>
-    <ol class="pitfalls-picks" id="pitfalls-picks-list"></ol>
     <p class="pitfalls-narrate-hint" id="pitfalls-narrate-hint">
       <span id="pitfalls-narrate-hint-auto">Queueing your personalized read in chat…</span>
       <span id="pitfalls-narrate-hint-staged" style="display:none;">
-        Your personalized read is rendering in chat below.
+        Your personalized read is rendering in chat below ↓
       </span>
       <span id="pitfalls-narrate-hint-fallback" style="display:none;">
-        Auto-narration unavailable. For a personalized read of your top three, ask Claude in the chat:
+        Auto-narration unavailable, so here’s your raw result. For the personalized read of your top three, ask Claude in the chat:
         <strong>"narrate my pitfalls"</strong>. The assistant uses your answers and a corpus brief to render the diagnosis.
       </span>
     </p>
+
+    <!-- Deterministic result. Held back on the happy path so the chat
+         narration is the user's deliverable (the score/picks would pre-empt
+         it). Revealed only as a fallback when narration can't run — see
+         requestNarration(). On the website, where there is no chat-side
+         Claude, this same result is shown immediately as the quiz answer. -->
+    <div class="pitfalls-results" id="pitfalls-results" hidden>
+      <p class="pitfalls-score" id="pitfalls-score-text"></p>
+      <p class="pitfalls-picks-header" id="pitfalls-picks-header"></p>
+      <ol class="pitfalls-picks" id="pitfalls-picks-list"></ol>
+    </div>
+
     <div class="pitfalls-actions">
       <button type="button" class="pitfalls-btn" id="pitfalls-drift-btn">Compare to my last audit</button>
       <button type="button" class="pitfalls-btn" id="pitfalls-retake-btn">Retake</button>
@@ -314,11 +323,27 @@
       list.appendChild(li);
     }
 
+    // Hold the deterministic result back and reset the hint to its pending
+    // state. The chat narration is the deliverable; requestNarration() reveals
+    // the result only if the narration handoff can't happen.
+    $("pitfalls-results").hidden = true;
+    resetNarrationHint();
+
     var out = $("pitfalls-output");
     out.classList.add("visible");
     out.scrollIntoView({ behavior: "smooth", block: "start" });
 
     requestNarration(scored);
+  }
+
+  function resetNarrationHint() {
+    $("pitfalls-narrate-hint-auto").style.display = "inline";
+    $("pitfalls-narrate-hint-staged").style.display = "none";
+    $("pitfalls-narrate-hint-fallback").style.display = "none";
+  }
+
+  function revealResults() {
+    $("pitfalls-results").hidden = false;
   }
 
   function requestNarration(scored) {
@@ -334,6 +359,7 @@
     if (scored && scored.persistence_warning) {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       showError("Auto-narration unavailable: " + scored.persistence_warning);
       return;
     }
@@ -341,6 +367,7 @@
     if (typeof window.mcp.sendMessage !== "function") {
       auto.style.display = "none";
       fallback.style.display = "inline";
+      revealResults();
       return;
     }
 
@@ -362,6 +389,7 @@
       .catch(function (err) {
         auto.style.display = "none";
         fallback.style.display = "inline";
+        revealResults();
         showError("Auto-narration request failed: " + (err && err.message ? err.message : String(err)));
       });
   }
@@ -432,6 +460,8 @@
     current = 0;
     $("pitfalls-validation").classList.remove("visible");
     $("pitfalls-output").classList.remove("visible");
+    $("pitfalls-results").hidden = true;
+    resetNarrationHint();
     clearError();
     updateProgress();
     document.getElementById("pitfalls-form").scrollIntoView({ behavior: "smooth", block: "start" });

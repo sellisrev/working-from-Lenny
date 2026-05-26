@@ -1113,6 +1113,56 @@ footer .sep {
   color: #1a1a1a;
 }
 
+.pitfalls-btn-primary {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+
+.pitfalls-btn-primary:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+/* "Get the full experience" block, shown below the deterministic result */
+.pitfalls-fullexp-lead {
+  font-size: 0.9375rem;
+  color: #444;
+  line-height: 1.55;
+  margin: 1.75rem 0 0;
+}
+
+.pitfalls-actions-secondary {
+  margin-top: 0.85rem;
+}
+
+/* Shared "get the full experience" block, reused across app pages
+   (.ladder-*, .fph-*, .horoscope-*). Pair .app-btn-primary with the page's
+   own base button class (e.g. class="ladder-btn app-btn-primary"). */
+.app-fullexp-lead {
+  font-size: 0.9375rem;
+  color: #444;
+  line-height: 1.55;
+  margin: 1.75rem 0 0;
+}
+
+.app-btn-primary {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+
+.app-btn-primary:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+.app-actions-secondary {
+  margin-top: 0.85rem;
+}
+
 .pitfalls-share-confirm {
   font-size: 0.8rem;
   color: #666;

@@ -50,11 +50,18 @@
         <ol class="pitfalls-picks" id="pitfalls-picks-list">
           <!-- Items built by JS -->
         </ol>
-        <div class="pitfalls-actions">
-          <button type="button" class="pitfalls-btn" id="pitfalls-share-btn">share this result</button>
-          <span class="pitfalls-share-confirm" id="pitfalls-share-confirm" aria-live="polite">link copied</span>
-          <a href="#" class="pitfalls-btn" id="pitfalls-claude-btn" target="_blank" rel="noopener">fuller reading in Claude</a>
-          <button type="button" class="pitfalls-btn" id="pitfalls-retake-btn">retake</button>
+        <div class="pitfalls-fullexp">
+          <p class="pitfalls-fullexp-lead">That’s your deterministic read: your score and the three highest-leverage pitfalls to fix this quarter. For the full personalized narration (a corpus-grounded diagnosis of each, two behaviors to start practicing, and what the pitfall has cost real PMs), take it into Claude:</p>
+          <div class="pitfalls-actions">
+            <a href="#" class="pitfalls-btn pitfalls-btn-primary" id="pitfalls-claude-btn" target="_blank" rel="noopener">Read it in Claude.ai ↗</a>
+            <a href="https://github.com/sellisrev/working-from-Lenny/tree/main/skills/pm-pitfalls" class="pitfalls-btn" target="_blank" rel="noopener">Install the Claude Code skill ↗</a>
+            <a href="/install" class="pitfalls-btn">Install the MCP app</a>
+          </div>
+          <div class="pitfalls-actions pitfalls-actions-secondary">
+            <button type="button" class="pitfalls-btn" id="pitfalls-share-btn">share this result</button>
+            <span class="pitfalls-share-confirm" id="pitfalls-share-confirm" aria-live="polite">link copied</span>
+            <button type="button" class="pitfalls-btn" id="pitfalls-retake-btn">retake</button>
+          </div>
         </div>
       </div>
 
