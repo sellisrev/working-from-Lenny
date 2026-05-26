@@ -56,14 +56,20 @@ If the user answered "never" to everything (all weights 0), return the three hig
 ## Corpus anchors
 
 Read the relevant files directly for the picked pitfalls; do not re-extract, the files are already syntheses:
-- `knowledge/topics/pm-pitfalls.md`, `knowledge/topics/spotting-bad-pm-behaviors.md` (core)
-- `knowledge/topics/evals-for-ai-products.md`, `ai-pm-skills.md` (pitfalls 1-2)
-- `knowledge/topics/continuous-discovery.md` (3, 10, 14)
-- `knowledge/topics/product-strategy.md`, `good-strategy-rumelt.md` (4)
-- `knowledge/topics/defending-big-bets.md` (5, 8, 17)
-- `knowledge/topics/okrs.md` (7), `velocity-core4.md` (9, 15)
-- `knowledge/topics/saying-no.md` (13), `top-1-percent-pm.md` (18, 20)
-Check `knowledge/obsolete/<slug>.md` and `knowledge/cautions/<slug>.md` for each; surface decay/flags inline.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md (core)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/spotting-bad-pm-behaviors.md (core)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/evals-for-ai-products.md (pitfalls 1-2)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/ai-pm-skills.md (pitfalls 1-2)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/continuous-discovery.md (3, 10, 14)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/product-strategy.md (4)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/good-strategy-rumelt.md (4)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/defending-big-bets.md (5, 8, 17)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/okrs.md (7)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/velocity-core4.md (9, 15)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md (13)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/top-1-percent-pm.md (18, 20)
+
+Check obsolete/caution layers for each; surface decay/flags inline.
 
 ## Output
 

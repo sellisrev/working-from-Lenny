@@ -40,9 +40,28 @@ Median (not average) so a single outlier doesn't distort. Report both numbers pe
 
 ## Corpus anchors
 
-- Scope/influence: `knowledge/topics/pm-career-ladders.md`, `becoming-senior-pm.md`, `pm-promotion.md`, `pm-influence.md`, `managing-up.md`
-- Ambiguity/judgment: `decision-making-frameworks.md`, `evaluating-product-bets.md`, `pivots-art.md`, `prioritization-frameworks.md`, `top-1-percent-pm.md`
-- Craft: `prds-and-1-pagers.md`, `continuous-discovery.md`, `working-with-pms-as-data.md`, `working-with-pms-as-designer.md`, `working-with-pms-as-engineer.md`, `evals-for-ai-products.md`, `ai-pm-skills.md`
+Scope/influence:
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-career-ladders.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/becoming-senior-pm.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-promotion.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-influence.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/managing-up.md
+
+Ambiguity/judgment:
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/decision-making-frameworks.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/evaluating-product-bets.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pivots-art.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/prioritization-frameworks.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/top-1-percent-pm.md
+
+Craft:
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/prds-and-1-pagers.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/continuous-discovery.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/working-with-pms-as-data.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/working-with-pms-as-designer.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/working-with-pms-as-engineer.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/evals-for-ai-products.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/ai-pm-skills.md
 
 Read only the anchors for the dimensions in the gap report. Check obsolete/caution layers.
 

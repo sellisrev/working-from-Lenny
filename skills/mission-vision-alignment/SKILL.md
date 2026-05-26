@@ -50,7 +50,14 @@ Vision and mission are not strategy documents and are not held to this test.
 
 ## Corpus anchors
 
-`knowledge/topics/mission-vision-strategy.md`, `good-strategy-rumelt.md` (the diagnosis test), `product-strategy.md`, `pm-pitfalls.md` (corporate-jargon pattern), `defending-big-bets.md` + `getting-buy-in.md` (operational gaps). All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/mission-vision-strategy.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/good-strategy-rumelt.md (the diagnosis test)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/product-strategy.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md (corporate-jargon pattern)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/defending-big-bets.md (operational gaps)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/getting-buy-in.md (operational gaps)
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 

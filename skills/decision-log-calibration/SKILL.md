@@ -49,7 +49,11 @@ Keep the log at `knowledge/decision-log/<user>.json` = `{schema_version, entries
 
 ## Corpus anchors
 
-`knowledge/topics/decision-making-frameworks.md`, `evaluating-product-bets.md`, `defending-big-bets.md` (first-principles available as a fourth). All verified present. Use for the per-type "what this miscalibration costs you" line and the one habit that narrows the gap.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/decision-making-frameworks.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/evaluating-product-bets.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/defending-big-bets.md (first-principles available as a fourth)
+
+All verified present. Use for the per-type "what this miscalibration costs you" line and the one habit that narrows the gap.
 
 ## Output (the calibrate read)
 

@@ -53,7 +53,13 @@ For each power classified HAS EVIDENCE or PLAUSIBLE, name one observable signal 
 
 ## Corpus anchors
 
-`knowledge/topics/seven-powers.md` (primary, benefit+barrier framing), `good-strategy-rumelt.md`, `distribution-as-moat.md`, `ai-data-as-moat.md`, `category-creation.md`. All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/seven-powers.md (primary, benefit+barrier framing)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/good-strategy-rumelt.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/distribution-as-moat.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/ai-data-as-moat.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/category-creation.md
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 

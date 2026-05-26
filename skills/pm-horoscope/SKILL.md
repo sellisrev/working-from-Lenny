@@ -62,7 +62,7 @@ Today, [ASPECT]. [PREDICTION]. [NUDGE].
 Lucky topic file: [TOPIC_FILE].
 ```
 
-Same archetype + same date always produces the same reading. The lucky topic links to the matching corpus page (GitHub raw file for the skills-library audience: `https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/<slug>.md`).
+Same archetype + same date always produces the same reading. The lucky topic links to the matching corpus page: `https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/<slug>.md`.
 
 ## Corpus anchors
 

@@ -55,7 +55,12 @@ Ordered, not a menu. Selected by which inputs scored highest:
 
 ## Corpus anchors
 
-`knowledge/topics/burnout-and-resilience.md`, `long-healthy-life.md`, `saying-no.md`, `top-1-percent-pm.md`. All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/burnout-and-resilience.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/long-healthy-life.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/top-1-percent-pm.md
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 

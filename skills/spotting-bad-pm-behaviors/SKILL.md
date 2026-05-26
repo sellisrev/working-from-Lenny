@@ -67,7 +67,18 @@ Anchor the scripts in `getting-buy-in.md` (how to raise it), `communicating-bad-
 
 ## Corpus anchors
 
-`knowledge/topics/spotting-bad-pm-behaviors.md` (primary, Camille Fournier's engineer-side complaints as the spine), `pm-pitfalls.md`, `continuous-discovery.md`, `saying-no.md`, `defending-big-bets.md`, `decision-making-frameworks.md`, `top-1-percent-pm.md`, `getting-buy-in.md`, `communicating-bad-news.md`, `managing-up.md`. All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/spotting-bad-pm-behaviors.md (primary, Camille Fournier's engineer-side complaints as the spine)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/continuous-discovery.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/defending-big-bets.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/decision-making-frameworks.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/top-1-percent-pm.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/getting-buy-in.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/communicating-bad-news.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/managing-up.md
+
+All verified present. Check obsolete/caution layers.
 
 ## Scope guardrail
 

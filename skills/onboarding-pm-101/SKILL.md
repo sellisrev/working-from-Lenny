@@ -42,7 +42,21 @@ Role tailoring and the full per-lesson content live in `apps/30-onboarding-pm-10
 
 ## Corpus anchors
 
-`knowledge/topics/how-x-builds-product.md`, `product-strategy.md`, `okrs.md`, `getting-buy-in.md`, `communicating-tradeoffs.md`, `saying-no.md`, `top-1-percent-pm.md`, `spotting-bad-pm-behaviors.md`, `pm-pitfalls.md`, `continuous-discovery.md`, `communicating-bad-news.md`, `managing-up.md`, `decision-making-frameworks.md`. All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/how-x-builds-product.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/product-strategy.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/okrs.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/getting-buy-in.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/communicating-tradeoffs.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/top-1-percent-pm.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/spotting-bad-pm-behaviors.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/continuous-discovery.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/communicating-bad-news.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/managing-up.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/decision-making-frameworks.md
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 

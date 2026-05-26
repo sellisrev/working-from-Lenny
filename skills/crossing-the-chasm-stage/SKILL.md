@@ -65,7 +65,13 @@ tornado -> main street:   defend share, segment, extend whole product.
 
 ## Corpus anchors
 
-`knowledge/topics/crossing-the-chasm.md` (primary, Moore), `category-creation.md`, `consumer-business-stages.md`, `b2b-pmf.md`, `gtm-motions.md`. All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/crossing-the-chasm.md (primary, Moore)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/category-creation.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/consumer-business-stages.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/b2b-pmf.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/gtm-motions.md
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 

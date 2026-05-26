@@ -42,7 +42,12 @@ fournier mode: the user states their intended opening; contrast it with canonica
 
 ## Corpus anchors
 
-`knowledge/topics/difficult-conversations.md`, `communicating-bad-news.md`, `giving-feedback-as-leader.md`, `performance-reviews.md`. All verified present. Read the anchors for the chosen scenario; the silence emphasis comes from difficult-conversations + communicating-bad-news.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/difficult-conversations.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/communicating-bad-news.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/giving-feedback-as-leader.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/performance-reviews.md
+
+All verified present. Read the anchors for the chosen scenario; the silence emphasis comes from difficult-conversations + communicating-bad-news.
 
 ## Output (after the rehearsal closes)
 

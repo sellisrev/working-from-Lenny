@@ -51,7 +51,12 @@ Per pasted line: `closest-to-NSM` (time-based aggregates of value-moments), `use
 
 ## Corpus anchors
 
-`knowledge/topics/north-star-metric.md` (primary), `activation-metric.md`, `growth-loops.md` (Sean Ellis / Hila Qu / Andrew Chen framings), `pm-pitfalls.md` (gameability). All verified present. Check `knowledge/obsolete/` and `knowledge/cautions/` for each and surface decay or flags inline.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/north-star-metric.md (primary)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/activation-metric.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/growth-loops.md (Sean Ellis / Hila Qu / Andrew Chen framings)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md (gameability)
+
+All verified present. Check obsolete/caution layers for each and surface decay or flags inline.
 
 ## Output
 

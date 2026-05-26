@@ -56,7 +56,10 @@ Pattern-match against the corpus exemplars (Aman Khan: "evals are unit tests for
 
 ## Corpus anchors
 
-`knowledge/topics/evals-for-ai-products.md` (primary, Aman Khan), `ai-pm-skills.md` (Hamel Husain). Both verified present. Check obsolete/caution layers and surface inline.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/evals-for-ai-products.md (primary, Aman Khan)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/ai-pm-skills.md (Hamel Husain)
+
+Both verified present. Check obsolete/caution layers and surface inline.
 
 ## Output
 

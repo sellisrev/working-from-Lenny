@@ -66,7 +66,13 @@ show-me mode: skip 1-5, go straight to 6.
 
 ## Corpus anchors
 
-`knowledge/topics/saying-no.md`, `communicating-tradeoffs.md`, `getting-buy-in.md`, `managing-up.md`, `defending-big-bets.md`. All verified present. Read the anchors for the chosen stakeholder before the canonical no.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/communicating-tradeoffs.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/getting-buy-in.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/managing-up.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/defending-big-bets.md
+
+All verified present. Read the anchors for the chosen stakeholder before the canonical no.
 
 ## Output (after the rehearsal closes)
 

@@ -39,7 +39,12 @@ After the translation, on a new line, output 2-4 footnotes naming the bad-PM pat
 
 ## Corpus anchors
 
-`knowledge/topics/pm-pitfalls.md`, `spotting-bad-pm-behaviors.md`, `saying-no.md`. The "process-vs-outcomes" theme named in the original spec has no standalone file; it maps to `velocity-core4.md` (the same substitution established for #53). All four verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/spotting-bad-pm-behaviors.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/velocity-core4.md (the "process-vs-outcomes" theme; substitution established for #53)
+
+All four verified present. Check obsolete/caution layers.
 
 ## Voice rules
 

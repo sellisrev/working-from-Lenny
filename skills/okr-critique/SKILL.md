@@ -54,7 +54,12 @@ Are the objectives mutually compatible? Any KR claimed by two objectives? Would 
 
 ## Corpus anchors
 
-`knowledge/topics/okrs.md` (primary, Doerr's outcome framing + the corpus's split opinion on OKRs as theatre + when-not-to-use), `pm-pitfalls.md` (OKRs as activity lists), `getting-buy-in.md` (cross-team dependency framing), `north-star-metric.md` (measurability). All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/okrs.md (primary, Doerr's outcome framing + the corpus's split opinion on OKRs as theatre + when-not-to-use)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md (OKRs as activity lists)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/getting-buy-in.md (cross-team dependency framing)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/north-star-metric.md (measurability)
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 

@@ -49,7 +49,14 @@ Per step: `value-moment` (the user does what the product promises), `friction-fi
 
 ## Corpus anchors
 
-`knowledge/topics/activation-metric.md` (primary, Lauryn Isford onboarding-mastery + Cat Wu wow-vs-aha), `retention.md`, `cohort-retention.md`, `hierarchy-of-engagement.md`, `marketplace-metrics.md` (marketplace shape), `pm-pitfalls.md` (gameability). All verified present. Check obsolete/caution layers and surface inline. Cite the Cat Wu wow-vs-aha framing from `activation-metric.md` only.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/activation-metric.md (primary, Lauryn Isford onboarding-mastery + Cat Wu wow-vs-aha)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/retention.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/cohort-retention.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/hierarchy-of-engagement.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/marketplace-metrics.md (marketplace shape)
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/pm-pitfalls.md (gameability)
+
+All verified present. Check obsolete/caution layers and surface inline. Cite the Cat Wu wow-vs-aha framing from activation-metric.md only.
 
 ## Output
 

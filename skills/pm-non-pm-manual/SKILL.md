@@ -43,7 +43,16 @@ A shared stakeholder anchor (`getting-buy-in`, plus `okrs` for the research-lab 
 
 ## Corpus anchors
 
-`knowledge/topics/jobs-to-be-done.md`, `continuous-discovery.md`, `prioritization-frameworks.md`, `decision-making-frameworks.md`, `saying-no.md`, `communicating-tradeoffs.md`, `okrs.md`, `getting-buy-in.md`. All verified present. Check obsolete/caution layers.
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/jobs-to-be-done.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/continuous-discovery.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/prioritization-frameworks.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/decision-making-frameworks.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/saying-no.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/communicating-tradeoffs.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/okrs.md
+- https://github.com/sellisrev/working-from-Lenny/blob/main/knowledge/topics/getting-buy-in.md
+
+All verified present. Check obsolete/caution layers.
 
 ## Output
 
